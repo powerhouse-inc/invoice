@@ -1,6 +1,6 @@
 {
-  "name": "invoice",
-  "version": "1.0.0",
+  "name": "@liberuum-org/invoice",
+  "version": "0.0.3",
   "license": "AGPL-3.0-only",
   "types": "dist/index.d.ts",
   "main": "dist/cjs/index.js",
@@ -9,6 +9,9 @@
   "files": [
     "/dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

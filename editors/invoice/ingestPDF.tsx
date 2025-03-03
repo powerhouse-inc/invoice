@@ -32,7 +32,7 @@ export default function PDFUploader({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     changeDropdownOpen(false);
 
@@ -94,7 +94,7 @@ export default function PDFUploader({
               dateDue:
                 invoiceData.dateDue || new Date().toISOString().split("T")[0],
               currency: invoiceData.currency || "USD",
-            })
+            }),
           );
 
           // If we have line items, dispatch them
@@ -111,7 +111,7 @@ export default function PDFUploader({
                   unitPriceTaxIncl: item.unitPriceTaxIncl,
                   totalPriceTaxExcl: item.totalPriceTaxExcl,
                   totalPriceTaxIncl: item.totalPriceTaxIncl,
-                })
+                }),
               );
             });
           }
@@ -131,7 +131,7 @@ export default function PDFUploader({
                 tel: invoiceData.issuer.contactInfo?.tel || "",
                 email: invoiceData.issuer.contactInfo?.email || "",
                 id: invoiceData.issuer.id?.taxId || "",
-              })
+              }),
             );
 
             // Add bank information dispatch
@@ -150,7 +150,7 @@ export default function PDFUploader({
                   beneficiary:
                     invoiceData.issuer.paymentRouting.bank.beneficiary || "",
                   memo: invoiceData.issuer.paymentRouting.bank.memo || "",
-                })
+                }),
               );
             }
 
@@ -165,7 +165,7 @@ export default function PDFUploader({
                   chainName:
                     invoiceData.issuer.paymentRouting.wallet.chainName || "",
                   rpc: invoiceData.issuer.paymentRouting.wallet.rpc || "",
-                })
+                }),
               );
             }
           }
@@ -185,7 +185,7 @@ export default function PDFUploader({
                 tel: invoiceData.payer.contactInfo?.tel || "",
                 email: invoiceData.payer.contactInfo?.email || "",
                 id: invoiceData.payer.id?.taxId || "",
-              })
+              }),
             );
 
             // Add payer bank information if present
@@ -204,7 +204,7 @@ export default function PDFUploader({
                   beneficiary:
                     invoiceData.payer.paymentRouting.bank.beneficiary || "",
                   memo: invoiceData.payer.paymentRouting.bank.memo || "",
-                })
+                }),
               );
             }
 
@@ -219,7 +219,7 @@ export default function PDFUploader({
                   chainName:
                     invoiceData.payer.paymentRouting.wallet.chainName || "",
                   rpc: invoiceData.payer.paymentRouting.wallet.rpc || "",
-                })
+                }),
               );
             }
           }
@@ -235,7 +235,7 @@ export default function PDFUploader({
               "Error extracting data from PDF",
             {
               type: "error",
-            }
+            },
           );
           setIsLoading(false);
         }
