@@ -1,0 +1,302 @@
+scalar Amount_Tokens
+scalar EthereumAddress
+scalar Amount_Percentage
+scalar EmailAddress
+scalar Date
+scalar DateTime
+scalar URL
+scalar Amount_Money
+scalar OLabel
+scalar Currency
+scalar PHID
+scalar OID
+type InvoiceState {
+  invoiceNo: String!
+  dateIssued: String!
+  dateDue: String!
+  dateDelivered: String
+  status: Status!
+  refs: [Ref!]!
+  issuer: LegalEntity!
+  payer: LegalEntity!
+  currency: String!
+  lineItems: [InvoiceLineItem!]!
+  totalPriceTaxExcl: Float!
+  totalPriceTaxIncl: Float!
+}
+
+type Ref {
+  id: OID!
+  value: String!
+}
+
+type Token {
+  evmAddress: String
+  symbol: String
+  chainName: String
+  chainId: String
+  rpc: String
+}
+
+type LegalEntity {
+  id: LegalEntityId
+  name: String
+  address: Address
+  contactInfo: ContactInfo
+  country: String
+  paymentRouting: PaymentRouting
+}
+
+type Address {
+  streetAddress: String
+  extendedAddress: String
+  city: String
+  postalCode: String
+  country: String
+  stateProvince: String
+}
+
+type ContactInfo {
+  tel: String
+  email: String
+}
+
+type PaymentRouting {
+  bank: Bank
+  wallet: InvoiceWallet
+}
+
+type Bank {
+  name: String!
+  address: Address!
+  ABA: String
+  BIC: String
+  SWIFT: String
+  accountNum: String!
+  accountType: AccountType
+  beneficiary: String
+  intermediaryBank: IntermediaryBank
+  memo: String
+}
+
+type IntermediaryBank {
+  name: String!
+  address: Address!
+  ABA: String
+  BIC: String
+  SWIFT: String
+  accountNum: String!
+  accountType: AccountType
+  beneficiary: String
+  memo: String
+}
+
+type InvoiceWallet {
+  rpc: String
+  chainName: String
+  chainId: String
+  address: String
+}
+
+type InvoiceLineItem {
+  id: OID!
+  description: String!
+  taxPercent: Float!
+  quantity: Float!
+  currency: String!
+  unitPriceTaxExcl: Float!
+  unitPriceTaxIncl: Float!
+  totalPriceTaxExcl: Float!
+  totalPriceTaxIncl: Float!
+}
+
+union LegalEntityId = LegalEntityTaxId | LegalEntityCorporateRegistrationId
+
+type LegalEntityTaxId {
+  taxId: String!
+}
+
+type LegalEntityCorporateRegistrationId {
+  corpRegId: String!
+}
+
+enum Status {
+  DRAFT
+  ISSUED
+  ACCEPTED
+  REJECTED
+  PAID
+}
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+  TRUST
+  WALLET
+}
+
+
+
+# general
+
+input EditInvoiceInput {
+    invoiceNo: String
+    dateIssued: String
+    dateDue: String
+    dateDelivered: String
+    currency: String
+}
+
+input EditStatusInput {
+    status: Status!
+}
+
+input AddRefInput {
+    id: OID!
+    value: String!
+}
+
+input EditRefInput {
+    id: OID!
+    value: String!
+}
+
+input DeleteRefInput {
+    id: OID!
+}
+
+# parties
+
+input EditIssuerInput {
+    id: String
+    name: String
+    streetAddress: String
+    extendedAddress: String
+    city: String
+    postalCode: String
+    country: String
+    stateProvince: String
+    tel: String
+    email: String
+}
+
+input EditIssuerBankInput {
+    name: String
+    streetAddress: String
+    extendedAddress: String
+    city: String
+    postalCode: String
+    country: String
+    stateProvince: String
+    ABA: String
+    BIC: String
+    SWIFT: String
+    accountNum: String
+    accountType: AccountType
+    beneficiary: String
+    memo: String
+    # intermediaryBank
+    nameIntermediary: String
+    streetAddressIntermediary: String
+    extendedAddressIntermediary: String
+    cityIntermediary: String
+    postalCodeIntermediary: String
+    countryIntermediary: String
+    stateProvinceIntermediary: String
+    ABAIntermediary: String
+    BICIntermediary: String
+    SWIFTIntermediary: String
+    accountNumIntermediary: String
+    accountTypeIntermediary: AccountType
+    beneficiaryIntermediary: String
+    memoIntermediary: String
+}
+
+input EditIssuerWalletInput {
+    rpc: String
+    chainName: String
+    chainId: String
+    address: String
+}
+
+input EditPayerInput {
+    id: String
+    name: String
+    streetAddress: String
+    extendedAddress: String
+    city: String
+    postalCode: String
+    country: String
+    stateProvince: String
+    tel: String
+    email: String
+}
+
+input EditPayerBankInput {
+    name: String
+    streetAddress: String
+    extendedAddress: String
+    city: String
+    postalCode: String
+    country: String
+    stateProvince: String
+    ABA: String
+    BIC: String
+    SWIFT: String
+    accountNum: String
+    accountType: AccountType
+    beneficiary: String
+    memo: String
+    # intermediaryBank
+    nameIntermediary: String
+    streetAddressIntermediary: String
+    extendedAddressIntermediary: String
+    cityIntermediary: String
+    postalCodeIntermediary: String
+    countryIntermediary: String
+    stateProvinceIntermediary: String
+    ABAIntermediary: String
+    BICIntermediary: String
+    SWIFTIntermediary: String
+    accountNumIntermediary: String
+    accountTypeIntermediary: AccountType
+    beneficiaryIntermediary: String
+    memoIntermediary: String
+}
+
+input EditPayerWalletInput {
+  rpc: String
+  chainName: String
+  chainId: String
+  address: String
+}
+
+# items
+
+input AddLineItemInput {
+    id: OID!
+    description: String!
+    taxPercent: Float!
+    quantity: Float!
+    currency: String! # Default can be USD
+    unitPriceTaxExcl: Float!
+    unitPriceTaxIncl: Float!
+    totalPriceTaxExcl: Float!
+    totalPriceTaxIncl: Float!
+}
+
+input EditLineItemInput {
+    id: OID!
+    description: String
+    taxPercent: Float
+    quantity: Float
+    currency: String
+    unitPriceTaxExcl: Float
+    unitPriceTaxIncl: Float
+    totalPriceTaxExcl: Float
+    totalPriceTaxIncl: Float
+}
+
+input DeleteLineItemInput {
+  id: OID!
+}
