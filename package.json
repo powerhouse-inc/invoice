@@ -50,7 +50,6 @@
   },
   "peerDependencies": {
     "document-model": "^2.18.0",
-    "document-model-libs": "^1.128.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -62,9 +61,9 @@
     "@powerhousedao/codegen": "^0.32.0",
     "@powerhousedao/config": "^1.13.0",
     "@powerhousedao/design-system": "^1.22.1",
-    "@powerhousedao/ph-cli": "^0.30.0",
-    "@powerhousedao/reactor-api": "^1.17.0",
-    "@powerhousedao/reactor-local": "^1.16.0",
+    "@powerhousedao/ph-cli": "^0.34.5",
+    "@powerhousedao/reactor-api": "^1.20.2",
+    "@powerhousedao/reactor-local": "^1.21.2",
     "@powerhousedao/scalars": "^1.20.0",
     "@types/eslint__js": "^8.42.3",
     "@types/node": "^22.10.9",
@@ -73,7 +72,6 @@
     "@typescript-eslint/parser": "^8.21.0",
     "autoprefixer": "^10.4.20",
     "document-model": "^2.18.0",
-    "document-model-libs": "^1.128.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.3",
@@ -103,7 +101,10 @@
     "@google-cloud/documentai": "^8.12.0",
     "@react-pdf/renderer": "^4.2.2",
     "axios": "^1.8.1",
-    "document-drive": "^1.16.3",
-    "google-auth-library": "^9.15.1"
+    "document-drive": "^1.20.1",
+    "google-auth-library": "^9.15.1",
+    "graphql-tag": "^2.12.6",
+    "tailwind-merge": "^3.0.2",
+    "uuid": "^11.1.0"
   }
 }
