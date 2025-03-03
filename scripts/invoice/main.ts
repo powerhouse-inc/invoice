@@ -1,6 +1,6 @@
-import { IBaseDocumentDriveServer } from "document-drive";
+import { IBaseDocumentDriveServer, IOperationResult } from "document-drive";
 import { createReactorAndCreateLocalDrive } from "../utils/drive-actions";
-import { actions as invoiceActions } from "../../document-models/invoice";
+import { Invoice, actions as invoiceActions, InvoiceDocument } from "../../document-models/invoice";
 
 export const updateInvoiceStatus = async (
   invoiceNumber: string,
@@ -27,24 +27,26 @@ export const updateInvoiceStatus = async (
   }
 
   try {
-    foundDocument.forEach(async (document: any) => {
-      const invoiceDocument = await driveServer.getDocument(
+    foundDocument.forEach(async (document: { id: string }) => {
+      const invoiceDocument = (await driveServer.getDocument(
         driveId,
         document.id,
-      );
+      )) as InvoiceDocument;
       const invoiceNo = (invoiceDocument.state.global as any).invoiceNo;
       if (invoiceNo === invoiceNumber) {
         console.log(
           `Changing status of Invoice No: ${invoiceNo} ${invoiceDocument.state.global.status} to PAID`,
         );
-        const documentStatus = await setInvoiceStatus(
+
+        // @ts-ignore
+        const documentStatus = (await setInvoiceStatus(
           driveServer,
           driveId,
           document.id,
-        );
+        )) as unknown as IOperationResult<Invoice>;
         console.log(
           "Changed Status:",
-          documentStatus.document.state.global.status,
+          documentStatus.document?.state.global.status,
         );
         return Promise.resolve();
       }

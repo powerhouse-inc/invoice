@@ -1,22 +1,30 @@
-import { Subgraph, Db } from "@powerhousedao/reactor-api";
+import { Subgraph, Db, Context } from "@powerhousedao/reactor-api";
 import { gql } from "graphql-tag";
 import { uploadPdfAndGetJson } from "../../scripts/invoice/pdfToDocumentAi";
+
+interface UploadInvoicePdfArgs {
+  pdfData: string;
+}
 
 export class InvoiceSubgraph extends Subgraph {
   name = "invoice";
   resolvers = {
     Mutation: {
       uploadInvoicePdf: {
-        resolve: async (parent, args, context, info) => {
+        resolve: async (
+          parent: unknown,
+          args: UploadInvoicePdfArgs,
+          context: Context,
+        ) => {
           try {
             const { pdfData } = args;
             const result = await uploadPdfAndGetJson(pdfData);
             return { success: true, data: result };
           } catch (error) {
             console.error("Error processing PDF:", error);
-            return { 
-              success: false, 
-              error: error instanceof Error ? error.message : "Unknown error" 
+            return {
+              success: false,
+              error: error instanceof Error ? error.message : "Unknown error",
             };
           }
         },
@@ -24,13 +32,14 @@ export class InvoiceSubgraph extends Subgraph {
     },
     Query: {
       example: {
-        resolve: async (parent, args, context, info) => {
+        resolve: async (parent: unknown, args: unknown, context: unknown) => {
           return "example";
         },
       },
     },
   };
 
+  // @ts-ignore
   typeDefs = gql`
     type UploadInvoiceResponse {
       success: Boolean!
