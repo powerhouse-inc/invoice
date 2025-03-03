@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios"; // or use fetch API directly
 import { InvoiceAction, actions } from "../../document-models/invoice";
 import { toast } from "@powerhousedao/design-system";
 
@@ -33,7 +32,7 @@ export default function PDFUploader({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     changeDropdownOpen(false);
 
@@ -54,16 +53,34 @@ export default function PDFUploader({
         const base64Data = reader.result?.toString().split(",")[1];
         console.log("Base64 data prepared for upload");
 
-        const response = await axios.post(
-          "http://localhost:5001/api/pdf-upload",
-          {
-            pdfData: base64Data,
+        // GraphQL mutation
+        const response = await fetch("http://localhost:4001/invoice", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-        );
+          body: JSON.stringify({
+            query: `
+              mutation UploadInvoicePdf($pdfData: String!) {
+                uploadInvoicePdf(pdfData: $pdfData) {
+                  success
+                  data
+                  error
+                }
+              }
+            `,
+            variables: {
+              pdfData: base64Data,
+            },
+          }),
+        });
 
-        if (response.status == 200) {
-          const { invoiceData } = response.data;
-          console.log("Extracted response:", response);
+        const responseData = await response.json();
+
+        if (response.ok && responseData.data?.uploadInvoicePdf?.success) {
+          const invoiceData =
+            responseData.data.uploadInvoicePdf.data.invoiceData;
+          console.log("Extracted response:", responseData);
           console.log("Extracted data:", invoiceData);
           console.log("Extracted date issued:", invoiceData.dateIssued);
 
@@ -77,7 +94,7 @@ export default function PDFUploader({
               dateDue:
                 invoiceData.dateDue || new Date().toISOString().split("T")[0],
               currency: invoiceData.currency || "USD",
-            }),
+            })
           );
 
           // If we have line items, dispatch them
@@ -94,7 +111,7 @@ export default function PDFUploader({
                   unitPriceTaxIncl: item.unitPriceTaxIncl,
                   totalPriceTaxExcl: item.totalPriceTaxExcl,
                   totalPriceTaxIncl: item.totalPriceTaxIncl,
-                }),
+                })
               );
             });
           }
@@ -114,7 +131,7 @@ export default function PDFUploader({
                 tel: invoiceData.issuer.contactInfo?.tel || "",
                 email: invoiceData.issuer.contactInfo?.email || "",
                 id: invoiceData.issuer.id?.taxId || "",
-              }),
+              })
             );
 
             // Add bank information dispatch
@@ -133,7 +150,7 @@ export default function PDFUploader({
                   beneficiary:
                     invoiceData.issuer.paymentRouting.bank.beneficiary || "",
                   memo: invoiceData.issuer.paymentRouting.bank.memo || "",
-                }),
+                })
               );
             }
 
@@ -148,7 +165,7 @@ export default function PDFUploader({
                   chainName:
                     invoiceData.issuer.paymentRouting.wallet.chainName || "",
                   rpc: invoiceData.issuer.paymentRouting.wallet.rpc || "",
-                }),
+                })
               );
             }
           }
@@ -168,7 +185,7 @@ export default function PDFUploader({
                 tel: invoiceData.payer.contactInfo?.tel || "",
                 email: invoiceData.payer.contactInfo?.email || "",
                 id: invoiceData.payer.id?.taxId || "",
-              }),
+              })
             );
 
             // Add payer bank information if present
@@ -187,7 +204,7 @@ export default function PDFUploader({
                   beneficiary:
                     invoiceData.payer.paymentRouting.bank.beneficiary || "",
                   memo: invoiceData.payer.paymentRouting.bank.memo || "",
-                }),
+                })
               );
             }
 
@@ -202,7 +219,7 @@ export default function PDFUploader({
                   chainName:
                     invoiceData.payer.paymentRouting.wallet.chainName || "",
                   rpc: invoiceData.payer.paymentRouting.wallet.rpc || "",
-                }),
+                })
               );
             }
           }
@@ -212,10 +229,15 @@ export default function PDFUploader({
             type: "success",
           });
         } else {
-          console.error("Error extracting data from PDF:", response);
-          toast("Error extracting data from PDF", {
-            type: "error",
-          });
+          console.error("Error extracting data from PDF:", responseData);
+          toast(
+            responseData.data?.uploadInvoicePdf?.error ||
+              "Error extracting data from PDF",
+            {
+              type: "error",
+            }
+          );
+          setIsLoading(false);
         }
       };
       reader.readAsDataURL(file);
