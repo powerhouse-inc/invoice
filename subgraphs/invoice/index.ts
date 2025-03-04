@@ -1,9 +1,13 @@
 import { Subgraph, Db, Context } from "@powerhousedao/reactor-api";
 import { gql } from "graphql-tag";
 import { uploadPdfAndGetJson } from "../../scripts/invoice/pdfToDocumentAi";
-
+import { requestDirectPayment } from "./requestFinance";
 interface UploadInvoicePdfArgs {
   pdfData: string;
+}
+
+interface CreateDirectPaymentArgs {
+  paymentData: any; // Will be replaced with a more specific type once API details are known
 }
 
 export class InvoiceSubgraph extends Subgraph {
@@ -29,6 +33,42 @@ export class InvoiceSubgraph extends Subgraph {
           }
         },
       },
+      createDirectPayment: {
+        resolve: async (
+          parent: unknown,
+          args: CreateDirectPaymentArgs,
+          context: Context,
+        ) => {
+          try {
+            const { paymentData } = args;
+            console.log("Creating direct payment with data:", paymentData.invoiceNumber);
+            
+            // This will be replaced with the actual external API call
+            // For now, we're just logging the data and returning a success response
+            // const response = await axios.post("https://external-api-endpoint.com/direct-payment", paymentData);
+            const response = await requestDirectPayment(paymentData);
+            if (response.errors && response.errors.length > 0) {
+              return {
+                success: false,
+                error: response.errors[0]
+              };
+            }
+            return { 
+              success: true, 
+              data: { 
+                message: "Direct payment request received successfully",
+                response 
+              }
+            };
+          } catch (error) {
+            console.error("Error creating direct payment:", error);
+            return {
+              success: false,
+              error: error instanceof Error ? error.message : "Unknown error",
+            };
+          }
+        },
+      },
     },
     Query: {
       example: {
@@ -47,10 +87,17 @@ export class InvoiceSubgraph extends Subgraph {
       error: String
     }
 
+    type DirectPaymentResponse {
+      success: Boolean!
+      data: JSON
+      error: String
+    }
+
     scalar JSON
 
     type Mutation {
       uploadInvoicePdf(pdfData: String!): UploadInvoiceResponse!
+      createDirectPayment(paymentData: JSON!): DirectPaymentResponse!
     }
 
     type Query {
