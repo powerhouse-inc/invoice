@@ -5,7 +5,7 @@ export const module: ExtendedEditor<unknown, Action, unknown, unknown> = {
   Component: Editor,
   documentTypes: ["Invoice"],
   config: {
-    id: "editor-id",
+    id: "powerhouse/invoice-editor",
     disableExternalControls: true,
     documentToolbarEnabled: true,
     showSwitchboardLink: true,
