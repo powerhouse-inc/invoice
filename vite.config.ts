@@ -12,6 +12,7 @@ const entry: Record<string, string> = {
     index: 'index.ts',
     documentModels: path.resolve(documentModelsDir, 'index.ts'),
     editors: path.resolve(editorsDir, 'index.ts'),
+    manifest: "powerhouse.manifest.json",
 };
 
 // add subpackage for each editor

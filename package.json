@@ -27,6 +27,11 @@
       "types": "./dist/documentModels.d.ts",
       "import": "./dist/es/documentModels.js",
       "require": "./dist/cjs/documentModels.js"
+    },
+    "./manifest": {
+        "types": "./dist/manifest.d.ts",
+        "require": "./dist/cjs/manifest.js",
+        "import": "./dist/es/manifest.js"
     }
   },
   "scripts": {
