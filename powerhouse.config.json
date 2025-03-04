@@ -3,11 +3,9 @@
   "editorsDir": "./editors",
   "dbPath": "postgres://postgres:postgres@localhost:5444/postgres",
   "reactor": {
-    "https": true,
     "port": 8441
   },
   "studio": {
-    "port": 8442,
-    "https": true
+    "port": 8442
   }
 }

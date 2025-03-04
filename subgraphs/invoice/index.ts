@@ -63,7 +63,7 @@ export class InvoiceSubgraph extends Subgraph {
   };
 
   async onSetup() {
-    await this.createOperationalTables();
+    // await this.createOperationalTables();
   }
 
   async createOperationalTables() {
