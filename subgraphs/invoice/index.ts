@@ -2,6 +2,22 @@ import { Subgraph, Db, Context } from "@powerhousedao/reactor-api";
 import { gql } from "graphql-tag";
 import { uploadPdfAndGetJson } from "../../scripts/invoice/pdfToDocumentAi";
 import { requestDirectPayment } from "./requestFinance";
+import * as crypto from "crypto";
+import express from "express";
+import cors from "cors";
+
+// Function to validate Alchemy signature
+function isValidSignatureForStringBody(
+  body: string,
+  signature: string,
+  signingKey: string
+): boolean {
+  const hmac = crypto.createHmac("sha256", signingKey);
+  hmac.update(body, "utf8");
+  const digest = hmac.digest("hex");
+  return signature === digest;
+}
+
 interface UploadInvoicePdfArgs {
   pdfData: string;
 }
@@ -42,7 +58,7 @@ export class InvoiceSubgraph extends Subgraph {
           try {
             const { paymentData } = args;
             console.log("Creating direct payment with data:", paymentData.invoiceNumber);
-            
+
             // This will be replaced with the actual external API call
             // For now, we're just logging the data and returning a success response
             // const response = await axios.post("https://external-api-endpoint.com/direct-payment", paymentData);
@@ -53,11 +69,11 @@ export class InvoiceSubgraph extends Subgraph {
                 error: response.errors[0]
               };
             }
-            return { 
-              success: true, 
-              data: { 
+            return {
+              success: true,
+              data: {
                 message: "Direct payment request received successfully",
-                response 
+                response
               }
             };
           } catch (error) {
@@ -110,7 +126,68 @@ export class InvoiceSubgraph extends Subgraph {
   };
 
   async onSetup() {
-    // await this.createOperationalTables();
+    // console.log('Reactor properties:', Object.keys(this.reactor));
+    // console.log('SubgraphManager properties:', Object.keys(this.subgraphManager));
+
+    // Register a webhook handler using the Express app
+    if (this.subgraphManager.app) {
+      console.log('Registering webhook handler at /webhook');
+      
+      // Add CORS middleware for the webhook route
+      this.subgraphManager.app.post('/webhook', 
+        cors(), // Add CORS middleware
+        express.json(), 
+        this.handleWebhook.bind(this)
+      );
+    } else {
+      console.warn('No app property found in subgraphManager, cannot register webhook handler');
+    }
+  }
+
+  // Webhook handler method
+  private async handleWebhook(req, res) {
+    try {
+      console.log('Webhook received');
+      // Log all headers to debug
+      // console.log('Webhook request headers:', req.headers);
+      // console.log('Webhook request body:', req.body);
+      
+      // Get the request body and signature
+      let payload = req.body;
+      let rawBody = JSON.stringify(payload);
+      
+      const signature = req.headers['x-alchemy-signature'];
+      if (!signature) {
+        console.warn('Missing signature header');
+        // For testing, continue anyway
+        // return res.status(400).json({ error: 'Missing signature header' });
+      } else {
+        // Validate the signature
+        const signingKey = process.env.ALCHEMY_SIGNING_KEY || 'whsec_test';
+        const isValid = isValidSignatureForStringBody(rawBody, signature, signingKey);
+        
+        if (!isValid) {
+          console.warn('Invalid signature');
+          // For testing, continue anyway
+          // return res.status(401).json({ error: 'Invalid signature' });
+        }
+      }
+      
+      
+      // Process the webhook
+      console.log('Processing webhook payload:', payload.event.activity);
+      
+      // For testing, just acknowledge receipt
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Webhook received successfully' 
+      });
+    } catch (error) {
+      console.error('Error processing webhook:', error);
+      return res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
   }
 
   async createOperationalTables() {
@@ -123,5 +200,5 @@ export class InvoiceSubgraph extends Subgraph {
     );
   }
 
-  async onDisconnect() {}
+  async onDisconnect() { }
 }
