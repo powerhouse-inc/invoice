@@ -75,51 +75,138 @@ export async function uploadPdfAndGetJson(inputDoc: any) {
 
 function parseDate(dateStr: string): string {
     try {
-        // Remove any leading/trailing whitespace and convert to uppercase for consistency
-        dateStr = dateStr.trim().toUpperCase();
+        console.log(`Attempting to parse date: ${dateStr}`);
         
-        let date: Date | null = null;
+        // Normalize the date string
+        const normalizedDateStr = dateStr.trim().toUpperCase();
+        
+        // Handle month name format with ordinal suffixes (e.g., "MARCH 31ST, 2025")
+        const monthNameOrdinalRegex = /^([A-Z]+)\s+(\d{1,2})(ST|ND|RD|TH)?,?\s+(\d{4})$/;
+        const monthNameOrdinalMatch = normalizedDateStr.match(monthNameOrdinalRegex);
+        
+        if (monthNameOrdinalMatch) {
+            const monthName = monthNameOrdinalMatch[1];
+            const day = monthNameOrdinalMatch[2].padStart(2, '0');
+            const year = monthNameOrdinalMatch[4];
+            
+            // Map month names to numbers
+            const monthMap: Record<string, string> = {
+                'JANUARY': '01', 'JAN': '01',
+                'FEBRUARY': '02', 'FEB': '02',
+                'MARCH': '03', 'MAR': '03',
+                'APRIL': '04', 'APR': '04',
+                'MAY': '05',
+                'JUNE': '06', 'JUN': '06',
+                'JULY': '07', 'JUL': '07',
+                'AUGUST': '08', 'AUG': '08',
+                'SEPTEMBER': '09', 'SEP': '09',
+                'OCTOBER': '10', 'OCT': '10',
+                'NOVEMBER': '11', 'NOV': '11',
+                'DECEMBER': '12', 'DEC': '12'
+            };
+            
+            const monthNum = monthMap[monthName];
+            if (!monthNum) {
+                throw new Error(`Unknown month name: ${monthName}`);
+            }
+            
+            // Return in ISO format (YYYY-MM-DD)
+            return `${year}-${monthNum}-${day}`;
+        }
+        
+        // Handle month name format without ordinals (e.g., "MARCH 05, 2025")
+        const monthNameRegex = /^([A-Z]+)\s+(\d{1,2}),?\s+(\d{4})$/;
+        const monthNameMatch = normalizedDateStr.match(monthNameRegex);
+        
+        if (monthNameMatch) {
+            const monthName = monthNameMatch[1];
+            const day = monthNameMatch[2].padStart(2, '0');
+            const year = monthNameMatch[3];
+            
+            // Map month names to numbers
+            const monthMap: Record<string, string> = {
+                'JANUARY': '01', 'JAN': '01',
+                'FEBRUARY': '02', 'FEB': '02',
+                'MARCH': '03', 'MAR': '03',
+                'APRIL': '04', 'APR': '04',
+                'MAY': '05',
+                'JUNE': '06', 'JUN': '06',
+                'JULY': '07', 'JUL': '07',
+                'AUGUST': '08', 'AUG': '08',
+                'SEPTEMBER': '09', 'SEP': '09',
+                'OCTOBER': '10', 'OCT': '10',
+                'NOVEMBER': '11', 'NOV': '11',
+                'DECEMBER': '12', 'DEC': '12'
+            };
+            
+            const monthNum = monthMap[monthName];
+            if (!monthNum) {
+                throw new Error(`Unknown month name: ${monthName}`);
+            }
+            
+            // Return in ISO format (YYYY-MM-DD)
+            return `${year}-${monthNum}-${day}`;
+        }
+        
+        // Handle existing formats
+        // MM/DD/YYYY or DD/MM/YYYY
+        const slashRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+        const slashMatch = normalizedDateStr.match(slashRegex);
+        
+        if (slashMatch) {
+            // Assume MM/DD/YYYY format for simplicity
+            // You might need to adjust this based on your locale expectations
+            const month = slashMatch[1].padStart(2, '0');
+            const day = slashMatch[2].padStart(2, '0');
+            const year = slashMatch[3];
+            
+            // Validate month and day
+            if (parseInt(month) > 12) {
+                // If month > 12, it's likely DD/MM/YYYY format
+                return `${year}-${day}-${month}`;
+            } else {
+                return `${year}-${month}-${day}`;
+            }
+        }
         
         // Handle YYYY-MM-DD format
-        if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            date = new Date(dateStr);
-        }
-        // Handle DD/MMM/YYYY format (e.g., "02/JAN/2025")
-        else if (dateStr.match(/^\d{1,2}\/[A-Z]{3}\/\d{4}$/)) {
-            const [day, month, year] = dateStr.split('/');
-            const monthMap: {[key: string]: string} = {
-                'JAN': '01', 'FEB': '02', 'MAR': '03', 'APR': '04',
-                'MAY': '05', 'JUN': '06', 'JUL': '07', 'AUG': '08',
-                'SEP': '09', 'OCT': '10', 'NOV': '11', 'DEC': '12'
-            };
-            date = new Date(`${year}-${monthMap[month]}-${day.padStart(2, '0')}`);
-        }
-        // Handle DD-MMM-YYYY format (e.g., "02-JAN-2025")
-        else if (dateStr.match(/^\d{1,2}-[A-Z]{3}-\d{4}$/)) {
-            const [day, month, year] = dateStr.split('-');
-            const monthMap: {[key: string]: string} = {
-                'JAN': '01', 'FEB': '02', 'MAR': '03', 'APR': '04',
-                'MAY': '05', 'JUN': '06', 'JUL': '07', 'AUG': '08',
-                'SEP': '09', 'OCT': '10', 'NOV': '11', 'DEC': '12'
-            };
-            date = new Date(`${year}-${monthMap[month]}-${day.padStart(2, '0')}`);
-        }
-        // Handle MM/DD/YYYY format
-        else if (dateStr.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
-            const [month, day, year] = dateStr.split('/');
-            date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+        const isoRegex = /^(\d{4})-(\d{1,2})-(\d{1,2})$/;
+        const isoMatch = normalizedDateStr.match(isoRegex);
+        
+        if (isoMatch) {
+            const year = isoMatch[1];
+            const month = isoMatch[2].padStart(2, '0');
+            const day = isoMatch[3].padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
         
-        if (!date || isNaN(date.getTime())) {
-            console.error(`Failed to parse date: ${dateStr}`);
-            throw new Error(`Invalid date format: ${dateStr}`);
+        // Handle MM-DD-YYYY or DD-MM-YYYY format
+        const dashRegex = /^(\d{1,2})-(\d{1,2})-(\d{4})$/;
+        const dashMatch = normalizedDateStr.match(dashRegex);
+        
+        if (dashMatch) {
+            // Assume MM-DD-YYYY format for simplicity
+            const month = dashMatch[1].padStart(2, '0');
+            const day = dashMatch[2].padStart(2, '0');
+            const year = dashMatch[3];
+            
+            // Validate month and day
+            if (parseInt(month) > 12) {
+                // If month > 12, it's likely DD-MM-YYYY format
+                return `${year}-${day}-${month}`;
+            } else {
+                return `${year}-${month}-${day}`;
+            }
         }
         
-        // Return in YYYY-MM-DD format
-        return date.toISOString().split('T')[0];
+        // If we get here, the date format is not recognized
+        throw new Error(`Invalid date format: ${dateStr}`);
     } catch (error) {
         console.error(`Error parsing date '${dateStr}':`, error);
-        throw new Error(`Invalid date format: ${dateStr}`);
+        
+        // Return a fallback date or re-throw the error
+        // For now, we'll re-throw to maintain the existing behavior
+        throw error;
     }
 }
 

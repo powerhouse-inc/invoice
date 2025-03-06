@@ -32,8 +32,17 @@ interface ProcessGnosisPaymentArgs {
   invoiceNo: string;
 }
 
+interface UploadInvoicePdfChunkArgs {
+  chunk: string;
+  chunkIndex: number;
+  totalChunks: number;
+  fileName: string;
+  sessionId: string;
+}
+
 export class InvoiceSubgraph extends Subgraph {
   name = "invoice";
+  private fileChunks: Record<string, { chunks: string[], receivedChunks: number }> = {};
   resolvers = {
     Mutation: {
       uploadInvoicePdf: {
@@ -48,6 +57,61 @@ export class InvoiceSubgraph extends Subgraph {
             return { success: true, data: result };
           } catch (error) {
             console.error("Error processing PDF:", error);
+            return {
+              success: false,
+              error: error instanceof Error ? error.message : "Unknown error",
+            };
+          }
+        },
+      },
+      uploadInvoicePdfChunk: {
+        resolve: async (
+          parent: unknown,
+          args: UploadInvoicePdfChunkArgs,
+          context: Context,
+        ) => {
+          try {
+            const { chunk, chunkIndex, totalChunks, fileName, sessionId } = args;
+            const fileKey = `${sessionId}_${fileName}`;
+            
+            // Initialize array for this file if it doesn't exist
+            if (!this.fileChunks[fileKey]) {
+              this.fileChunks[fileKey] = {
+                chunks: new Array(totalChunks).fill(''),
+                receivedChunks: 0
+              };
+            }
+            
+            // Add the chunk at the correct position
+            this.fileChunks[fileKey].chunks[chunkIndex] = chunk;
+            this.fileChunks[fileKey].receivedChunks += 1;
+            
+            console.log(`Received chunk ${chunkIndex + 1}/${totalChunks} for ${fileName}`);
+            
+            // If we've received all chunks, process the complete file
+            if (this.fileChunks[fileKey].receivedChunks === totalChunks) {
+              // Combine all chunks
+              const completeFile = this.fileChunks[fileKey].chunks.join('');
+              
+              // Process the file
+              const result = await uploadPdfAndGetJson(completeFile);
+              
+              // Clean up
+              delete this.fileChunks[fileKey];
+              
+              return { success: true, data: result };
+            }
+            
+            // If not all chunks received yet, just acknowledge receipt
+            return { 
+              success: true, 
+              data: { 
+                message: `Chunk ${chunkIndex + 1}/${totalChunks} received`,
+                progress: (this.fileChunks[fileKey].receivedChunks / totalChunks) * 100
+              } 
+            };
+          } catch (error) {
+            console.error("Error processing PDF chunk:", error);
             return {
               success: false,
               error: error instanceof Error ? error.message : "Unknown error",
@@ -149,6 +213,13 @@ export class InvoiceSubgraph extends Subgraph {
 
     type Mutation {
       uploadInvoicePdf(pdfData: String!): UploadInvoiceResponse!
+      uploadInvoicePdfChunk(
+        chunk: String!
+        chunkIndex: Int!
+        totalChunks: Int!
+        fileName: String!
+        sessionId: String!
+      ): UploadInvoiceResponse!
       createDirectPayment(paymentData: JSON!): DirectPaymentResponse!
       processGnosisPayment(
         payerWallet: JSON!
@@ -168,10 +239,6 @@ export class InvoiceSubgraph extends Subgraph {
 
   async onSetup() {
     try {
-      await this.createOperationalTables();
-      console.log('Invoice subgraph operational tables created successfully');
-
-      // Register a webhook handler using the Express app
       if (this.subgraphManager && this.subgraphManager['app']) {
         console.log('Registering webhook handler at /webhook');
 
@@ -231,16 +298,6 @@ export class InvoiceSubgraph extends Subgraph {
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
-  }
-
-  async createOperationalTables() {
-    await this.operationalStore.schema.createTableIfNotExists(
-      "example",
-      (table) => {
-        table.string("id").primary();
-        table.string("name");
-      },
-    );
   }
 
   async onDisconnect() { }

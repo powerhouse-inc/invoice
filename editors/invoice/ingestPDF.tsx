@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { InvoiceAction, actions } from "../../document-models/invoice";
 import { toast } from "@powerhousedao/design-system";
+import { uploadPdfChunked } from "./uploadPdfChunked";
 
 export async function loadPDFFile({
   file,
@@ -30,235 +31,262 @@ export default function PDFUploader({
   changeDropdownOpen,
 }: PDFUploaderProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    changeDropdownOpen(false);
-
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
-    toast("Extracting data from PDF...", {
-      type: "info",
-    });
-
+    setError(null);
     setIsLoading(true);
+    setUploadProgress(0);
+
     console.log("File selected for upload:", file.name);
 
     try {
-      // Convert file to base64
       const reader = new FileReader();
       reader.onload = async () => {
         const base64Data = reader.result?.toString().split(",")[1];
+        if (!base64Data) {
+          throw new Error("Failed to read file");
+        }
+
         console.log("Base64 data prepared for upload");
 
-        // GraphQL mutation
-        const response = await fetch("http://localhost:4001/invoice", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            query: `
-              mutation UploadInvoicePdf($pdfData: String!) {
-                uploadInvoicePdf(pdfData: $pdfData) {
-                  success
-                  data
-                  error
-                }
+        try {
+          const result = await uploadPdfChunked(
+            base64Data,
+            "http://localhost:4001/invoice",
+            50 * 1024,
+            (progress) => setUploadProgress(progress)
+          );
+
+          if (result.success) {
+            const invoiceData = result.data.invoiceData;
+            console.log("Extracted response:", result);
+
+            console.log("Extracted data:", invoiceData);
+            console.log("Extracted date issued:", invoiceData.dateIssued);
+
+            // Dispatch the parsed invoice data
+            dispatch(
+              actions.editInvoice({
+                invoiceNo: invoiceData.invoiceNo || "",
+                dateIssued:
+                  invoiceData.dateIssued ||
+                  new Date().toISOString().split("T")[0],
+                dateDue:
+                  invoiceData.dateDue || new Date().toISOString().split("T")[0],
+                currency: invoiceData.currency || "USD",
+              })
+            );
+
+            // If we have line items, dispatch them
+            if (invoiceData.lineItems && invoiceData.lineItems.length > 0) {
+              invoiceData.lineItems.forEach((item: any) => {
+                dispatch(
+                  actions.addLineItem({
+                    id: item.id,
+                    description: item.description,
+                    taxPercent: item.taxPercent,
+                    quantity: item.quantity,
+                    currency: item.currency,
+                    unitPriceTaxExcl: item.unitPriceTaxExcl,
+                    unitPriceTaxIncl: item.unitPriceTaxIncl,
+                    totalPriceTaxExcl: item.totalPriceTaxExcl,
+                    totalPriceTaxIncl: item.totalPriceTaxIncl,
+                  })
+                );
+              });
+            }
+
+            // If we have issuer data, dispatch it
+            if (invoiceData.issuer) {
+              dispatch(
+                actions.editIssuer({
+                  name: invoiceData.issuer.name || "",
+                  country: invoiceData.issuer.country || "",
+                  streetAddress:
+                    invoiceData.issuer.address?.streetAddress || "",
+                  extendedAddress:
+                    invoiceData.issuer.address?.extendedAddress || "",
+                  city: invoiceData.issuer.address?.city || "",
+                  postalCode: invoiceData.issuer.address?.postalCode || "",
+                  stateProvince:
+                    invoiceData.issuer.address?.stateProvince || "",
+                  tel: invoiceData.issuer.contactInfo?.tel || "",
+                  email: invoiceData.issuer.contactInfo?.email || "",
+                  id: invoiceData.issuer.id?.taxId || "",
+                })
+              );
+
+              // Add bank information dispatch
+              if (invoiceData.issuer.paymentRouting?.bank) {
+                dispatch(
+                  actions.editIssuerBank({
+                    name: invoiceData.issuer.paymentRouting.bank.name || "",
+                    accountNum:
+                      invoiceData.issuer.paymentRouting.bank.accountNum || "",
+                    ABA: invoiceData.issuer.paymentRouting.bank.ABA || "",
+                    BIC: invoiceData.issuer.paymentRouting.bank.BIC || "",
+                    SWIFT: invoiceData.issuer.paymentRouting.bank.SWIFT || "",
+                    accountType:
+                      invoiceData.issuer.paymentRouting.bank.accountType ||
+                      "CHECKING",
+                    beneficiary:
+                      invoiceData.issuer.paymentRouting.bank.beneficiary || "",
+                    memo: invoiceData.issuer.paymentRouting.bank.memo || "",
+                  })
+                );
               }
-            `,
-            variables: {
-              pdfData: base64Data,
-            },
-          }),
-        });
 
-        const responseData = await response.json();
+              // Add crypto wallet information dispatch
+              if (invoiceData.issuer.paymentRouting?.wallet) {
+                dispatch(
+                  actions.editIssuerWallet({
+                    address:
+                      invoiceData.issuer.paymentRouting.wallet.address || "",
+                    chainId:
+                      invoiceData.issuer.paymentRouting.wallet.chainId || "",
+                    chainName:
+                      invoiceData.issuer.paymentRouting.wallet.chainName || "",
+                    rpc: invoiceData.issuer.paymentRouting.wallet.rpc || "",
+                  })
+                );
+              }
+            }
 
-        if (response.ok && responseData.data?.uploadInvoicePdf?.success) {
-          const invoiceData =
-            responseData.data.uploadInvoicePdf.data.invoiceData;
-          console.log("Extracted response:", responseData);
-          console.log("Extracted data:", invoiceData);
-          console.log("Extracted date issued:", invoiceData.dateIssued);
-
-          // Dispatch the parsed invoice data
-          dispatch(
-            actions.editInvoice({
-              invoiceNo: invoiceData.invoiceNo || "",
-              dateIssued:
-                invoiceData.dateIssued ||
-                new Date().toISOString().split("T")[0],
-              dateDue:
-                invoiceData.dateDue || new Date().toISOString().split("T")[0],
-              currency: invoiceData.currency || "USD",
-            }),
-          );
-
-          // If we have line items, dispatch them
-          if (invoiceData.lineItems && invoiceData.lineItems.length > 0) {
-            invoiceData.lineItems.forEach((item: any) => {
+            // If we have payer data, dispatch it
+            if (invoiceData.payer) {
               dispatch(
-                actions.addLineItem({
-                  id: item.id,
-                  description: item.description,
-                  taxPercent: item.taxPercent,
-                  quantity: item.quantity,
-                  currency: item.currency,
-                  unitPriceTaxExcl: item.unitPriceTaxExcl,
-                  unitPriceTaxIncl: item.unitPriceTaxIncl,
-                  totalPriceTaxExcl: item.totalPriceTaxExcl,
-                  totalPriceTaxIncl: item.totalPriceTaxIncl,
-                }),
+                actions.editPayer({
+                  name: invoiceData.payer.name || "",
+                  country: invoiceData.payer.country || "",
+                  streetAddress: invoiceData.payer.address?.streetAddress || "",
+                  extendedAddress:
+                    invoiceData.payer.address?.extendedAddress || "",
+                  city: invoiceData.payer.address?.city || "",
+                  postalCode: invoiceData.payer.address?.postalCode || "",
+                  stateProvince: invoiceData.payer.address?.stateProvince || "",
+                  tel: invoiceData.payer.contactInfo?.tel || "",
+                  email: invoiceData.payer.contactInfo?.email || "",
+                  id: invoiceData.payer.id?.taxId || "",
+                })
               );
+
+              // Add payer bank information if present
+              if (invoiceData.payer.paymentRouting?.bank) {
+                dispatch(
+                  actions.editPayerBank({
+                    name: invoiceData.payer.paymentRouting.bank.name || "",
+                    accountNum:
+                      invoiceData.payer.paymentRouting.bank.accountNum || "",
+                    ABA: invoiceData.payer.paymentRouting.bank.ABA || "",
+                    BIC: invoiceData.payer.paymentRouting.bank.BIC || "",
+                    SWIFT: invoiceData.payer.paymentRouting.bank.SWIFT || "",
+                    accountType:
+                      invoiceData.payer.paymentRouting.bank.accountType ||
+                      "CHECKING",
+                    beneficiary:
+                      invoiceData.payer.paymentRouting.bank.beneficiary || "",
+                    memo: invoiceData.payer.paymentRouting.bank.memo || "",
+                  })
+                );
+              }
+
+              // Add payer crypto wallet information if present
+              if (invoiceData.payer.paymentRouting?.wallet) {
+                dispatch(
+                  actions.editPayerWallet({
+                    address:
+                      invoiceData.payer.paymentRouting.wallet.address || "",
+                    chainId:
+                      invoiceData.payer.paymentRouting.wallet.chainId || "",
+                    chainName:
+                      invoiceData.payer.paymentRouting.wallet.chainName || "",
+                    rpc: invoiceData.payer.paymentRouting.wallet.rpc || "",
+                  })
+                );
+              }
+            }
+
+            setIsLoading(false);
+            toast("Invoice uploaded successfully", {
+              type: "success",
             });
+
+            changeDropdownOpen(false);
+          } else {
+            throw new Error(result.error || "Failed to process PDF");
           }
-
-          // If we have issuer data, dispatch it
-          if (invoiceData.issuer) {
-            dispatch(
-              actions.editIssuer({
-                name: invoiceData.issuer.name || "",
-                country: invoiceData.issuer.country || "",
-                streetAddress: invoiceData.issuer.address?.streetAddress || "",
-                extendedAddress:
-                  invoiceData.issuer.address?.extendedAddress || "",
-                city: invoiceData.issuer.address?.city || "",
-                postalCode: invoiceData.issuer.address?.postalCode || "",
-                stateProvince: invoiceData.issuer.address?.stateProvince || "",
-                tel: invoiceData.issuer.contactInfo?.tel || "",
-                email: invoiceData.issuer.contactInfo?.email || "",
-                id: invoiceData.issuer.id?.taxId || "",
-              }),
-            );
-
-            // Add bank information dispatch
-            if (invoiceData.issuer.paymentRouting?.bank) {
-              dispatch(
-                actions.editIssuerBank({
-                  name: invoiceData.issuer.paymentRouting.bank.name || "",
-                  accountNum:
-                    invoiceData.issuer.paymentRouting.bank.accountNum || "",
-                  ABA: invoiceData.issuer.paymentRouting.bank.ABA || "",
-                  BIC: invoiceData.issuer.paymentRouting.bank.BIC || "",
-                  SWIFT: invoiceData.issuer.paymentRouting.bank.SWIFT || "",
-                  accountType:
-                    invoiceData.issuer.paymentRouting.bank.accountType ||
-                    "CHECKING",
-                  beneficiary:
-                    invoiceData.issuer.paymentRouting.bank.beneficiary || "",
-                  memo: invoiceData.issuer.paymentRouting.bank.memo || "",
-                }),
-              );
-            }
-
-            // Add crypto wallet information dispatch
-            if (invoiceData.issuer.paymentRouting?.wallet) {
-              dispatch(
-                actions.editIssuerWallet({
-                  address:
-                    invoiceData.issuer.paymentRouting.wallet.address || "",
-                  chainId:
-                    invoiceData.issuer.paymentRouting.wallet.chainId || "",
-                  chainName:
-                    invoiceData.issuer.paymentRouting.wallet.chainName || "",
-                  rpc: invoiceData.issuer.paymentRouting.wallet.rpc || "",
-                }),
-              );
-            }
-          }
-
-          // If we have payer data, dispatch it
-          if (invoiceData.payer) {
-            dispatch(
-              actions.editPayer({
-                name: invoiceData.payer.name || "",
-                country: invoiceData.payer.country || "",
-                streetAddress: invoiceData.payer.address?.streetAddress || "",
-                extendedAddress:
-                  invoiceData.payer.address?.extendedAddress || "",
-                city: invoiceData.payer.address?.city || "",
-                postalCode: invoiceData.payer.address?.postalCode || "",
-                stateProvince: invoiceData.payer.address?.stateProvince || "",
-                tel: invoiceData.payer.contactInfo?.tel || "",
-                email: invoiceData.payer.contactInfo?.email || "",
-                id: invoiceData.payer.id?.taxId || "",
-              }),
-            );
-
-            // Add payer bank information if present
-            if (invoiceData.payer.paymentRouting?.bank) {
-              dispatch(
-                actions.editPayerBank({
-                  name: invoiceData.payer.paymentRouting.bank.name || "",
-                  accountNum:
-                    invoiceData.payer.paymentRouting.bank.accountNum || "",
-                  ABA: invoiceData.payer.paymentRouting.bank.ABA || "",
-                  BIC: invoiceData.payer.paymentRouting.bank.BIC || "",
-                  SWIFT: invoiceData.payer.paymentRouting.bank.SWIFT || "",
-                  accountType:
-                    invoiceData.payer.paymentRouting.bank.accountType ||
-                    "CHECKING",
-                  beneficiary:
-                    invoiceData.payer.paymentRouting.bank.beneficiary || "",
-                  memo: invoiceData.payer.paymentRouting.bank.memo || "",
-                }),
-              );
-            }
-
-            // Add payer crypto wallet information if present
-            if (invoiceData.payer.paymentRouting?.wallet) {
-              dispatch(
-                actions.editPayerWallet({
-                  address:
-                    invoiceData.payer.paymentRouting.wallet.address || "",
-                  chainId:
-                    invoiceData.payer.paymentRouting.wallet.chainId || "",
-                  chainName:
-                    invoiceData.payer.paymentRouting.wallet.chainName || "",
-                  rpc: invoiceData.payer.paymentRouting.wallet.rpc || "",
-                }),
-              );
-            }
-          }
-
-          setIsLoading(false);
-          toast("Invoice uploaded successfully", {
-            type: "success",
-          });
-        } else {
-          console.error("Error extracting data from PDF:", responseData);
-          toast(
-            responseData.data?.uploadInvoicePdf?.error ||
-              "Error extracting data from PDF",
-            {
-              type: "error",
-            },
+        } catch (error) {
+          console.error("Error processing PDF:", error);
+          setError(
+            error instanceof Error
+              ? error.message
+              : "An error occurred while processing the PDF"
           );
+        } finally {
           setIsLoading(false);
         }
       };
+
+      reader.onerror = () => {
+        setError("Failed to read file");
+        setIsLoading(false);
+      };
+
       reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error handling file:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "An error occurred while handling the file"
+      );
       setIsLoading(false);
     }
   };
 
   return (
-    <div>
-      <label className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-        Upload PDF
-        <input
-          accept=".pdf"
-          className="hidden"
-          onChange={handleFileChange}
-          type="file"
-          disabled={isLoading}
-        />
-      </label>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
+        <label
+          htmlFor="pdf-upload"
+          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+        >
+          {isLoading ? "Uploading..." : "Upload PDF"}
+          <input
+            id="pdf-upload"
+            type="file"
+            accept="application/pdf"
+            onChange={handleFileChange}
+            className="hidden"
+            disabled={isLoading}
+          />
+        </label>
+
+        {isLoading && uploadProgress > 0 && (
+          <div className="mt-2">
+            <p className="text-sm text-gray-600">
+              Uploading: {uploadProgress.toFixed(1)}%
+            </p>
+            <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+              <div
+                className="bg-blue-600 h-2.5 rounded-full"
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+      </div>
     </div>
   );
 }
