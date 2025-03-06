@@ -26,6 +26,12 @@ interface CreateDirectPaymentArgs {
   paymentData: any; // Will be replaced with a more specific type once API details are known
 }
 
+interface ProcessGnosisPaymentArgs {
+  payerWallet: JSON;
+  paymentDetails: JSON;
+  invoiceNo: string;
+}
+
 export class InvoiceSubgraph extends Subgraph {
   name = "invoice";
   resolvers = {
@@ -86,27 +92,25 @@ export class InvoiceSubgraph extends Subgraph {
         },
       },
       processGnosisPayment: {
-        resolve: async (parent: unknown, args: unknown, context: unknown) => {
+        resolve: async (parent: unknown, args: ProcessGnosisPaymentArgs, context: unknown) => {
           try {
             const { payerWallet, paymentDetails, invoiceNo } = args;
 
-            console.log("Processing webhook data:", {
+            console.log("Processing gnosis payment:", {
               payerWallet,
               invoiceNo,
               paymentDetails
             });
 
-            // Call your internal function to process the data
-            // For example:
-            // const result = await processPayment(payerWallet, paymentDetails, invoiceNo);
+            // Import and call the executeTokenTransfer function
+            // const { executeTokenTransfer } = require('../../scripts/invoice/gnosisTransactionBuilder');
+            // const result = await executeTokenTransfer(payerWallet, paymentDetails);
 
-            // For now, just return a success response
+            // console.log("Token transfer result:", result);
+
             return {
               success: true,
-              data: {
-                message: "Webhook data processed successfully",
-                timestamp: new Date().toISOString(),
-              },
+              // data: result,
             };
           } catch (error) {
             console.error("Error processing gnosis payment:", error);
@@ -163,26 +167,28 @@ export class InvoiceSubgraph extends Subgraph {
   };
 
   async onSetup() {
-    // console.log('Reactor properties:', Object.keys(this.reactor));
-    // console.log('SubgraphManager properties:', Object.keys(this.subgraphManager));
+    try {
+      await this.createOperationalTables();
+      console.log('Invoice subgraph operational tables created successfully');
 
-    // Register a webhook handler using the Express app
-    if (this.subgraphManager.app) {
-      console.log('Registering webhook handler at /webhook');
+      // Register a webhook handler using the Express app
+      if (this.subgraphManager && this.subgraphManager['app']) {
+        console.log('Registering webhook handler at /webhook');
 
-      // Add CORS middleware for the webhook route
-      this.subgraphManager.app.post('/webhook',
-        cors(), // Add CORS middleware
-        express.json(),
-        this.handleWebhook.bind(this)
-      );
-    } else {
-      console.warn('No app property found in subgraphManager, cannot register webhook handler');
+        // Add CORS middleware for the webhook route
+        this.subgraphManager['app'].post('/webhook',
+          cors(), // Add CORS middleware
+          express.json(),
+          this.handleWebhook.bind(this)
+        );
+      }
+    } catch (error) {
+      console.error('Error in invoice subgraph setup:', error);
     }
   }
 
   // Webhook handler method
-  private async handleWebhook(req, res) {
+  private async handleWebhook(req: any, res: any) {
     try {
       console.log('Webhook received');
       // Log all headers to debug

@@ -13,33 +13,33 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
   const [invoiceStatusResponse, setInvoiceStatusResponse] = useState<any>(null);
   const [safeTxHash, setsafeTxHash] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (safeTxHash) {
-      const eventSource = new EventSource(
-        `http://localhost:5001/api/transaction-status/${safeTxHash}/${docState.invoiceNo}`,
-      );
+  // useEffect(() => {
+  //   if (safeTxHash) {
+  //     const eventSource = new EventSource(
+  //       `http://localhost:5001/api/transaction-status/${safeTxHash}/${docState.invoiceNo}`,
+  //     );
 
-      eventSource.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log("SSE data: ", data);
-        if (data.status === "completed") {
-          console.log("Transaction completed and status updated");
-          toast("Invoice Paid", {
-            type: "success",
-          });
-          eventSource.close(); // Close the connection immediately
-        }
-      };
+  //     eventSource.onmessage = (event) => {
+  //       const data = JSON.parse(event.data);
+  //       console.log("SSE data: ", data);
+  //       if (data.status === "completed") {
+  //         console.log("Transaction completed and status updated");
+  //         toast("Invoice Paid", {
+  //           type: "success",
+  //         });
+  //         eventSource.close(); // Close the connection immediately
+  //       }
+  //     };
 
-      eventSource.onerror = () => {
-        eventSource.close();
-      };
+  //     eventSource.onerror = () => {
+  //       eventSource.close();
+  //     };
 
-      return () => {
-        eventSource.close();
-      };
-    }
-  }, [safeTxHash]);
+  //     return () => {
+  //       eventSource.close();
+  //     };
+  //   }
+  // }, [safeTxHash]);
 
   const TOKEN_ADDRESSES = {
     BASE: {
@@ -97,22 +97,44 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:5001/api/transfer", {
+      const response = await fetch("http://localhost:4001/invoice", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          payerWallet,
-          paymentDetails,
-          invoiceNo: docState.invoiceNo,
+          query: `
+            mutation ProcessGnosisPayment($payerWallet: JSON!, $paymentDetails: JSON!, $invoiceNo: String!) {
+              processGnosisPayment(payerWallet: $payerWallet, paymentDetails: $paymentDetails, invoiceNo: $invoiceNo) {
+                success
+                data
+                error
+              }
+            }
+          `,
+          variables: {
+            payerWallet: payerWallet,
+            paymentDetails: paymentDetails,
+            invoiceNo: docState.invoiceNo,
+          },
         }),
       });
 
-      const data = await response.json();
-      console.log("Transfer result:", data);
-      setResponseData(data);
-      setsafeTxHash(data.txHash.safeTxHash);
+      const result = await response.json();
+      const data = result.data.processGnosisPayment;
+
+      if (data.success) {
+        console.log("Transfer result:", data);
+        setResponseData(data);
+        // Since data is now a JSON scalar, we need to parse it if it's a string
+        const dataObj = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+        // The executeTokenTransfer function returns txHash.transactions array
+        const txHash = dataObj.txHash?.transactions?.[0]?.safeTxHash || dataObj.message || '';
+        setsafeTxHash(txHash);
+      } else {
+        console.error("Error during transfer:", data.error);
+        setError(data.error);
+      }
       setIsLoading(false);
     } catch (error) {
       console.error("Error during transfer:", error);
