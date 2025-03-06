@@ -178,7 +178,7 @@ export class InvoiceSubgraph extends Subgraph {
         // Add CORS middleware for the webhook route
         this.subgraphManager['app'].post('/webhook',
           cors(), // Add CORS middleware
-          express.json(),
+          express.json({ limit: '3mb' }),
           this.handleWebhook.bind(this)
         );
       }
