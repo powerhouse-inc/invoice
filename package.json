@@ -109,6 +109,7 @@
     "@google-cloud/documentai": "^8.12.0",
     "@powerhousedao/reactor-browser": "^1.11.1",
     "@react-pdf/renderer": "^4.2.2",
+    "@safe-global/sdk-starter-kit": "^1.1.7",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/react-dom": "^19.0.4",

@@ -85,6 +85,38 @@ export class InvoiceSubgraph extends Subgraph {
           }
         },
       },
+      processGnosisPayment: {
+        resolve: async (parent: unknown, args: unknown, context: unknown) => {
+          try {
+            const { payerWallet, paymentDetails, invoiceNo } = args;
+
+            console.log("Processing webhook data:", {
+              payerWallet,
+              invoiceNo,
+              paymentDetails
+            });
+
+            // Call your internal function to process the data
+            // For example:
+            // const result = await processPayment(payerWallet, paymentDetails, invoiceNo);
+
+            // For now, just return a success response
+            return {
+              success: true,
+              data: {
+                message: "Webhook data processed successfully",
+                timestamp: new Date().toISOString(),
+              },
+            };
+          } catch (error) {
+            console.error("Error processing gnosis payment:", error);
+            return {
+              success: false,
+              error: error instanceof Error ? error.message : "Unknown error",
+            };
+          }
+        },
+      },
     },
     Query: {
       example: {
@@ -114,6 +146,11 @@ export class InvoiceSubgraph extends Subgraph {
     type Mutation {
       uploadInvoicePdf(pdfData: String!): UploadInvoiceResponse!
       createDirectPayment(paymentData: JSON!): DirectPaymentResponse!
+      processGnosisPayment(
+        payerWallet: JSON!
+        paymentDetails: JSON!
+        invoiceNo: String!
+      ): DirectPaymentResponse!
     }
 
     type Query {
@@ -132,11 +169,11 @@ export class InvoiceSubgraph extends Subgraph {
     // Register a webhook handler using the Express app
     if (this.subgraphManager.app) {
       console.log('Registering webhook handler at /webhook');
-      
+
       // Add CORS middleware for the webhook route
-      this.subgraphManager.app.post('/webhook', 
+      this.subgraphManager.app.post('/webhook',
         cors(), // Add CORS middleware
-        express.json(), 
+        express.json(),
         this.handleWebhook.bind(this)
       );
     } else {
@@ -151,11 +188,11 @@ export class InvoiceSubgraph extends Subgraph {
       // Log all headers to debug
       // console.log('Webhook request headers:', req.headers);
       // console.log('Webhook request body:', req.body);
-      
+
       // Get the request body and signature
       let payload = req.body;
       let rawBody = JSON.stringify(payload);
-      
+
       const signature = req.headers['x-alchemy-signature'];
       if (!signature) {
         console.warn('Missing signature header');
@@ -165,27 +202,27 @@ export class InvoiceSubgraph extends Subgraph {
         // Validate the signature
         const signingKey = process.env.ALCHEMY_SIGNING_KEY || 'whsec_test';
         const isValid = isValidSignatureForStringBody(rawBody, signature, signingKey);
-        
+
         if (!isValid) {
           console.warn('Invalid signature');
           // For testing, continue anyway
           // return res.status(401).json({ error: 'Invalid signature' });
         }
       }
-      
-      
+
+
       // Process the webhook
       console.log('Processing webhook payload:', payload.event.activity);
-      
+
       // For testing, just acknowledge receipt
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Webhook received successfully' 
+      return res.status(200).json({
+        success: true,
+        message: 'Webhook received successfully'
       });
     } catch (error) {
       console.error('Error processing webhook:', error);
-      return res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      return res.status(500).json({
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
