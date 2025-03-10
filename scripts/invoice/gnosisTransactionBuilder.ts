@@ -1,9 +1,6 @@
 import { createSafeClient } from '@safe-global/sdk-starter-kit'
 import dotenv from 'dotenv'
 import { ethers } from 'ethers'
-import { updateInvoiceStatus } from '../../scripts/invoice/main';
-
-console.log('Starting Gnosis Safe transfer...')
 
 dotenv.config()
 
@@ -132,29 +129,29 @@ async function executeTokenTransfer(payerWallet: any, paymentDetails: any) {
 export { executeTokenTransfer }
 
 
-export async function checkTransactionExecuted(generatedsafeTxHash: string, invoiceNo: string): Promise<boolean> {
-    try {
-        // Fetch the transaction details using the safeTxHash
-        const transactionDetails = await safeClient.getPendingTransactions();
-        const foundTransaction = transactionDetails.results.find((tx: any) => tx.safeTxHash === generatedsafeTxHash);
+// export async function checkTransactionExecuted(generatedsafeTxHash: string, invoiceNo: string): Promise<boolean> {
+//     try {
+//         // Fetch the transaction details using the safeTxHash
+//         const transactionDetails = await safeClient.getPendingTransactions();
+//         const foundTransaction = transactionDetails.results.find((tx: any) => tx.safeTxHash === generatedsafeTxHash);
 
-        if (!foundTransaction) {
-            console.log('Transaction has been executed successfully.');
-            await updateInvoiceStatus(invoiceNo);
-            return true; // Transaction is executed
-        } else {
-            console.log('Transaction has not been executed yet.');
-            const { isExecuted } = foundTransaction;
-            // If the transaction is found and already executed
-            if (isExecuted) {
-                console.log('Transaction is already executed.');
-                await updateInvoiceStatus(invoiceNo);
-                return true;
-            }
-            return false; // Transaction is still pending
-        }
-    } catch (error) {
-        console.error('Error fetching transaction details:', error);
-        throw error;
-    }
-}
+//         if (!foundTransaction) {
+//             console.log('Transaction has been executed successfully.');
+//             await updateInvoiceStatus(invoiceNo);
+//             return true; // Transaction is executed
+//         } else {
+//             console.log('Transaction has not been executed yet.');
+//             const { isExecuted } = foundTransaction;
+//             // If the transaction is found and already executed
+//             if (isExecuted) {
+//                 console.log('Transaction is already executed.');
+//                 await updateInvoiceStatus(invoiceNo);
+//                 return true;
+//             }
+//             return false; // Transaction is still pending
+//         }
+//     } catch (error) {
+//         console.error('Error fetching transaction details:', error);
+//         throw error;
+//     }
+// }

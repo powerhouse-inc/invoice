@@ -35,7 +35,7 @@ export default function PDFUploader({
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file) {
@@ -63,7 +63,7 @@ export default function PDFUploader({
             base64Data,
             "http://localhost:4001/invoice",
             50 * 1024,
-            (progress) => setUploadProgress(progress)
+            (progress) => setUploadProgress(progress),
           );
 
           if (result.success) {
@@ -83,7 +83,7 @@ export default function PDFUploader({
                 dateDue:
                   invoiceData.dateDue || new Date().toISOString().split("T")[0],
                 currency: invoiceData.currency || "USD",
-              })
+              }),
             );
 
             // If we have line items, dispatch them
@@ -100,7 +100,7 @@ export default function PDFUploader({
                     unitPriceTaxIncl: item.unitPriceTaxIncl,
                     totalPriceTaxExcl: item.totalPriceTaxExcl,
                     totalPriceTaxIncl: item.totalPriceTaxIncl,
-                  })
+                  }),
                 );
               });
             }
@@ -122,7 +122,7 @@ export default function PDFUploader({
                   tel: invoiceData.issuer.contactInfo?.tel || "",
                   email: invoiceData.issuer.contactInfo?.email || "",
                   id: invoiceData.issuer.id?.taxId || "",
-                })
+                }),
               );
 
               // Add bank information dispatch
@@ -141,7 +141,7 @@ export default function PDFUploader({
                     beneficiary:
                       invoiceData.issuer.paymentRouting.bank.beneficiary || "",
                     memo: invoiceData.issuer.paymentRouting.bank.memo || "",
-                  })
+                  }),
                 );
               }
 
@@ -156,7 +156,7 @@ export default function PDFUploader({
                     chainName:
                       invoiceData.issuer.paymentRouting.wallet.chainName || "",
                     rpc: invoiceData.issuer.paymentRouting.wallet.rpc || "",
-                  })
+                  }),
                 );
               }
             }
@@ -176,7 +176,7 @@ export default function PDFUploader({
                   tel: invoiceData.payer.contactInfo?.tel || "",
                   email: invoiceData.payer.contactInfo?.email || "",
                   id: invoiceData.payer.id?.taxId || "",
-                })
+                }),
               );
 
               // Add payer bank information if present
@@ -195,7 +195,7 @@ export default function PDFUploader({
                     beneficiary:
                       invoiceData.payer.paymentRouting.bank.beneficiary || "",
                     memo: invoiceData.payer.paymentRouting.bank.memo || "",
-                  })
+                  }),
                 );
               }
 
@@ -210,7 +210,7 @@ export default function PDFUploader({
                     chainName:
                       invoiceData.payer.paymentRouting.wallet.chainName || "",
                     rpc: invoiceData.payer.paymentRouting.wallet.rpc || "",
-                  })
+                  }),
                 );
               }
             }
@@ -229,7 +229,7 @@ export default function PDFUploader({
           setError(
             error instanceof Error
               ? error.message
-              : "An error occurred while processing the PDF"
+              : "An error occurred while processing the PDF",
           );
         } finally {
           setIsLoading(false);
@@ -247,7 +247,7 @@ export default function PDFUploader({
       setError(
         error instanceof Error
           ? error.message
-          : "An error occurred while handling the file"
+          : "An error occurred while handling the file",
       );
       setIsLoading(false);
     }

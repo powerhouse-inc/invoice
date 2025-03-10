@@ -130,11 +130,7 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
         const dataObj =
           typeof data.data === "string" ? JSON.parse(data.data) : data.data;
         // The executeTokenTransfer function returns txHash.transactions array
-        const txHash =
-          dataObj.txHash?.transactions?.[0]?.safeTxHash ||
-          dataObj.message ||
-          "";
-        setsafeTxHash(txHash);
+        setsafeTxHash(dataObj.txHash.safeTxHash);
       } else {
         console.error("Error during transfer:", data.error);
         setError(data.error);

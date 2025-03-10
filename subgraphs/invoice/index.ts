@@ -1,7 +1,9 @@
 import { Subgraph, Db, Context } from "@powerhousedao/reactor-api";
 import { gql } from "graphql-tag";
 import { uploadPdfAndGetJson } from "../../scripts/invoice/pdfToDocumentAi";
+import { executeTokenTransfer } from "../../scripts/invoice/gnosisTransactionBuilder";
 import { requestDirectPayment } from "./requestFinance";
+import { updateInvoiceStatus } from "../../scripts/invoice/main";
 import * as crypto from "crypto";
 import express from "express";
 import cors from "cors";
@@ -43,6 +45,8 @@ interface UploadInvoicePdfChunkArgs {
 export class InvoiceSubgraph extends Subgraph {
   name = "invoice";
   private fileChunks: Record<string, { chunks: string[], receivedChunks: number }> = {};
+
+
   resolvers = {
     Mutation: {
       uploadInvoicePdf: {
@@ -167,14 +171,18 @@ export class InvoiceSubgraph extends Subgraph {
             });
 
             // Import and call the executeTokenTransfer function
-            // const { executeTokenTransfer } = require('../../scripts/invoice/gnosisTransactionBuilder');
-            // const result = await executeTokenTransfer(payerWallet, paymentDetails);
 
-            // console.log("Token transfer result:", result);
+            const result = await executeTokenTransfer(payerWallet, paymentDetails);
+
+            console.log("Token transfer result:", result);
+
+            console.log('Updating invoice status...')
+
+            await updateInvoiceStatus(invoiceNo);
 
             return {
               success: true,
-              // data: result,
+              data: result,
             };
           } catch (error) {
             console.error("Error processing gnosis payment:", error);
@@ -301,4 +309,41 @@ export class InvoiceSubgraph extends Subgraph {
   }
 
   async onDisconnect() { }
+
+  // private async updateDocumentStatus(invoiceNo: string): Promise<void> {
+  //   try {
+  //     const driveId = "powerhouse";
+  //     const drive = await this.reactor.getDrive(driveId);
+  //     console.log(drive.state.global.nodes)
+  //     const invoiceDocuments = drive.state.global.nodes.filter(
+  //       (e: any) => e.documentType === "Invoice"
+  //     );
+     
+  //     if (invoiceDocuments.length === 0) {
+  //       console.error(`No invoice documents found for invoice ${invoiceNo}`);
+  //       return Promise.reject(new Error(`No invoice documents found for invoice ${invoiceNo}`));
+  //     }
+
+  //     for (const document of invoiceDocuments) {
+  //       const invoiceDocument = await this.reactor.getDocument(driveId, document.id);
+  //       const docInvoiceNo = (invoiceDocument.state.global as any).invoiceNo;
+        
+  //       if (docInvoiceNo === invoiceNo) {
+  //         console.log(
+  //           `Changing status of Invoice No: ${invoiceNo} ${(invoiceDocument.state.global as any).status} to PAID`,
+  //         );
+  //         // this.reactor.addAction(driveId, document.id, invoiceActions.editStatus({
+  //         //   status: "PAID",
+  //         // }));
+  //         return Promise.resolve();
+  //       }
+  //     }
+      
+  //     console.error(`Invoice with number ${invoiceNo} not found among ${invoiceDocuments.length} invoices`);
+  //     return Promise.reject(new Error(`Invoice with number ${invoiceNo} not found`));
+  //   } catch (error) {
+  //     console.error(`Error finding document for invoice ${invoiceNo}:`, error);
+  //     return Promise.reject(error);
+  //   }
+  // }
 }

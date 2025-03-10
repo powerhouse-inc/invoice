@@ -1,4 +1,4 @@
-import { IBaseDocumentDriveServer, IOperationResult } from "document-drive";
+import { BaseDocumentDriveServer } from "document-drive";
 import { createReactorAndCreateLocalDrive } from "../utils/drive-actions";
 import { Invoice, actions as invoiceActions, InvoiceDocument } from "../../document-models/invoice";
 
@@ -7,7 +7,7 @@ export const updateInvoiceStatus = async (
 ): Promise<void> => {
   const driveServer = (await createReactorAndCreateLocalDrive(
     "http://localhost:4001/d/powerhouse",
-  )) as IBaseDocumentDriveServer;
+  )) as BaseDocumentDriveServer;
 
   const driveIds = await driveServer.getDrives();
   if (!driveIds.length) {
@@ -43,10 +43,10 @@ export const updateInvoiceStatus = async (
           driveServer,
           driveId,
           document.id,
-        )) as unknown as IOperationResult<Invoice>;
+        ));
         console.log(
           "Changed Status:",
-          documentStatus.document?.state.global.status,
+          (documentStatus.document?.state.global as any).status,
         );
         return Promise.resolve();
       }
@@ -58,7 +58,7 @@ export const updateInvoiceStatus = async (
 };
 
 const setInvoiceStatus = async (
-  driveServer: IBaseDocumentDriveServer,
+  driveServer: BaseDocumentDriveServer,
   driveId: string,
   documentId: string,
 ) => {
