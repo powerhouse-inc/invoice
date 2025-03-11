@@ -16,7 +16,7 @@ import PDFUploader, { loadPDFFile } from "./ingestPDF";
 import RequestFinance from "./requestFinance";
 import InvoiceToGnosis from "./invoiceToGnosis";
 import axios from "axios";
-import { toast } from "@powerhousedao/design-system";
+import { toast, Button } from "@powerhousedao/design-system";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { InvoicePDF } from "./InvoicePDF";
 import { createRoot } from "react-dom/client";
@@ -24,7 +24,7 @@ import { createRoot } from "react-dom/client";
 import { downloadUBL, exportToUBL } from "./exportUBL";
 
 export default function Editor(
-  props: EditorProps<InvoiceState, InvoiceAction, InvoiceLocalState>,
+  props: EditorProps<InvoiceState, InvoiceAction, InvoiceLocalState>
 ) {
   // generate a random id
   // const id = documentModelUtils.hashKey();
@@ -106,7 +106,7 @@ export default function Editor(
   ];
 
   const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -126,7 +126,7 @@ export default function Editor(
   };
 
   const handlePdfUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -189,7 +189,7 @@ export default function Editor(
             }
             return null;
           }}
-        </PDFDownloadLink>,
+        </PDFDownloadLink>
       );
     } catch (error) {
       console.error("Error exporting PDF:", error);
@@ -202,21 +202,11 @@ export default function Editor(
     dispatch(actions.editStatus({ status: "DRAFT" }));
   };
 
-  const handleUpdateInvoiceStatus = async () => {
-    try {
-      const response = await axios.post(
-        "http://localhost:5001/api/update-invoice-status",
-        {
-          invoiceNo: state.invoiceNo,
-        },
-      );
-      toast(response.data.message, {
-        type: "success",
-      });
-      console.log("Response: ", response.data.message);
-    } catch (error) {
-      console.error("Error updating invoice status:", error);
-    }
+  const handleToastNotification = async () => {
+    console.log("Show me that notification");
+    toast("Show me that notification", {
+      type: "success",
+    });
   };
 
   async function handleExportUBL() {
@@ -414,7 +404,7 @@ export default function Editor(
                 inputType="date"
                 onChange={(e) =>
                   dispatch(
-                    actions.editInvoice({ dateDelivered: e.target.value }),
+                    actions.editInvoice({ dateDelivered: e.target.value })
                   )
                 }
                 value={state.dateDelivered || state.dateIssued}
@@ -502,6 +492,10 @@ export default function Editor(
           )}
         </div>
       )}
+
+      <Button onClick={handleToastNotification}>
+        Activate toast notification
+      </Button>
     </div>
   );
 }
