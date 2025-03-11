@@ -74,7 +74,7 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
       chainName: docState.issuer.paymentRouting.wallet.chainName,
       chainId: docState.issuer.paymentRouting.wallet.chainId,
     },
-    amount: 0.00001, // Make the amount small for testing
+    amount: 0.000015, // Make the amount small for testing
   };
 
   function getTokenAddress(chainName: any, symbol: any) {
@@ -127,10 +127,10 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
         console.log("Transfer result:", data);
         setResponseData(data);
         // Since data is now a JSON scalar, we need to parse it if it's a string
-        const dataObj = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+        const dataObj =
+          typeof data.data === "string" ? JSON.parse(data.data) : data.data;
         // The executeTokenTransfer function returns txHash.transactions array
-        const txHash = dataObj.txHash?.transactions?.[0]?.safeTxHash || dataObj.message || '';
-        setsafeTxHash(txHash);
+        setsafeTxHash(dataObj.txHash.safeTxHash);
       } else {
         console.error("Error during transfer:", data.error);
         setError(data.error);

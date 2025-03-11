@@ -11,7 +11,7 @@ const RequestFinance: React.FC<RequestFinanceProps> = ({ docState }) => {
   const [responseData, setResponseData] = useState<any>(null);
   const [invoiceLink, setInvoiceLink] = useState<string | null>(null);
   const [directPaymentStatus, setDirectPaymentStatus] = useState<string | null>(
-    null
+    null,
   );
 
   // Function to call the createDirectPayment mutation
@@ -50,13 +50,13 @@ const RequestFinance: React.FC<RequestFinanceProps> = ({ docState }) => {
         return result.data.createDirectPayment.data;
       } else {
         throw new Error(
-          result.data?.createDirectPayment?.error || "Unknown error"
+          result.data?.createDirectPayment?.error || "Unknown error",
         );
       }
     } catch (err) {
       console.error("Error creating direct payment:", err);
       setDirectPaymentStatus(
-        `Error creating direct payment: ${err instanceof Error ? err.message : "Unknown error"}`
+        `Error creating direct payment: ${err instanceof Error ? err.message : "Unknown error"}`,
       );
       throw err;
     }
@@ -197,7 +197,11 @@ const RequestFinance: React.FC<RequestFinanceProps> = ({ docState }) => {
         {isLoading ? "Processing..." : "Send Payment to Request Finance >"}
       </button>
 
-      {error && <div className="error-message" style={{ color: "red" }}>{error}</div>}
+      {error && (
+        <div className="error-message" style={{ color: "red" }}>
+          {error}
+        </div>
+      )}
 
       {invoiceLink && (
         <div>

@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { DocumentDriveServer, IBaseDocumentDriveServer } from "document-drive";
+import { DocumentDriveServer, BaseDocumentDriveServer } from "document-drive";
 import {
   actions,
   generateSynchronizationUnitId,
@@ -12,7 +12,7 @@ import * as LocalDocumentModels from "../../document-models";
 import { stat } from "fs";
 
 export const addFolder = (
-  driveServer: IBaseDocumentDriveServer,
+  driveServer: BaseDocumentDriveServer,
   driveId: string,
   nodeId: string,
   nodeName: string,
@@ -29,7 +29,7 @@ export const addFolder = (
 };
 
 export const addDocument = async (
-  driveServer: IBaseDocumentDriveServer,
+  driveServer: BaseDocumentDriveServer,
   driveId: string,
   documentId: string,
   documentName: string,
