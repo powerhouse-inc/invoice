@@ -14,6 +14,15 @@ interface DocumentAIEntity {
     children: DocumentAIEntity[];
 }
 
+interface ParsedAddress {
+    streetAddress: string;
+    extendedAddress: string | null;
+    city: string;
+    postalCode: string;
+    stateProvince: string;
+    country: string;
+}
+
 export async function uploadPdfAndGetJson(inputDoc: any) {
     try {
         console.log("Starting PDF upload and processing"); // Log when processing starts
@@ -64,7 +73,7 @@ export async function uploadPdfAndGetJson(inputDoc: any) {
         // Map the entities to invoice format
         const invoiceData = mapDocumentAiToInvoice(entities);
         
-        console.log("Mapped invoice data:", invoiceData);
+        console.log("Mapped invoice data:", JSON.stringify(invoiceData, null, 2));
 
         return { invoiceData };
     } catch (error) {
@@ -73,152 +82,203 @@ export async function uploadPdfAndGetJson(inputDoc: any) {
     }
 }
 
-function parseDate(dateStr: string): string {
+function parseDate(dateStr: string): string | null {
     try {
-        console.log(`Attempting to parse date: ${dateStr}`);
-        
-        // Normalize the date string
-        const normalizedDateStr = dateStr.trim().toUpperCase();
-        
-        // Handle month name format with ordinal suffixes (e.g., "MARCH 31ST, 2025")
-        const monthNameOrdinalRegex = /^([A-Z]+)\s+(\d{1,2})(ST|ND|RD|TH)?,?\s+(\d{4})$/;
-        const monthNameOrdinalMatch = normalizedDateStr.match(monthNameOrdinalRegex);
-        
-        if (monthNameOrdinalMatch) {
-            const monthName = monthNameOrdinalMatch[1];
-            const day = monthNameOrdinalMatch[2].padStart(2, '0');
-            const year = monthNameOrdinalMatch[4];
-            
-            // Map month names to numbers
-            const monthMap: Record<string, string> = {
-                'JANUARY': '01', 'JAN': '01',
-                'FEBRUARY': '02', 'FEB': '02',
-                'MARCH': '03', 'MAR': '03',
-                'APRIL': '04', 'APR': '04',
-                'MAY': '05',
-                'JUNE': '06', 'JUN': '06',
-                'JULY': '07', 'JUL': '07',
-                'AUGUST': '08', 'AUG': '08',
-                'SEPTEMBER': '09', 'SEP': '09',
-                'OCTOBER': '10', 'OCT': '10',
-                'NOVEMBER': '11', 'NOV': '11',
-                'DECEMBER': '12', 'DEC': '12'
-            };
-            
-            const monthNum = monthMap[monthName];
-            if (!monthNum) {
-                throw new Error(`Unknown month name: ${monthName}`);
-            }
-            
-            // Return in ISO format (YYYY-MM-DD)
-            return `${year}-${monthNum}-${day}`;
+        if (!dateStr || typeof dateStr !== 'string') {
+            console.error(`Invalid date input: ${dateStr}`);
+            return null;
         }
+
+        // Remove any leading/trailing whitespace and convert to uppercase for consistency
+        dateStr = dateStr.trim().toUpperCase();
+        // Remove ordinal indicators (TH, ST, ND, RD)
+        dateStr = dateStr.replace(/(\d+)(ST|ND|RD|TH)/g, '$1');
         
-        // Handle month name format without ordinals (e.g., "MARCH 05, 2025")
-        const monthNameRegex = /^([A-Z]+)\s+(\d{1,2}),?\s+(\d{4})$/;
-        const monthNameMatch = normalizedDateStr.match(monthNameRegex);
-        
-        if (monthNameMatch) {
-            const monthName = monthNameMatch[1];
-            const day = monthNameMatch[2].padStart(2, '0');
-            const year = monthNameMatch[3];
-            
-            // Map month names to numbers
-            const monthMap: Record<string, string> = {
-                'JANUARY': '01', 'JAN': '01',
-                'FEBRUARY': '02', 'FEB': '02',
-                'MARCH': '03', 'MAR': '03',
-                'APRIL': '04', 'APR': '04',
-                'MAY': '05',
-                'JUNE': '06', 'JUN': '06',
-                'JULY': '07', 'JUL': '07',
-                'AUGUST': '08', 'AUG': '08',
-                'SEPTEMBER': '09', 'SEP': '09',
-                'OCTOBER': '10', 'OCT': '10',
-                'NOVEMBER': '11', 'NOV': '11',
-                'DECEMBER': '12', 'DEC': '12'
-            };
-            
-            const monthNum = monthMap[monthName];
-            if (!monthNum) {
-                throw new Error(`Unknown month name: ${monthName}`);
-            }
-            
-            // Return in ISO format (YYYY-MM-DD)
-            return `${year}-${monthNum}-${day}`;
-        }
-        
-        // Handle existing formats
-        // MM/DD/YYYY or DD/MM/YYYY
-        const slashRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
-        const slashMatch = normalizedDateStr.match(slashRegex);
-        
-        if (slashMatch) {
-            // Assume MM/DD/YYYY format for simplicity
-            // You might need to adjust this based on your locale expectations
-            const month = slashMatch[1].padStart(2, '0');
-            const day = slashMatch[2].padStart(2, '0');
-            const year = slashMatch[3];
-            
-            // Validate month and day
-            if (parseInt(month) > 12) {
-                // If month > 12, it's likely DD/MM/YYYY format
-                return `${year}-${day}-${month}`;
-            } else {
-                return `${year}-${month}-${day}`;
-            }
-        }
+        let date: Date | null = null;
         
         // Handle YYYY-MM-DD format
-        const isoRegex = /^(\d{4})-(\d{1,2})-(\d{1,2})$/;
-        const isoMatch = normalizedDateStr.match(isoRegex);
-        
-        if (isoMatch) {
-            const year = isoMatch[1];
-            const month = isoMatch[2].padStart(2, '0');
-            const day = isoMatch[3].padStart(2, '0');
-            return `${year}-${month}-${day}`;
+        if (dateStr.match(/^\d{4}-\d{1,2}-\d{1,2}$/)) {
+            const [year, month, day] = dateStr.split('-');
+            date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
         }
-        
-        // Handle MM-DD-YYYY or DD-MM-YYYY format
-        const dashRegex = /^(\d{1,2})-(\d{1,2})-(\d{4})$/;
-        const dashMatch = normalizedDateStr.match(dashRegex);
-        
-        if (dashMatch) {
-            // Assume MM-DD-YYYY format for simplicity
-            const month = dashMatch[1].padStart(2, '0');
-            const day = dashMatch[2].padStart(2, '0');
-            const year = dashMatch[3];
+        // Handle DD/MMM/YYYY format (e.g., "02/JAN/2025")
+        else if (dateStr.match(/^\d{1,2}\/[A-Z]{3}\/\d{4}$/)) {
+            const [day, month, year] = dateStr.split('/');
+            const monthMap: {[key: string]: string} = {
+                'JAN': '01', 'FEB': '02', 'MAR': '03', 'APR': '04',
+                'MAY': '05', 'JUN': '06', 'JUL': '07', 'AUG': '08',
+                'SEP': '09', 'OCT': '10', 'NOV': '11', 'DEC': '12'
+            };
+            date = new Date(`${year}-${monthMap[month]}-${day.padStart(2, '0')}`);
+        }
+        // Handle DD-MMM-YYYY format (e.g., "02-JAN-2025")
+        else if (dateStr.match(/^\d{1,2}-[A-Z]{3}-\d{4}$/)) {
+            const [day, month, year] = dateStr.split('-');
+            const monthMap: {[key: string]: string} = {
+                'JAN': '01', 'FEB': '02', 'MAR': '03', 'APR': '04',
+                'MAY': '05', 'JUN': '06', 'JUL': '07', 'AUG': '08',
+                'SEP': '09', 'OCT': '10', 'NOV': '11', 'DEC': '12'
+            };
+            date = new Date(`${year}-${monthMap[month]}-${day.padStart(2, '0')}`);
+        }
+        // Handle MM/DD/YYYY format
+        else if (dateStr.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+            const [month, day, year] = dateStr.split('/');
+            date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+        }
+        // Handle DD.MM.YYYY format (European)
+        else if (dateStr.match(/^\d{1,2}\.\d{1,2}\.\d{4}$/)) {
+            const [day, month, year] = dateStr.split('.');
+            date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+        }
+        // Handle "MONTH DAY, YEAR" format (e.g., "MARCH 5, 2025")
+        else if (dateStr.match(/^[A-Z]+ \d{1,2},? \d{4}$/)) {
+            const monthMap: {[key: string]: string} = {
+                'JANUARY': '01', 'FEBRUARY': '02', 'MARCH': '03', 'APRIL': '04',
+                'MAY': '05', 'JUNE': '06', 'JULY': '07', 'AUGUST': '08',
+                'SEPTEMBER': '09', 'OCTOBER': '10', 'NOVEMBER': '11', 'DECEMBER': '12',
+                'JAN': '01', 'FEB': '02', 'MAR': '03', 'APR': '04',
+                'JUN': '06', 'JUL': '07', 'AUG': '08', 'SEP': '09', 'OCT': '10', 'NOV': '11', 'DEC': '12'
+            };
             
-            // Validate month and day
-            if (parseInt(month) > 12) {
-                // If month > 12, it's likely DD-MM-YYYY format
-                return `${year}-${day}-${month}`;
-            } else {
-                return `${year}-${month}-${day}`;
+            // Extract month, day, and year
+            const parts = dateStr.replace(',', '').split(' ');
+            const month = parts[0];
+            const day = parts[1];
+            const year = parts[2];
+            
+            if (!monthMap[month]) {
+                console.error(`Unknown month: ${month} in date: ${dateStr}`);
+                throw new Error(`Unknown month: ${month} in date: ${dateStr}`);
             }
+            
+            date = new Date(`${year}-${monthMap[month]}-${day.padStart(2, '0')}`);
+        }
+        // Handle "DAY MONTH YEAR" format (e.g., "5 MARCH 2025")
+        else if (dateStr.match(/^\d{1,2} [A-Z]+ \d{4}$/)) {
+            const monthMap: {[key: string]: string} = {
+                'JANUARY': '01', 'FEBRUARY': '02', 'MARCH': '03', 'APRIL': '04',
+                'MAY': '05', 'JUNE': '06', 'JULY': '07', 'AUGUST': '08',
+                'SEPTEMBER': '09', 'OCTOBER': '10', 'NOVEMBER': '11', 'DECEMBER': '12',
+                'JAN': '01', 'FEB': '02', 'MAR': '03', 'APR': '04',
+                'JUN': '06', 'JUL': '07', 'AUG': '08', 'SEP': '09', 'OCT': '10', 'NOV': '11', 'DEC': '12'
+            };
+            
+            const parts = dateStr.split(' ');
+            const day = parts[0];
+            const month = parts[1];
+            const year = parts[2];
+            
+            if (!monthMap[month]) {
+                console.error(`Unknown month: ${month} in date: ${dateStr}`);
+                throw new Error(`Unknown month: ${month} in date: ${dateStr}`);
+            }
+            
+            date = new Date(`${year}-${monthMap[month]}-${day.padStart(2, '0')}`);
         }
         
-        // If we get here, the date format is not recognized
-        throw new Error(`Invalid date format: ${dateStr}`);
+        if (!date || isNaN(date.getTime())) {
+            console.error(`Failed to parse date: ${dateStr}`);
+            // Fallback: try to use the JavaScript Date parser directly
+            const fallbackDate = new Date(dateStr);
+            if (!isNaN(fallbackDate.getTime())) {
+                console.log(`Fallback date parsing succeeded for: ${dateStr}`);
+                return fallbackDate.toISOString().split('T')[0];
+            }
+            throw new Error(`Invalid date format: ${dateStr}`);
+        }
+        
+        // Return in YYYY-MM-DD format
+        const formattedDate = date.toISOString().split('T')[0];
+        return formattedDate;
     } catch (error) {
         console.error(`Error parsing date '${dateStr}':`, error);
         
-        // Return a fallback date or re-throw the error
-        // For now, we'll re-throw to maintain the existing behavior
-        throw error;
+        // If all else fails, return null instead of today's date
+        console.log(`Unable to parse date: ${dateStr}, returning null`);
+        return null;
     }
 }
 
 function convertCurrencySymbolToCode(symbol: string): string {
+    if (!symbol || typeof symbol !== 'string') {
+        console.error(`Invalid currency input: ${symbol}`);
+        return 'USD'; // Default to USD
+    }
+
+    console.log(`Converting currency symbol/name: "${symbol}"`);
+    
+    // Clean up the input - remove whitespace and normalize
+    const cleanSymbol = symbol.trim().toUpperCase();
+    
+    // Map of currency symbols and names to ISO codes
     const currencyMap: { [key: string]: string } = {
+        // Symbols
         '$': 'USD',
         '£': 'GBP',
         '€': 'EUR',
-        // Add more symbols as needed
+        '¥': 'JPY',
+        '₽': 'RUB',
+        '₩': 'KRW',
+        '₿': 'BTC',
+        'CHF': 'CHF',
+        
+        // Names and codes - USD
+        'USD': 'USD',
+        'DOLLAR': 'USD',
+        'DOLLARS': 'USD',
+        'US DOLLAR': 'USD',
+        'US DOLLARS': 'USD',
+        'U.S. DOLLAR': 'USD',
+        'U.S. DOLLARS': 'USD',
+        'UNITED STATES DOLLAR': 'USD',
+        
+        // Names and codes - EUR
+        'EUR': 'EUR',
+        'EURO': 'EUR',
+        'EUROS': 'EUR',
+        'EUROPEAN EURO': 'EUR',
+        
+        // Names and codes - GBP
+        'GBP': 'GBP',
+        'POUND': 'GBP',
+        'POUNDS': 'GBP',
+        'POUND STERLING': 'GBP',
+        'BRITISH POUND': 'GBP',
+        'UK POUND': 'GBP',
+        
+        // Names and codes - JPY
+        'JPY': 'JPY',
+        'YEN': 'JPY',
+        'JAPANESE YEN': 'JPY',
+        
+        // Other common currencies
+        'CAD': 'CAD',
+        'CANADIAN DOLLAR': 'CAD',
+        'CANADIAN DOLLARS': 'CAD',
+        
     };
 
-    return currencyMap[symbol.trim()] || symbol;
+    // Check if the symbol is in our map
+    if (currencyMap[cleanSymbol]) {
+        console.log(`Mapped currency "${symbol}" to "${currencyMap[cleanSymbol]}"`);
+        return currencyMap[cleanSymbol];
+    }
+    
+    // Check if it's a 3-letter currency code
+    if (cleanSymbol.length === 3 && /^[A-Z]{3}$/.test(cleanSymbol)) {
+        console.log(`Using 3-letter currency code as is: "${cleanSymbol}"`);
+        return cleanSymbol;
+    }
+    
+    // Special case for "EURO" which should be "EUR"
+    if (cleanSymbol === 'EURO' || cleanSymbol === 'EUROS') {
+        console.log(`Converting "${cleanSymbol}" to "EUR"`);
+        return 'EUR';
+    }
+    
+    console.log(`Unknown currency symbol/name: "${symbol}", defaulting to "USD"`);
+    return 'USD';  // Default to USD for unknown currencies
 }
 
 function normalizeChainName(chainName: string): string {
@@ -238,6 +298,153 @@ function normalizeChainName(chainName: string): string {
     
     // Return the standardized name if found, otherwise return the original
     return chainNameMap[lowercaseName] || chainName;
+}
+
+function normalizeAccountType(accountType: string): 'CHECKING' | 'SAVINGS' {
+    // Convert to lowercase for case-insensitive comparison
+    const lowercaseType = accountType.toLowerCase().trim();
+    
+    // Map of account type variations to standardized versions
+    const accountTypeMap: { [key: string]: 'CHECKING' | 'SAVINGS' } = {
+        'checking': 'CHECKING',
+        'check': 'CHECKING',
+        'chk': 'CHECKING',
+        'current': 'CHECKING',  // Some countries call checking accounts "current accounts"
+        'savings': 'SAVINGS',
+        'saving': 'SAVINGS',
+        'save': 'SAVINGS',
+        'sav': 'SAVINGS'
+    };
+    
+    // Return the standardized type if found, otherwise default to CHECKING
+    return accountTypeMap[lowercaseType] || 'CHECKING';
+}
+
+function parseAddress(addressText: string): ParsedAddress {
+    const addressLines = addressText.split(/[,\n]/).map(line => {
+        // Remove common label prefixes and clean whitespace
+        return line.trim()
+            .replace(/^(street|address):\s*/i, '')
+            .replace(/^zip:\s*/i, '')
+            .replace(/^postal( code)?:\s*/i, '')
+            .replace(/^city:\s*/i, '')
+            .replace(/^state:\s*/i, '')
+            .replace(/^province:\s*/i, '')
+            .replace(/^country:\s*/i, '');
+    }).filter(Boolean);
+
+    const addressData = {
+        streetAddress: '',
+        extendedAddress: '',
+        city: '',
+        postalCode: '',
+        stateProvince: '',
+        country: ''
+    };
+
+    // Helper function to identify US state codes
+    const isUSState = (str: string) => {
+        const states = new Set(['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS',
+            'KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND',
+            'OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']);
+        return states.has(str.toUpperCase());
+    };
+
+    // Helper function to check if string might be a country
+    const isLikelyCountry = (str: string) => {
+        const commonCountries = new Set([
+            'portugal', 'philippines', 'germany', 'deutschland', 'usa', 'united states', 'us', 'canada', 'uk', 
+            'united kingdom', 'australia', 'switzerland', 'france', 'spain', 'italy', 'netherlands', 'chile'
+        ]);
+        return commonCountries.has(str.toLowerCase());
+    };
+
+    // Helper to check for extended postal codes
+    const extractPostalCode = (str: string) => {
+        const patterns = [
+            /\b\d{4}[-\s]?\d{3}\b/, // Portuguese format: 1234-567
+            /\b\d{5}(?:-\d{4})?\b/, // US format
+            /\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i, // UK format
+            /\b\d{4,6}\b/ // Generic format
+        ];
+        
+        for (const pattern of patterns) {
+            const match = str.match(pattern);
+            if (match) return match[0];
+        }
+        return null;
+    };
+
+    // Process lines in reverse to identify country and city first
+    for (let i = addressLines.length - 1; i >= 0; i--) {
+        let line = addressLines[i].trim();
+        if (!line) continue;
+
+        // Split the line into parts
+        const parts = line.split(/[\s,]+/);
+        
+        // Check for country first
+        if (isLikelyCountry(line)) {
+            addressData.country = line;
+            continue;
+        }
+
+        // Extract postal code
+        const postalCode = extractPostalCode(line);
+        if (postalCode) {
+            addressData.postalCode = postalCode;
+            line = line.replace(postalCode, '').trim();
+            
+            // If there's text before or after the postal code, it might be the city
+            if (line && !addressData.city) {
+                addressData.city = line;
+            }
+            continue;
+        }
+
+        // Check for city names
+        if (!addressData.city && !/^\d+/.test(line)) {
+            if (line.toLowerCase().includes('city')) {
+                const cityMatch = line.match(/(.+?)\s*city\s*(.*)/i);
+                if (cityMatch) {
+                    addressData.city = `${cityMatch[1]} City`.trim();
+                    if (cityMatch[2] && !addressData.stateProvince) {
+                        addressData.stateProvince = cityMatch[2].trim();
+                    }
+                }
+            } else {
+                addressData.city = line;
+            }
+            continue;
+        }
+
+        // Combine first two lines for street address if they don't look like a city or country
+        if (i <= 1) {
+            if (!addressData.streetAddress) {
+                addressData.streetAddress = line;
+            } else {
+                addressData.streetAddress = `${addressData.streetAddress}, ${line}`;
+            }
+        }
+    }
+
+    // Clean up data
+    const cleanupField = (str: string) => {
+        if (!str) return '';
+        return str
+            .replace(/,+$/, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    };
+
+    return {
+        streetAddress: cleanupField(addressData.streetAddress),
+        extendedAddress: addressData.extendedAddress ? cleanupField(addressData.extendedAddress) : null,
+        city: cleanupField(addressData.city),
+        postalCode: cleanupField(addressData.postalCode),
+        stateProvince: cleanupField(addressData.stateProvince),
+        country: cleanupField(addressData.country)
+    };
 }
 
 function mapDocumentAiToInvoice(
@@ -312,29 +519,35 @@ function mapDocumentAiToInvoice(
     // 4. Process all entities and update the single payment routing object
     entities.forEach(entity => {
         switch(entity.type) {
-            case 'supplier_bank_details':
-                entity.children?.forEach(child => {
-                    const bank = invoiceData.issuer!.paymentRouting!.bank!;
-                    switch(child.type) {
-                        case 'supplier_bank_details/bank_name':
-                            bank.name = child.mentionText;
-                            break;
-                        case 'supplier_bank_details/bank_iban':
-                            bank.accountNum = child.mentionText;
-                            break;
-                        case 'supplier_bank_details/aba_bic_swift_number':
-                            bank.SWIFT = child.mentionText;
-                            break;
-                        case 'supplier_bank_details/bank_account_type':
-                            bank.accountType = child.mentionText as 'CHECKING' | 'SAVINGS';
-                            break;
-                        case 'supplier_bank_details/beneficiary_name':
-                            bank.beneficiary = child.mentionText;
-                            break;
+            // Handle new schema format for bank details
+            case 'supplier_bank_name':
+                invoiceData.issuer!.paymentRouting!.bank!.name = entity.mentionText;
+                break;
+                
+            case 'supplier_bank_account_type':
+                invoiceData.issuer!.paymentRouting!.bank!.accountType = normalizeAccountType(entity.mentionText);
+                break;
+                
+            case 'supplier_bank_bic':
+            case 'supplier_bank_swift':
+                const bankCode = entity.mentionText.replace(/^[:.\s]+/, '').trim(); // Remove leading colons and spaces
+                if (invoiceData.issuer?.paymentRouting?.bank) {
+                    if (entity.type === 'supplier_bank_bic') {
+                        invoiceData.issuer.paymentRouting.bank.BIC = bankCode;
+                    } else {
+                        invoiceData.issuer.paymentRouting.bank.SWIFT = bankCode;
                     }
-                });
+                }
+                break;
+                
+            case 'supplier_bank_address':
+                const bankAddress = parseAddress(entity.mentionText);
+                if (invoiceData.issuer?.paymentRouting?.bank) {
+                    invoiceData.issuer.paymentRouting.bank.address = bankAddress;
+                }
                 break;
 
+            // Handle existing cases for crypto details
             case 'crypto_account_details':
                 entity.children?.forEach(child => {
                     const wallet = invoiceData.issuer!.paymentRouting!.wallet!;
@@ -363,22 +576,51 @@ function mapDocumentAiToInvoice(
             case 'invoice_id':
                 invoiceData.invoiceNo = entity.mentionText;
                 break;
+                
             case 'invoice_date':
-                invoiceData.dateIssued = parseDate(entity.mentionText);
+                invoiceData.dateIssued = parseDate(entity.mentionText) || undefined;
                 break;
             
             case 'due_date':
-                invoiceData.dateDue = parseDate(entity.mentionText);
+                invoiceData.dateDue = parseDate(entity.mentionText) || undefined;
                 break;
 
             case 'currency':
-                invoiceData.currency = convertCurrencySymbolToCode(entity.mentionText);
+                const currencyCode = convertCurrencySymbolToCode(entity.mentionText);
+                console.log(`Setting invoice currency to: ${currencyCode} (from ${entity.mentionText})`);
+                invoiceData.currency = currencyCode;
+                
+                // Also update currency in line items if they exist
+                if (invoiceData.lineItems && invoiceData.lineItems.length > 0) {
+                    invoiceData.lineItems = invoiceData.lineItems.map(item => ({
+                        ...item,
+                        currency: currencyCode
+                    }));
+                    console.log(`Updated currency in ${invoiceData.lineItems.length} line items to ${currencyCode}`);
+                }
                 break;
                 
             case 'supplier_name':
                 invoiceData.issuer!.name = entity.mentionText;
+                
+                // Set beneficiary name to supplier name only if no remit_to_name was found
+                if (invoiceData.issuer?.paymentRouting?.bank && !invoiceData.issuer.paymentRouting.bank.beneficiary) {
+                    invoiceData.issuer.paymentRouting.bank.beneficiary = entity.mentionText;
+                }
                 break;
             
+            case 'remit_to_name':
+                // Set the bank beneficiary name (this will override any supplier name that was set)
+                if (invoiceData.issuer?.paymentRouting?.bank) {
+                    invoiceData.issuer.paymentRouting.bank.beneficiary = entity.mentionText;
+                }
+                
+                // If supplier name is not set, use remit_to_name as a fallback
+                if (!invoiceData.issuer!.name) {
+                    invoiceData.issuer!.name = entity.mentionText;
+                }
+                break;
+                
             case 'supplier_email':
                 if (!invoiceData.issuer!.contactInfo) {
                     invoiceData.issuer!.contactInfo = { email: null, tel: null };
@@ -387,31 +629,11 @@ function mapDocumentAiToInvoice(
                 break;
 
             case 'supplier_address':
-                const addressLines = entity.mentionText.split('\n');
-                const streetAddress = addressLines[0];
-                
-                let city = '', stateProvince = '', postalCode = '', country = '';
-                if (addressLines[1]) {
-                    const cityStateMatch = addressLines[1].match(/([^,]+),\s*(\w+)\s+(\d+)/);
-                    if (cityStateMatch) {
-                        city = cityStateMatch[1].trim();
-                        stateProvince = cityStateMatch[2].trim();
-                        postalCode = cityStateMatch[3].trim();
-                    }
+                const supplierAddress = parseAddress(entity.mentionText);
+                invoiceData.issuer!.address = supplierAddress;
+                if (supplierAddress.country) {
+                    invoiceData.issuer!.country = supplierAddress.country;
                 }
-                if (addressLines[2]) {
-                    country = addressLines[2].trim();
-                }
-
-                invoiceData.issuer!.address = {
-                    streetAddress,
-                    city,
-                    stateProvince,
-                    postalCode,
-                    country,
-                    extendedAddress: null
-                };
-                invoiceData.issuer!.country = country;
                 break;
 
             case 'supplier_tax_id':
@@ -430,34 +652,41 @@ function mapDocumentAiToInvoice(
             case 'line_item':
                 const quantity = entity.children?.find(child => 
                     child.type === 'line_item/quantity'
-                )?.mentionText || '1';
+                )?.mentionText || '';
                 
                 const unitPrice = entity.children?.find(child => 
                     child.type === 'line_item/unit_price'
-                )?.mentionText || '0';
+                )?.mentionText || '';
 
-                const parsedQuantity = parseFloat(quantity.replace(/,/g, ''));
-                const parsedUnitPrice = parseFloat(unitPrice.replace(/,/g, ''));
-                
                 const description = entity.children?.find(child => 
                     child.type === 'line_item/description'
                 )?.mentionText || '';
                 
-                invoiceData.lineItems = invoiceData.lineItems || [];
-                invoiceData.lineItems.push({
-                    description,
-                    quantity: parsedQuantity,
-                    unitPriceTaxExcl: parsedUnitPrice,
-                    unitPriceTaxIncl: parsedUnitPrice,
-                    totalPriceTaxExcl: parsedQuantity * parsedUnitPrice,
-                    totalPriceTaxIncl: parsedQuantity * parsedUnitPrice,
-                    currency: invoiceData.currency || 'USD',
-                    id: crypto.randomUUID(),
-                    taxPercent: 0
-                });
+                // Only add line item if all required fields are present and valid
+                if (description && quantity && unitPrice) {
+                    const parsedQuantity = parseFloat(quantity.replace(/,/g, ''));
+                    const parsedUnitPrice = parseFloat(unitPrice.replace(/,/g, ''));
+                    
+                    // Additional check to ensure parsed values are valid numbers
+                    if (!isNaN(parsedQuantity) && !isNaN(parsedUnitPrice)) {
+                        invoiceData.lineItems = invoiceData.lineItems || [];
+                        invoiceData.lineItems.push({
+                            description,
+                            quantity: parsedQuantity,
+                            unitPriceTaxExcl: parsedUnitPrice,
+                            unitPriceTaxIncl: parsedUnitPrice,
+                            totalPriceTaxExcl: parsedQuantity * parsedUnitPrice,
+                            totalPriceTaxIncl: parsedQuantity * parsedUnitPrice,
+                            currency: invoiceData.currency || 'USD',
+                            id: crypto.randomUUID(),
+                            taxPercent: 0
+                        });
+                    }
+                }
                 break;
 
-            case 'payer_name':
+            // Handle receiver (payer) information
+            case 'receiver_name':
                 if (!invoiceData.payer) {
                     invoiceData.payer = {
                         name: entity.mentionText,
@@ -472,64 +701,22 @@ function mapDocumentAiToInvoice(
                 }
                 break;
 
-            case 'payer_address':
-                const payerAddressLines = entity.mentionText.split('\n');
-                
-                // Initialize variables
-                let payerStreetAddress = '';
-                let payerExtendedAddress = '';
-                let payerCity = '';
-                let payerPostalCode = '';
-                let payerCountry = '';
-                let payerStateProvince = '';
-
-                // Handle the specific format:
-                // "The North Atrium\n3rd Floor, unit 02.\nAS. Fortuna Streets/MC.Briones Sts. Guizo\nMandaue City 6014 Cebu Philippines"
-                if (payerAddressLines.length > 0) {
-                    payerStreetAddress = payerAddressLines[0]; // "The North Atrium"
-                    
-                    if (payerAddressLines[1]) {
-                        payerExtendedAddress = payerAddressLines[1]; // "3rd Floor, unit 02."
-                    }
-
-                    if (payerAddressLines[2]) {
-                        payerStateProvince = payerAddressLines[2]; // "AS. Fortuna Streets/MC.Briones Sts. Guizo"
-                    }
-
-                    if (payerAddressLines[3]) {
-                        // Parse "Mandaue City 6014 Cebu Philippines"
-                        const lastLine = payerAddressLines[3];
-                        const cityMatch = lastLine.match(/^(.*?)\s+(\d{4})\s+(.*)$/);
-                        if (cityMatch) {
-                            payerCity = cityMatch[1];         // "Mandaue City"
-                            payerPostalCode = cityMatch[2];   // "6014"
-                            payerCountry = cityMatch[3];      // "Cebu Philippines"
-                        } else {
-                            // Fallback if the pattern doesn't match
-                            payerCity = lastLine;
-                        }
-                    }
+            case 'receiver_address':
+                const receiverAddress = parseAddress(entity.mentionText);
+                invoiceData.payer!.address = receiverAddress;
+                if (receiverAddress.country) {
+                    invoiceData.payer!.country = receiverAddress.country;
                 }
-
-                invoiceData.payer!.address = {
-                    streetAddress: payerStreetAddress,
-                    extendedAddress: payerExtendedAddress,
-                    city: payerCity,
-                    postalCode: payerPostalCode,
-                    country: payerCountry,
-                    stateProvince: payerStateProvince
-                };
-                invoiceData.payer!.country = payerCountry;
                 break;
             
-            case 'payer_email':
+            case 'receiver_email':
                 if (!invoiceData.payer!.contactInfo) {
                     invoiceData.payer!.contactInfo = { email: null, tel: null };
                 }
                 invoiceData.payer!.contactInfo.email = entity.mentionText;
                 break;
 
-            case 'payer_tax_id':
+            case 'receiver_tax_id':
                 if (!invoiceData.payer!.id) {
                     invoiceData.payer!.id = {
                         taxId: entity.mentionText
