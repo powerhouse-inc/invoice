@@ -439,7 +439,6 @@ export class InvoiceSubgraph extends Subgraph {
       ): GnosisPaymentResponse!
       createDirectPayment(
         paymentData: JSON!
-        invoiceNo: String!
       ): DirectPaymentResponse!
       checkAndUpdateInvoicePayment(invoiceNo: String!): CheckAndUpdateInvoicePaymentResponse!
     }
