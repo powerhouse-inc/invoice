@@ -23,6 +23,7 @@ import { ComponentPropsWithRef, Ref } from "react";
 import { twMerge } from "tailwind-merge";
 import { LegalEntityWalletSection } from "./walletSection";
 import { LegalEntityBankSection } from "./bankSection";
+import { CountryForm } from "../components/countryForm";
 
 export type EditLegalEntityWalletInput =
   | EditIssuerWalletInput
@@ -169,11 +170,9 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
             </div>
             <div className="space-y-2">
               <FieldLabel>Country</FieldLabel>
-              <TextInput
-                disabled={disabled}
-                onChange={handleInputChange("country")}
-                placeholder="Country"
-                value={value.country ?? ""}
+              <CountryForm
+                country={value.country ?? ""}
+                handleInputChange={handleInputChange("country")}
               />
             </div>
           </div>
