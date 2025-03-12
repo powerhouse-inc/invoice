@@ -12,6 +12,25 @@ interface ExportUBLOptions {
   pdfBlob?: Blob;
 }
 
+// Helper function to format numbers with appropriate decimal places
+function formatNumber(value: number): string {
+  // Check if the value has decimal places
+  const hasDecimals = value % 1 !== 0;
+  
+  // If no decimals or only trailing zeros after 2 decimal places, show 2 decimal places
+  if (!hasDecimals || (value.toFixed(5).endsWith('000'))) {
+    return value.toFixed(2);
+  }
+  
+  // Otherwise, show actual decimal places up to 5
+  const stringValue = value.toString();
+  const decimalPart = stringValue.split('.')[1] || '';
+  
+  // Determine how many decimal places to show (up to 5)
+  const decimalPlaces = Math.min(Math.max(2, decimalPart.length), 5);
+  return value.toFixed(decimalPlaces);
+}
+
 export class UBLExporter {
   private invoice: InvoiceState;
   private pdfBlob?: Blob;
@@ -283,55 +302,72 @@ export class UBLExporter {
    * Generate tax summary section
    */
   private generateTaxSummary(): string {
-    // Group line items by tax percentage
     const taxGroups = new Map<number, number>();
 
-    this.invoice.lineItems.forEach((item) => {
-      const taxPercent = item.taxPercent || 0;
+    // Group tax amounts by tax rate
+    for (const item of this.invoice.lineItems) {
+      const taxRate = item.taxPercent;
       const taxAmount = item.totalPriceTaxIncl - item.totalPriceTaxExcl;
-
-      if (taxGroups.has(taxPercent)) {
-        taxGroups.set(taxPercent, taxGroups.get(taxPercent)! + taxAmount);
+      
+      if (taxGroups.has(taxRate)) {
+        taxGroups.set(taxRate, (taxGroups.get(taxRate) || 0) + taxAmount);
       } else {
-        taxGroups.set(taxPercent, taxAmount);
+        taxGroups.set(taxRate, taxAmount);
       }
-    });
-
-    // If no tax groups, return empty string
-    if (taxGroups.size === 0) return "";
-
-    let taxTotal = `<cac:TaxTotal>
-  <cbc:TaxAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${Array.from(
-    taxGroups.values(),
-  )
-    .reduce((sum, amount) => sum + amount, 0)
-    .toFixed(2)}</cbc:TaxAmount>`;
-
-    // Add tax subtotals for each tax rate
-    for (const [taxPercent, taxAmount] of taxGroups.entries()) {
-      // Calculate taxable amount (base amount before tax)
-      const taxableAmount = this.invoice.lineItems
-        .filter((item) => (item.taxPercent || 0) === taxPercent)
-        .reduce((sum, item) => sum + item.totalPriceTaxExcl, 0);
-
-      taxTotal += `
-  <cac:TaxSubtotal>
-    <cbc:TaxableAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${taxableAmount.toFixed(2)}</cbc:TaxableAmount>
-    <cbc:TaxAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${taxAmount.toFixed(2)}</cbc:TaxAmount>
-    <cac:TaxCategory>
-      <cbc:ID schemeID="UNCL5305">S</cbc:ID>
-      <cbc:Percent>${taxPercent}</cbc:Percent>
-      <cac:TaxScheme>
-        <cbc:ID schemeID="UN/ECE 5153">VAT</cbc:ID>
-      </cac:TaxScheme>
-    </cac:TaxCategory>
-  </cac:TaxSubtotal>`;
     }
 
-    taxTotal += `
+    if (taxGroups.size === 0) return "";
+
+    const taxTotalAmount = Array.from(taxGroups.values()).reduce(
+      (sum, amount) => sum + amount,
+      0
+    );
+
+    // Add tax totals
+    let xml = `<cac:TaxTotal>
+<cbc:TaxAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${formatNumber(taxTotalAmount)}</cbc:TaxAmount>`;
+
+    // Add tax subtotals for each tax rate
+    const taxSubtotals: Record<
+      string,
+      { taxableAmount: number; taxAmount: number }
+    > = {};
+
+    for (const item of this.invoice.lineItems) {
+      const taxRate = item.taxPercent.toString();
+      const taxableAmount = item.totalPriceTaxExcl;
+      const taxAmount = item.totalPriceTaxIncl - item.totalPriceTaxExcl;
+
+      if (taxSubtotals[taxRate]) {
+        taxSubtotals[taxRate].taxableAmount += taxableAmount;
+        taxSubtotals[taxRate].taxAmount += taxAmount;
+      } else {
+        taxSubtotals[taxRate] = { taxableAmount, taxAmount };
+      }
+    }
+
+    // Add tax subtotals for each tax rate
+    for (const [taxRate, { taxableAmount, taxAmount }] of Object.entries(
+      taxSubtotals,
+    )) {
+      xml += `
+<cac:TaxSubtotal>
+<cbc:TaxableAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${formatNumber(taxableAmount)}</cbc:TaxableAmount>
+<cbc:TaxAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${formatNumber(taxAmount)}</cbc:TaxAmount>
+<cac:TaxCategory>
+<cbc:ID>S</cbc:ID>
+<cbc:Percent>${taxRate}</cbc:Percent>
+<cac:TaxScheme>
+<cbc:ID>VAT</cbc:ID>
+</cac:TaxScheme>
+</cac:TaxCategory>
+</cac:TaxSubtotal>`;
+    }
+
+    xml += `
 </cac:TaxTotal>`;
 
-    return taxTotal;
+    return xml;
   }
 
   /**
@@ -354,10 +390,10 @@ export class UBLExporter {
     const payableAmount = taxInclusiveAmount;
 
     return `<cac:LegalMonetaryTotal>
-  <cbc:LineExtensionAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${lineExtensionAmount.toFixed(2)}</cbc:LineExtensionAmount>
-  <cbc:TaxExclusiveAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${taxExclusiveAmount.toFixed(2)}</cbc:TaxExclusiveAmount>
-  <cbc:TaxInclusiveAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${taxInclusiveAmount.toFixed(2)}</cbc:TaxInclusiveAmount>
-  <cbc:PayableAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${payableAmount.toFixed(2)}</cbc:PayableAmount>
+  <cbc:LineExtensionAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${formatNumber(lineExtensionAmount)}</cbc:LineExtensionAmount>
+  <cbc:TaxExclusiveAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${formatNumber(taxExclusiveAmount)}</cbc:TaxExclusiveAmount>
+  <cbc:TaxInclusiveAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${formatNumber(taxInclusiveAmount)}</cbc:TaxInclusiveAmount>
+  <cbc:PayableAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${formatNumber(payableAmount)}</cbc:PayableAmount>
 </cac:LegalMonetaryTotal>`;
   }
 
@@ -378,9 +414,9 @@ export class UBLExporter {
         return `<cac:InvoiceLine>
   <cbc:ID>${this.escapeXml(lineId)}</cbc:ID>
   <cbc:InvoicedQuantity unitCode="ZZ" unitCodeListID="UNECERec20">${item.quantity}</cbc:InvoicedQuantity>
-  <cbc:LineExtensionAmount currencyID="${currency}">${item.totalPriceTaxExcl.toFixed(2)}</cbc:LineExtensionAmount>
+  <cbc:LineExtensionAmount currencyID="${currency}">${formatNumber(item.totalPriceTaxExcl)}</cbc:LineExtensionAmount>
   <cac:TaxTotal>
-    <cbc:TaxAmount currencyID="${currency}">${taxAmount.toFixed(2)}</cbc:TaxAmount>
+    <cbc:TaxAmount currencyID="${currency}">${formatNumber(taxAmount)}</cbc:TaxAmount>
   </cac:TaxTotal>
   <cac:Item>
     <cbc:Description>${this.escapeXml(item.description || "")}</cbc:Description>
@@ -394,7 +430,7 @@ export class UBLExporter {
     </cac:ClassifiedTaxCategory>
   </cac:Item>
   <cac:Price>
-    <cbc:PriceAmount currencyID="${currency}">${item.unitPriceTaxExcl.toFixed(2)}</cbc:PriceAmount>
+    <cbc:PriceAmount currencyID="${currency}">${formatNumber(item.unitPriceTaxExcl)}</cbc:PriceAmount>
   </cac:Price>
 </cac:InvoiceLine>`;
       })

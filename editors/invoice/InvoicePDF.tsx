@@ -132,8 +132,29 @@ const formatDate = (dateString: string) => {
 
 // Format currency
 const formatCurrency = (amount: number, currency: string) => {
-  return `${amount.toFixed(2)} ${currency}`;
+  // Format number with appropriate decimal places
+  const formattedAmount = formatNumber(amount);
+  return `${formattedAmount} ${currency}`;
 };
+
+// Helper function to format numbers with appropriate decimal places
+function formatNumber(value: number): string {
+  // Check if the value has decimal places
+  const hasDecimals = value % 1 !== 0;
+  
+  // If no decimals or only trailing zeros after 2 decimal places, show 2 decimal places
+  if (!hasDecimals || (value.toFixed(5).endsWith('000'))) {
+    return value.toFixed(2);
+  }
+  
+  // Otherwise, show actual decimal places up to 5
+  const stringValue = value.toString();
+  const decimalPart = stringValue.split('.')[1] || '';
+  
+  // Determine how many decimal places to show (up to 5)
+  const decimalPlaces = Math.min(Math.max(2, decimalPart.length), 5);
+  return value.toFixed(decimalPlaces);
+}
 
 interface InvoicePDFProps {
   invoice: InvoiceState;

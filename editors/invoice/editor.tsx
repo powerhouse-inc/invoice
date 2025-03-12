@@ -1,5 +1,4 @@
 import { Action, EditorProps } from "document-model/document";
-import { utils as documentModelUtils } from "document-model/document";
 import { useEffect, useMemo, useState, useRef } from "react";
 import {
   InvoiceState,
@@ -21,6 +20,25 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import { InvoicePDF } from "./InvoicePDF";
 import { createRoot } from "react-dom/client";
 import { downloadUBL, exportToUBL } from "./exportUBL";
+
+// Helper function to format numbers with appropriate decimal places
+function formatNumber(value: number): string {
+  // Check if the value has decimal places
+  const hasDecimals = value % 1 !== 0;
+  
+  // If no decimals or only trailing zeros after 2 decimal places, show 2 decimal places
+  if (!hasDecimals || (value.toFixed(5).endsWith('000'))) {
+    return value.toFixed(2);
+  }
+  
+  // Otherwise, show actual decimal places up to 5
+  const stringValue = value.toString();
+  const decimalPart = stringValue.split('.')[1] || '';
+  
+  // Determine how many decimal places to show (up to 5)
+  const decimalPlaces = Math.min(Math.max(2, decimalPart.length), 5);
+  return value.toFixed(decimalPlaces);
+}
 
 export default function Editor(
   props: EditorProps<InvoiceState, InvoiceAction, InvoiceLocalState>
@@ -538,13 +556,13 @@ export default function Editor(
               <div className="flex justify-between text-gray-700">
                 <span className="font-medium">Subtotal (excl. tax):</span>
                 <span>
-                  {itemsTotalTaxExcl.toFixed(2)} {state.currency}
+                  {formatNumber(itemsTotalTaxExcl)} {state.currency}
                 </span>
               </div>
               <div className="flex justify-between border-t border-gray-200 pt-4 text-lg font-bold text-gray-900">
                 <span>Total (incl. tax):</span>
                 <span>
-                  {itemsTotalTaxIncl.toFixed(2)} {state.currency}
+                  {formatNumber(itemsTotalTaxIncl)} {state.currency}
                 </span>
               </div>
             </div>

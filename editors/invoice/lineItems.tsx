@@ -6,6 +6,25 @@ import { EditInvoiceInput, DeleteLineItemInput } from "document-models/invoice";
 import { forwardRef, useState, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
 
+// Helper function to format numbers with appropriate decimal places
+function formatNumber(value: number): string {
+  // Check if the value has decimal places
+  const hasDecimals = value % 1 !== 0;
+  
+  // If no decimals or only trailing zeros after 2 decimal places, show 2 decimal places
+  if (!hasDecimals || (value.toFixed(5).endsWith('000'))) {
+    return value.toFixed(2);
+  }
+  
+  // Otherwise, show actual decimal places up to 5
+  const stringValue = value.toString();
+  const decimalPart = stringValue.split('.')[1] || '';
+  
+  // Determine how many decimal places to show (up to 5)
+  const decimalPlaces = Math.min(Math.max(2, decimalPart.length), 5);
+  return value.toFixed(decimalPlaces);
+}
+
 type LineItem = {
   currency: string;
   description: string;
@@ -15,6 +34,18 @@ type LineItem = {
   totalPriceTaxExcl: number;
   totalPriceTaxIncl: number;
   unitPriceTaxExcl: number;
+  unitPriceTaxIncl: number;
+};
+
+type EditableLineItem = {
+  currency: string;
+  description: string;
+  id: string;
+  quantity: number | string;
+  taxPercent: number | string;
+  totalPriceTaxExcl: number;
+  totalPriceTaxIncl: number;
+  unitPriceTaxExcl: number | string;
   unitPriceTaxIncl: number;
 };
 
@@ -30,18 +61,26 @@ const EditableLineItem = forwardRef(function EditableLineItem(
   ref: React.Ref<HTMLTableRowElement>,
 ) {
   const { item, onSave, onCancel, currency } = props;
-  const [editedItem, setEditedItem] = useState<Partial<LineItem>>({
+  const [editedItem, setEditedItem] = useState<Partial<EditableLineItem>>({
     ...item,
     currency,
-    quantity: item.quantity ?? 0,
-    taxPercent: item.taxPercent ?? 0,
-    unitPriceTaxExcl: item.unitPriceTaxExcl ?? 0,
+    quantity: item.quantity ?? "",
+    taxPercent: item.taxPercent ?? "",
+    unitPriceTaxExcl: item.unitPriceTaxExcl ?? "",
   });
 
   const calculatedValues = useMemo(() => {
-    const quantity = editedItem.quantity ?? 0;
-    const unitPriceTaxExcl = editedItem.unitPriceTaxExcl ?? 0;
-    const taxPercent = editedItem.taxPercent ?? 0;
+    const quantity = typeof editedItem.quantity === 'string' ? 
+      (editedItem.quantity === "" ? 0 : Number(editedItem.quantity)) : 
+      (editedItem.quantity ?? 0);
+      
+    const unitPriceTaxExcl = typeof editedItem.unitPriceTaxExcl === 'string' ? 
+      (editedItem.unitPriceTaxExcl === "" ? 0 : Number(editedItem.unitPriceTaxExcl)) : 
+      (editedItem.unitPriceTaxExcl ?? 0);
+      
+    const taxPercent = typeof editedItem.taxPercent === 'string' ? 
+      (editedItem.taxPercent === "" ? 0 : Number(editedItem.taxPercent)) : 
+      (editedItem.taxPercent ?? 0);
 
     const totalPriceTaxExcl = quantity * unitPriceTaxExcl;
     const taxAmount = totalPriceTaxExcl * (taxPercent / 100);
@@ -55,29 +94,65 @@ const EditableLineItem = forwardRef(function EditableLineItem(
     };
   }, [editedItem.quantity, editedItem.unitPriceTaxExcl, editedItem.taxPercent]);
 
-  function handleInputChange(field: keyof LineItem) {
+  function handleInputChange(field: keyof EditableLineItem) {
     return function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
       const value = event.target.value;
-      setEditedItem((prev) => ({
-        ...prev,
-        [field]:
-          field === "description"
-            ? value
-            : value === ""
-              ? 0
-              : parseFloat(value) || 0,
-      }));
+      
+      if (field === "description") {
+        setEditedItem((prev) => ({ ...prev, [field]: value }));
+        return;
+      }
+      
+      // For numeric fields
+      if (value === "" || value === "0") {
+        setEditedItem((prev) => ({ ...prev, [field]: value }));
+        return;
+      }
+      
+      if (field === "quantity") {
+        // Allow only integers for quantity
+        if (/^\d+$/.test(value)) {
+          setEditedItem((prev) => ({ ...prev, [field]: value }));
+        }
+      } else if (field === "taxPercent") {
+        // Allow only integers from 0-100 for tax percent
+        if (/^\d+$/.test(value) && parseInt(value, 10) <= 100) {
+          setEditedItem((prev) => ({ ...prev, [field]: value }));
+        }
+      } else if (field === "unitPriceTaxExcl") {
+        // For unit price, allow up to 5 decimal places
+        if (/^-?\d*\.?\d{0,5}$/.test(value)) {
+          setEditedItem((prev) => ({ ...prev, [field]: value }));
+        }
+      } else {
+        // For other decimal fields
+        if (/^-?\d*\.?\d*$/.test(value)) {
+          setEditedItem((prev) => ({ ...prev, [field]: value }));
+        }
+      }
     };
   }
 
   function handleSave() {
+    const quantity = typeof editedItem.quantity === 'string' ? 
+      (editedItem.quantity === "" ? 0 : Number(editedItem.quantity)) : 
+      (editedItem.quantity ?? 0);
+      
+    const unitPriceTaxExcl = typeof editedItem.unitPriceTaxExcl === 'string' ? 
+      (editedItem.unitPriceTaxExcl === "" ? 0 : Number(editedItem.unitPriceTaxExcl)) : 
+      (editedItem.unitPriceTaxExcl ?? 0);
+      
+    const taxPercent = typeof editedItem.taxPercent === 'string' ? 
+      (editedItem.taxPercent === "" ? 0 : Number(editedItem.taxPercent)) : 
+      (editedItem.taxPercent ?? 0);
+      
     const completeItem: LineItem = {
       id: editedItem.id ?? uuidv4(),
       currency: editedItem.currency!,
       description: editedItem.description ?? "",
-      quantity: editedItem.quantity ?? 0,
-      taxPercent: editedItem.taxPercent ?? 0,
-      unitPriceTaxExcl: editedItem.unitPriceTaxExcl ?? 0,
+      quantity: quantity,
+      taxPercent: taxPercent,
+      unitPriceTaxExcl: unitPriceTaxExcl,
       unitPriceTaxIncl: calculatedValues.unitPriceTaxIncl,
       totalPriceTaxExcl: calculatedValues.totalPriceTaxExcl,
       totalPriceTaxIncl: calculatedValues.totalPriceTaxIncl,
@@ -111,9 +186,9 @@ const EditableLineItem = forwardRef(function EditableLineItem(
           className="w-full rounded border p-1 text-right"
           min="0"
           onChange={handleInputChange("unitPriceTaxExcl")}
-          step="0.01"
+          step="0.00001"
           type="number"
-          value={editedItem.unitPriceTaxExcl ?? ""}
+          value={editedItem.unitPriceTaxExcl === 0 ? "" : editedItem.unitPriceTaxExcl ?? ""}
         />
       </td>
       <td className="border border-gray-200 p-3">
@@ -122,16 +197,16 @@ const EditableLineItem = forwardRef(function EditableLineItem(
           max="100"
           min="0"
           onChange={handleInputChange("taxPercent")}
-          step="0.1"
+          step="1"
           type="number"
-          value={editedItem.taxPercent ?? ""}
+          value={editedItem.taxPercent === 0 ? "" : editedItem.taxPercent ?? ""}
         />
       </td>
       <td className="border border-gray-200 p-3 text-right font-medium">
-        {calculatedValues.totalPriceTaxExcl.toFixed(2)}
+        {formatNumber(calculatedValues.totalPriceTaxExcl)}
       </td>
       <td className="border border-gray-200 p-3 text-right font-medium">
-        {calculatedValues.totalPriceTaxIncl.toFixed(2)}
+        {formatNumber(calculatedValues.totalPriceTaxIncl)}
       </td>
       <td className="border border-gray-200 p-3">
         <div className="flex space-x-2">
@@ -270,16 +345,16 @@ export function LineItemsTable({
                     {item.quantity}
                   </td>
                   <td className="border-b border-gray-200 p-3 text-right">
-                    {item.unitPriceTaxExcl.toFixed(2)}
+                    {formatNumber(item.unitPriceTaxExcl)}
                   </td>
                   <td className="border-b border-gray-200 p-3 text-right">
-                    {item.taxPercent.toFixed(1)}%
+                    {typeof item.taxPercent === 'number' ? Math.round(item.taxPercent) : 0}%
                   </td>
                   <td className="border-b border-gray-200 p-3 text-right font-medium">
-                    {item.totalPriceTaxExcl.toFixed(2)}
+                    {formatNumber(item.totalPriceTaxExcl)}
                   </td>
                   <td className="border-b border-gray-200 p-3 text-right font-medium">
-                    {item.totalPriceTaxIncl.toFixed(2)}
+                    {formatNumber(item.totalPriceTaxIncl)}
                   </td>
                   <td className="border-b border-gray-200 p-3">
                     <div className="flex justify-center space-x-2">
