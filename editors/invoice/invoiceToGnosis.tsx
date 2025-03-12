@@ -74,7 +74,7 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
       chainName: docState.issuer.paymentRouting.wallet.chainName,
       chainId: docState.issuer.paymentRouting.wallet.chainId,
     },
-    amount: 0.000015, // Make the amount small for testing
+    amount: docState.totalPriceTaxIncl || 0.000015, // Make the amount small for testing
   };
 
   function getTokenAddress(chainName: any, symbol: any) {
