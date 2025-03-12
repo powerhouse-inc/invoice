@@ -321,109 +321,87 @@ function normalizeAccountType(accountType: string): 'CHECKING' | 'SAVINGS' {
 }
 
 function parseAddress(addressText: string): ParsedAddress {
-    const addressLines = addressText.split(/[,\n]/).map(line => {
-        // Remove common label prefixes and clean whitespace
-        return line.trim()
-            .replace(/^(street|address):\s*/i, '')
-            .replace(/^zip:\s*/i, '')
-            .replace(/^postal( code)?:\s*/i, '')
-            .replace(/^city:\s*/i, '')
-            .replace(/^state:\s*/i, '')
-            .replace(/^province:\s*/i, '')
-            .replace(/^country:\s*/i, '');
-    }).filter(Boolean);
+    // Split into lines and clean each line
+    let addressLines = addressText.split(/[,\n]/).map(line => line.trim()).filter(Boolean);
 
     const addressData = {
         streetAddress: '',
-        extendedAddress: '',
+        extendedAddress: null,
         city: '',
         postalCode: '',
         stateProvince: '',
         country: ''
     };
 
-    // Helper function to identify US state codes
-    const isUSState = (str: string) => {
-        const states = new Set(['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS',
-            'KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND',
-            'OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']);
-        return states.has(str.toUpperCase());
-    };
-
-    // Helper function to check if string might be a country
+    // Helper function to identify common countries
     const isLikelyCountry = (str: string) => {
         const commonCountries = new Set([
-            'portugal', 'philippines', 'germany', 'deutschland', 'usa', 'united states', 'us', 'canada', 'uk', 
-            'united kingdom', 'australia', 'switzerland', 'france', 'spain', 'italy', 'netherlands', 'chile'
+            'chile', 'portugal', 'philippines', 'germany', 'deutschland', 
+            'usa', 'united states', 'us', 'canada', 'uk', 'united kingdom', 
+            'australia', 'switzerland', 'france', 'spain', 'italy', 'ch', 'slovenia',
+            'slovakia', 'hungary', 'poland', 'czechia', 'czech republic', 'romania',
         ]);
         return commonCountries.has(str.toLowerCase());
     };
 
-    // Helper to check for extended postal codes
-    const extractPostalCode = (str: string) => {
-        const patterns = [
-            /\b\d{4}[-\s]?\d{3}\b/, // Portuguese format: 1234-567
-            /\b\d{5}(?:-\d{4})?\b/, // US format
-            /\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i, // UK format
-            /\b\d{4,6}\b/ // Generic format
-        ];
-        
-        for (const pattern of patterns) {
-            const match = str.match(pattern);
-            if (match) return match[0];
-        }
-        return null;
-    };
-
-    // Process lines in reverse to identify country and city first
+    // Process lines in reverse order
     for (let i = addressLines.length - 1; i >= 0; i--) {
         let line = addressLines[i].trim();
         if (!line) continue;
 
-        // Split the line into parts
-        const parts = line.split(/[\s,]+/);
-        
-        // Check for country first
+        // Check for labeled fields first
+        const zipMatch = line.match(/ZIP:\s*(\d+)/i);
+        const cantonMatch = line.match(/Canton:\s*(\w+)/i);
+        const countryMatch = line.match(/Country:\s*(\w+)/i);
+
+        if (zipMatch) {
+            addressData.postalCode = zipMatch[1];
+            line = line.replace(/ZIP:\s*\d+/i, '').trim();
+        }
+        if (cantonMatch) {
+            addressData.stateProvince = cantonMatch[1];
+            line = line.replace(/Canton:\s*\w+/i, '').trim();
+        }
+        if (countryMatch) {
+            addressData.country = countryMatch[1];
+            line = line.replace(/Country:\s*\w+/i, '').trim();
+        }
+
+        // If line is empty after removing labels, continue to next line
+        if (!line) continue;
+
+        // Check if this line is a country
         if (isLikelyCountry(line)) {
             addressData.country = line;
             continue;
         }
 
-        // Extract postal code
-        const postalCode = extractPostalCode(line);
-        if (postalCode) {
-            addressData.postalCode = postalCode;
-            line = line.replace(postalCode, '').trim();
-            
-            // If there's text before or after the postal code, it might be the city
-            if (line && !addressData.city) {
-                addressData.city = line;
-            }
+        // Check for postal code in remaining text
+        const postalCodeMatch = line.match(/\b\d{4,6}\b/);
+        if (postalCodeMatch && !addressData.postalCode) {
+            addressData.postalCode = postalCodeMatch[0];
+            line = line.replace(postalCodeMatch[0], '').trim();
+        }
+
+        // If we haven't set the city yet and this isn't the first line
+        if (!addressData.city && i > 0) {
+            addressData.city = line;
             continue;
         }
 
-        // Check for city names
-        if (!addressData.city && !/^\d+/.test(line)) {
-            if (line.toLowerCase().includes('city')) {
-                const cityMatch = line.match(/(.+?)\s*city\s*(.*)/i);
-                if (cityMatch) {
-                    addressData.city = `${cityMatch[1]} City`.trim();
-                    if (cityMatch[2] && !addressData.stateProvince) {
-                        addressData.stateProvince = cityMatch[2].trim();
-                    }
-                }
-            } else {
-                addressData.city = line;
-            }
-            continue;
+        // First line handling
+        if (i === 0) {
+            addressData.streetAddress = line;
         }
-
-        // Combine first two lines for street address if they don't look like a city or country
-        if (i <= 1) {
+        // Second line handling (if not already used for city)
+        else if (i === 1 && !addressData.city) {
+            // If we don't have a street address yet, this is probably it
             if (!addressData.streetAddress) {
                 addressData.streetAddress = line;
-            } else {
-                addressData.streetAddress = `${addressData.streetAddress}, ${line}`;
+            }
+            // Otherwise, this might be extended address info
+            else if (line !== addressData.city) {
+                addressData.extendedAddress = line;
             }
         }
     }
@@ -437,6 +415,15 @@ function parseAddress(addressText: string): ParsedAddress {
             .trim();
     };
 
+    // Handle special case where city might be in the country field
+    if (addressData.country && !addressData.city && addressData.country.toLowerCase() !== 'chile') {
+        const parts = addressData.country.split(/\s+/);
+        if (parts.length > 1) {
+            addressData.city = parts[0];
+            addressData.country = parts[parts.length - 1];
+        }
+    }
+
     return {
         streetAddress: cleanupField(addressData.streetAddress),
         extendedAddress: addressData.extendedAddress ? cleanupField(addressData.extendedAddress) : null,
@@ -445,6 +432,45 @@ function parseAddress(addressText: string): ParsedAddress {
         stateProvince: cleanupField(addressData.stateProvince),
         country: cleanupField(addressData.country)
     };
+}
+
+function parseNumber(value: string): number {
+    if (!value || typeof value !== 'string') {
+        console.error(`Invalid number input: ${value}`);
+        return 0;
+    }
+
+    // Clean the input
+    let cleanValue = value.trim();
+    
+    // Detect format by looking at the decimal and thousand separators
+    const hasCommaDecimal = /\d,\d{2}$/.test(cleanValue);  // e.g., "1.234,56" or "1234,56"
+    const hasDotDecimal = /\d\.\d{2}$/.test(cleanValue);   // e.g., "1,234.56" or "1234.56"
+    
+    if (hasCommaDecimal) {
+        // European format: convert "1.234,56" or "1234,56" to "1234.56"
+        cleanValue = cleanValue
+            .replace(/\./g, '')    // Remove thousand separators
+            .replace(',', '.');    // Convert decimal separator
+    } else if (hasDotDecimal) {
+        // Standard format: convert "1,234.56" or "1234.56" to "1234.56"
+        cleanValue = cleanValue.replace(/,/g, '');  // Remove thousand separators
+    } else {
+        // No decimal places - check for thousand separators
+        if (cleanValue.includes(',')) {
+            // If comma is thousand separator, remove it
+            cleanValue = cleanValue.replace(/,/g, '');
+        }
+    }
+
+    const parsed = parseFloat(cleanValue);
+    
+    if (isNaN(parsed)) {
+        console.error(`Failed to parse number: ${value}`);
+        return 0;
+    }
+
+    return parsed;
 }
 
 function mapDocumentAiToInvoice(
@@ -528,15 +554,12 @@ function mapDocumentAiToInvoice(
                 invoiceData.issuer!.paymentRouting!.bank!.accountType = normalizeAccountType(entity.mentionText);
                 break;
                 
-            case 'supplier_bank_bic':
-            case 'supplier_bank_swift':
-                const bankCode = entity.mentionText.replace(/^[:.\s]+/, '').trim(); // Remove leading colons and spaces
+            case 'supplier_aba_swift_bic_number':
+                const bankCode = entity.mentionText.replace(/^[:.\s]+/, '').trim();
                 if (invoiceData.issuer?.paymentRouting?.bank) {
-                    if (entity.type === 'supplier_bank_bic') {
-                        invoiceData.issuer.paymentRouting.bank.BIC = bankCode;
-                    } else {
-                        invoiceData.issuer.paymentRouting.bank.SWIFT = bankCode;
-                    }
+                    // Set both BIC and SWIFT since they're typically the same
+                    invoiceData.issuer.paymentRouting.bank.BIC = bankCode;
+                    invoiceData.issuer.paymentRouting.bank.SWIFT = bankCode;
                 }
                 break;
                 
@@ -662,25 +685,32 @@ function mapDocumentAiToInvoice(
                     child.type === 'line_item/description'
                 )?.mentionText || '';
                 
-                // Only add line item if all required fields are present and valid
-                if (description && quantity && unitPrice) {
-                    const parsedQuantity = parseFloat(quantity.replace(/,/g, ''));
-                    const parsedUnitPrice = parseFloat(unitPrice.replace(/,/g, ''));
+                if (quantity && unitPrice) {
+                    const parsedQuantity = parseNumber(quantity);
+                    const parsedUnitPrice = parseNumber(unitPrice);
+                    console.log(`Parsed quantity: ${quantity} -> ${parsedQuantity}`);
+                    console.log(`Parsed unit price: ${unitPrice} -> ${parsedUnitPrice}`);
                     
-                    // Additional check to ensure parsed values are valid numbers
-                    if (!isNaN(parsedQuantity) && !isNaN(parsedUnitPrice)) {
-                        invoiceData.lineItems = invoiceData.lineItems || [];
-                        invoiceData.lineItems.push({
-                            description,
-                            quantity: parsedQuantity,
-                            unitPriceTaxExcl: parsedUnitPrice,
-                            unitPriceTaxIncl: parsedUnitPrice,
-                            totalPriceTaxExcl: parsedQuantity * parsedUnitPrice,
-                            totalPriceTaxIncl: parsedQuantity * parsedUnitPrice,
-                            currency: invoiceData.currency || 'USD',
-                            id: crypto.randomUUID(),
-                            taxPercent: 0
-                        });
+                    // Only add line item if all required fields are present and valid
+                    if (description && quantity && unitPrice) {
+                        const parsedQuantity = parseNumber(quantity);
+                        const parsedUnitPrice = parseNumber(unitPrice);
+                        
+                        // Additional check to ensure parsed values are valid numbers
+                        if (!isNaN(parsedQuantity) && !isNaN(parsedUnitPrice)) {
+                            invoiceData.lineItems = invoiceData.lineItems || [];
+                            invoiceData.lineItems.push({
+                                description,
+                                quantity: parsedQuantity,
+                                unitPriceTaxExcl: parsedUnitPrice,
+                                unitPriceTaxIncl: parsedUnitPrice,
+                                totalPriceTaxExcl: parsedQuantity * parsedUnitPrice,
+                                totalPriceTaxIncl: parsedQuantity * parsedUnitPrice,
+                                currency: invoiceData.currency || 'USD',
+                                id: crypto.randomUUID(),
+                                taxPercent: 0
+                            });
+                        }
                     }
                 }
                 break;
@@ -729,13 +759,13 @@ function mapDocumentAiToInvoice(
                 break;
 
             case 'total_amount':
-                const totalAmount = parseFloat(entity.mentionText.replace(/,/g, ''));
+                const totalAmount = parseNumber(entity.mentionText);
                 invoiceData.totalPriceTaxExcl = totalAmount;
                 invoiceData.totalPriceTaxIncl = totalAmount; // Assuming no tax for now
                 break;
 
             case 'vat':
-                const taxRate = parseFloat(entity.mentionText) || 0;
+                const taxRate = parseNumber(entity.mentionText) || 0;
                 // Apply tax rate to line items
                 if (invoiceData.lineItems) {
                     invoiceData.lineItems = invoiceData.lineItems.map(item => ({
@@ -744,6 +774,7 @@ function mapDocumentAiToInvoice(
                     }));
                 }
                 break;
+
         }
     });
 
