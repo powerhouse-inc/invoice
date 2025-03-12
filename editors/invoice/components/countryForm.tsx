@@ -76,7 +76,7 @@ export const CountryForm = ({
   
   // Convert country name to country code if needed
   const countryCode = getCountryCodeFromName(country);
-  
+
   return (
     <Form
       defaultValues={{ country: countryCode || "" }}
@@ -97,7 +97,8 @@ export const CountryForm = ({
           handleInputChange(syntheticEvent);
         }}
         // required
-        defaultValue={countryCode}
+        // defaultValue={countryCode}
+        value={countryCode}
       />
     </Form>
   );
