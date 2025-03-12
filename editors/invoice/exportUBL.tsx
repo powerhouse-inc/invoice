@@ -9,37 +9,46 @@ import {
 interface ExportUBLOptions {
   invoice: InvoiceState;
   filename?: string;
+  pdfBlob?: Blob;
 }
 
 export class UBLExporter {
   private invoice: InvoiceState;
+  private pdfBlob?: Blob;
 
-  constructor(invoice: InvoiceState) {
+  constructor(invoice: InvoiceState, pdfBlob?: Blob) {
     this.invoice = invoice;
+    this.pdfBlob = pdfBlob;
   }
 
   /**
    * Convert the invoice state to UBL XML format
    * @returns UBL XML string
    */
-  convertInvoiceToUBL(): string {
+  async convertInvoiceToUBL(): Promise<string> {
     const issueDate = this.formatDate(this.invoice.dateIssued);
     const dueDate = this.formatDate(this.invoice.dateDue);
     const deliveryDate = this.formatDate(this.invoice.dateDelivered);
 
+    // Generate PDF attachment section first
+    const pdfAttachmentSection = await this.generatePDFAttachment();
+
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
   xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
-  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2 UBL-Invoice-2.1.xsd">
   <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
   <cbc:CustomizationID>urn:cen.eu:en16931:2017</cbc:CustomizationID>
   <cbc:ID>${this.escapeXml(this.invoice.invoiceNo || "")}</cbc:ID>
   <cbc:IssueDate>${issueDate}</cbc:IssueDate>
   ${dueDate ? `<cbc:DueDate>${dueDate}</cbc:DueDate>` : ""}
-  <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
+  <cbc:InvoiceTypeCode listID="UNCL1001" listAgencyID="6">380</cbc:InvoiceTypeCode>
   ${deliveryDate ? `<cbc:TaxPointDate>${deliveryDate}</cbc:TaxPointDate>` : ""}
-  <cbc:DocumentCurrencyCode>${this.escapeXml(this.invoice.currency || "USD")}</cbc:DocumentCurrencyCode>
+  <cbc:DocumentCurrencyCode listID="ISO4217" listAgencyID="6">${this.escapeXml(this.invoice.currency || "USD")}</cbc:DocumentCurrencyCode>
   
+  ${pdfAttachmentSection}
   ${this.generateSupplierParty(this.invoice.issuer)}
   ${this.generateCustomerParty(this.invoice.payer)}
   ${this.generatePaymentMeans()}
@@ -59,7 +68,7 @@ export class UBLExporter {
   async exportToFile({
     filename = "invoice.xml",
   }: { filename?: string } = {}): Promise<File> {
-    const ublXml = this.convertInvoiceToUBL();
+    const ublXml = await this.convertInvoiceToUBL();
     const blob = new Blob([ublXml], { type: "application/xml" });
     return new File([blob], filename, { type: "application/xml" });
   }
@@ -68,7 +77,7 @@ export class UBLExporter {
    * Trigger download of the UBL file in the browser
    */
   async downloadUBL(filename = "invoice.xml"): Promise<void> {
-    const ublXml = this.convertInvoiceToUBL();
+    const ublXml = await this.convertInvoiceToUBL();
     const blob = new Blob([ublXml], { type: "application/xml" });
 
     // Create download link and trigger click
@@ -234,31 +243,34 @@ export class UBLExporter {
       return `<cac:PaymentMeans>
       <cbc:PaymentMeansCode>30</cbc:PaymentMeansCode>
       <cac:PayeeFinancialAccount>
-        <cbc:ID schemeID="walletAddress">${this.escapeXml(this.invoice.issuer.paymentRouting?.wallet.address)}</cbc:ID>
-        <cbc:ID schemeID="chainName">${this.escapeXml(this.invoice.issuer.paymentRouting?.wallet.chainName || "")}</cbc:ID>
-        <cbc:ID schemeID="chainId">${this.escapeXml(this.invoice.issuer.paymentRouting?.wallet.chainId || "")}</cbc:ID>
+        <cbc:ID schemeID="walletAddress">${this.escapeXml(this.invoice.issuer.paymentRouting?.wallet?.address || "")}</cbc:ID>
+        <cbc:ID schemeID="chainName">${this.escapeXml(this.invoice.issuer.paymentRouting?.wallet?.chainName || "")}</cbc:ID>
+        <cbc:ID schemeID="chainId">${this.escapeXml(this.invoice.issuer.paymentRouting?.wallet?.chainId || "")}</cbc:ID>
       </cac:PayeeFinancialAccount>
     </cac:PaymentMeans>`;
     }
 
+    const bank = this.invoice.issuer?.paymentRouting?.bank;
+    if (!bank) return "";
+
     return `<cac:PaymentMeans>
   <cbc:PaymentMeansCode>30</cbc:PaymentMeansCode>
   <cac:PayeeFinancialAccount>
-    <cbc:ID${this.invoice.issuer.paymentRouting?.bank.accountNum ? ' schemeID="IBAN"' : ""}>${this.escapeXml(this.invoice.issuer.paymentRouting?.bank.accountNum)}</cbc:ID>
-    ${this.invoice.issuer.paymentRouting?.bank.BIC ? `<cbc:ID schemeID="BIC">${this.escapeXml(this.invoice.issuer.paymentRouting?.bank.BIC)}</cbc:ID>` : ""}
-    ${this.invoice.issuer.paymentRouting?.bank.SWIFT ? `<cbc:ID schemeID="SWIFT">${this.escapeXml(this.invoice.issuer.paymentRouting?.bank.SWIFT)}</cbc:ID>` : ""}
-    ${this.invoice.issuer.paymentRouting?.bank.ABA ? `<cbc:ID schemeID="ABA">${this.escapeXml(this.invoice.issuer.paymentRouting?.bank.ABA)}</cbc:ID>` : ""}
+    <cbc:ID${bank.accountNum ? ' schemeID="IBAN"' : ""}>${this.escapeXml(bank.accountNum || "")}</cbc:ID>
+    ${bank.BIC ? `<cbc:ID schemeID="BIC">${this.escapeXml(bank.BIC)}</cbc:ID>` : ""}
+    ${bank.SWIFT ? `<cbc:ID schemeID="SWIFT">${this.escapeXml(bank.SWIFT)}</cbc:ID>` : ""}
+    ${bank.ABA ? `<cbc:ID schemeID="ABA">${this.escapeXml(bank.ABA)}</cbc:ID>` : ""}
     ${
-      this.invoice.issuer.paymentRouting?.bank.name
+      bank.name
         ? `<cac:FinancialInstitutionBranch>
       <cac:FinancialInstitution>
-        <cbc:Name>${this.escapeXml(this.invoice.issuer.paymentRouting?.bank.name)}</cbc:Name>
-      ${this.invoice.issuer.paymentRouting?.bank.address?.streetAddress ? `<cbc:StreetName schemeID="streetAddress">${this.escapeXml(this.invoice.issuer.paymentRouting?.bank.address.streetAddress)}</cbc:StreetName>` : ""}
-      ${this.invoice.issuer.paymentRouting?.bank.address?.extendedAddress ? `<cbc:AdditionalStreetName schemeID="extendedAddress">${this.escapeXml(this.invoice.issuer.paymentRouting?.bank.address.extendedAddress)}</cbc:AdditionalStreetName>` : ""}
-      ${this.invoice.issuer.paymentRouting?.bank.address?.city ? `<cbc:CityName schemeID="city">${this.escapeXml(this.invoice.issuer.paymentRouting?.bank.address.city)}</cbc:CityName>` : ""}
-      ${this.invoice.issuer.paymentRouting?.bank.address?.stateProvince ? `<cbc:CountrySubentity schemeID="stateProvince">${this.escapeXml(this.invoice.issuer.paymentRouting?.bank.address.stateProvince)}</cbc:CountrySubentity>` : ""}
-      ${this.invoice.issuer.paymentRouting?.bank.address?.postalCode ? `<cbc:PostalZone schemeID="postalCode">${this.escapeXml(this.invoice.issuer.paymentRouting?.bank.address.postalCode)}</cbc:PostalZone>` : ""}
-      ${this.invoice.issuer.paymentRouting?.bank.address?.country ? `<cac:Country><cbc:IdentificationCode schemeID="country">${this.escapeXml(this.invoice.issuer.paymentRouting?.bank.address.country)}</cbc:IdentificationCode></cac:Country>` : ""}
+        <cbc:Name>${this.escapeXml(bank.name)}</cbc:Name>
+      ${bank.address?.streetAddress ? `<cbc:StreetName schemeID="streetAddress">${this.escapeXml(bank.address.streetAddress)}</cbc:StreetName>` : ""}
+      ${bank.address?.extendedAddress ? `<cbc:AdditionalStreetName schemeID="extendedAddress">${this.escapeXml(bank.address.extendedAddress)}</cbc:AdditionalStreetName>` : ""}
+      ${bank.address?.city ? `<cbc:CityName schemeID="city">${this.escapeXml(bank.address.city)}</cbc:CityName>` : ""}
+      ${bank.address?.stateProvince ? `<cbc:CountrySubentity schemeID="stateProvince">${this.escapeXml(bank.address.stateProvince)}</cbc:CountrySubentity>` : ""}
+      ${bank.address?.postalCode ? `<cbc:PostalZone schemeID="postalCode">${this.escapeXml(bank.address.postalCode)}</cbc:PostalZone>` : ""}
+      ${bank.address?.country ? `<cac:Country><cbc:IdentificationCode schemeID="country">${this.escapeXml(bank.address.country)}</cbc:IdentificationCode></cac:Country>` : ""}
       </cac:FinancialInstitution>
     </cac:FinancialInstitutionBranch>`
         : ""
@@ -307,10 +319,10 @@ export class UBLExporter {
     <cbc:TaxableAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${taxableAmount.toFixed(2)}</cbc:TaxableAmount>
     <cbc:TaxAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${taxAmount.toFixed(2)}</cbc:TaxAmount>
     <cac:TaxCategory>
-      <cbc:ID>S</cbc:ID>
+      <cbc:ID schemeID="UNCL5305">S</cbc:ID>
       <cbc:Percent>${taxPercent}</cbc:Percent>
       <cac:TaxScheme>
-        <cbc:ID>VAT</cbc:ID>
+        <cbc:ID schemeID="UN/ECE 5153">VAT</cbc:ID>
       </cac:TaxScheme>
     </cac:TaxCategory>
   </cac:TaxSubtotal>`;
@@ -365,18 +377,19 @@ export class UBLExporter {
 
         return `<cac:InvoiceLine>
   <cbc:ID>${this.escapeXml(lineId)}</cbc:ID>
-  <cbc:InvoicedQuantity>${item.quantity}</cbc:InvoicedQuantity>
+  <cbc:InvoicedQuantity unitCode="ZZ" unitCodeListID="UNECERec20">${item.quantity}</cbc:InvoicedQuantity>
   <cbc:LineExtensionAmount currencyID="${currency}">${item.totalPriceTaxExcl.toFixed(2)}</cbc:LineExtensionAmount>
   <cac:TaxTotal>
     <cbc:TaxAmount currencyID="${currency}">${taxAmount.toFixed(2)}</cbc:TaxAmount>
   </cac:TaxTotal>
   <cac:Item>
     <cbc:Description>${this.escapeXml(item.description || "")}</cbc:Description>
+    <cbc:Name>${this.escapeXml(item.description || "")}</cbc:Name>
     <cac:ClassifiedTaxCategory>
-      <cbc:ID>S</cbc:ID>
+      <cbc:ID schemeID="UNCL5305">S</cbc:ID>
       <cbc:Percent>${item.taxPercent || 0}</cbc:Percent>
       <cac:TaxScheme>
-        <cbc:ID>VAT</cbc:ID>
+        <cbc:ID schemeID="UN/ECE 5153">VAT</cbc:ID>
       </cac:TaxScheme>
     </cac:ClassifiedTaxCategory>
   </cac:Item>
@@ -386,6 +399,49 @@ export class UBLExporter {
 </cac:InvoiceLine>`;
       })
       .join("\n");
+  }
+
+  /**
+   * Generate PDF attachment section if a PDF blob is available
+   */
+  private async generatePDFAttachment(): Promise<string> {
+    if (!this.pdfBlob) return "";
+    
+    try {
+      // Convert PDF blob to base64
+      const base64Data = await this.blobToBase64(this.pdfBlob);
+      const filename = `${this.invoice.invoiceNo || "invoice"}.pdf`;
+      
+      return `<cac:AdditionalDocumentReference>
+  <cbc:ID>${filename}</cbc:ID>
+  <cbc:DocumentType>PrimaryImage</cbc:DocumentType>
+  <cac:Attachment>
+    <cbc:EmbeddedDocumentBinaryObject mimeCode="application/pdf" filename="${filename}">
+      ${base64Data}
+    </cbc:EmbeddedDocumentBinaryObject>
+  </cac:Attachment>
+</cac:AdditionalDocumentReference>`;
+    } catch (error) {
+      console.error("Error embedding PDF in UBL:", error);
+      return "";
+    }
+  }
+  
+  /**
+   * Convert a Blob to base64 string
+   */
+  private blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        // Remove data URL prefix if present
+        const base64Content = base64data.split(',')[1] || base64data;
+        resolve(base64Content);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 }
 
@@ -397,8 +453,9 @@ export class UBLExporter {
 export async function exportToUBL({
   invoice,
   filename = "invoice.xml",
+  pdfBlob,
 }: ExportUBLOptions): Promise<File> {
-  const exporter = new UBLExporter(invoice);
+  const exporter = new UBLExporter(invoice, pdfBlob);
   return exporter.exportToFile({ filename });
 }
 
@@ -409,7 +466,8 @@ export async function exportToUBL({
 export async function downloadUBL({
   invoice,
   filename = "invoice.xml",
+  pdfBlob,
 }: ExportUBLOptions): Promise<void> {
-  const exporter = new UBLExporter(invoice);
+  const exporter = new UBLExporter(invoice, pdfBlob);
   return exporter.downloadUBL(filename);
 }

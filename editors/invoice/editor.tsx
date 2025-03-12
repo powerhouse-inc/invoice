@@ -21,8 +21,6 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import { InvoicePDF } from "./InvoicePDF";
 import { createRoot } from "react-dom/client";
 import { downloadUBL, exportToUBL } from "./exportUBL";
-import { Form, CountryCodeField } from "@powerhousedao/design-system/scalars";
-import { CountryForm } from "./components/countryForm";
 
 export default function Editor(
   props: EditorProps<InvoiceState, InvoiceAction, InvoiceLocalState>
@@ -222,14 +220,75 @@ export default function Editor(
 
   async function handleExportUBL() {
     try {
+      // Generate a PDF blob first
+      const pdfBlob = await generatePDFBlob();
+      
       // Generate filename based on invoice number
       const filename = `invoice_${state.invoiceNo || "export"}.xml`;
 
-      return await downloadUBL({ invoice: state, filename });
+      return await downloadUBL({ 
+        invoice: state, 
+        filename,
+        pdfBlob  // Pass the PDF blob to be embedded in the UBL file
+      });
     } catch (error) {
       console.error("Error exporting to UBL:", error);
+      toast("Failed to export UBL", { type: "error" });
       throw error;
     }
+  }
+
+  // New function to generate a PDF blob using the existing PDF generation logic
+  async function generatePDFBlob(): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      // Create a temporary container for the PDFDownloadLink
+      const container = window.document.createElement("div");
+      container.style.display = "none";
+      window.document.body.appendChild(container);
+
+      // Create root for React 18
+      const root = createRoot(container);
+
+      // Cleanup function
+      const cleanup = () => {
+        root.unmount();
+        window.document.body.removeChild(container);
+      };
+
+      try {
+        root.render(
+          <PDFDownloadLink
+            document={<InvoicePDF invoice={state} fiatMode={fiatMode} />}
+            fileName={`invoice-${state.invoiceNo || "export"}.pdf`}
+            className="hidden"
+          >
+            {({ blob, url, loading, error }) => {
+              if (loading) {
+                return null;
+              }
+
+              if (error) {
+                cleanup();
+                reject(error);
+                return null;
+              }
+
+              if (blob) {
+                // We have the blob, resolve it
+                resolve(blob);
+                // Cleanup after getting the blob
+                setTimeout(cleanup, 100);
+              }
+              return null;
+            }}
+          </PDFDownloadLink>
+        );
+      } catch (error) {
+        console.error("Error generating PDF blob:", error);
+        cleanup();
+        reject(error);
+      }
+    });
   }
 
   return (
