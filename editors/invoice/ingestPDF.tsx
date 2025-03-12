@@ -127,20 +127,24 @@ export default function PDFUploader({
 
               // Add bank information dispatch
               if (invoiceData.issuer.paymentRouting?.bank) {
+                const bank = invoiceData.issuer.paymentRouting.bank;
+                console.log("Dispatching bank details:", bank); // Debug log
                 dispatch(
                   actions.editIssuerBank({
-                    name: invoiceData.issuer.paymentRouting.bank.name || "",
-                    accountNum:
-                      invoiceData.issuer.paymentRouting.bank.accountNum || "",
-                    ABA: invoiceData.issuer.paymentRouting.bank.ABA || "",
-                    BIC: invoiceData.issuer.paymentRouting.bank.BIC || "",
-                    SWIFT: invoiceData.issuer.paymentRouting.bank.SWIFT || "",
-                    accountType:
-                      invoiceData.issuer.paymentRouting.bank.accountType ||
-                      "CHECKING",
-                    beneficiary:
-                      invoiceData.issuer.paymentRouting.bank.beneficiary || "",
-                    memo: invoiceData.issuer.paymentRouting.bank.memo || "",
+                    name: bank.name || "",
+                    accountNum: bank.accountNum || "",
+                    ABA: bank.ABA || "",
+                    BIC: bank.BIC || "",
+                    SWIFT: bank.SWIFT || "",
+                    accountType: bank.accountType || "CHECKING",
+                    beneficiary: bank.beneficiary || "",
+                    memo: bank.memo || "",
+                    streetAddress: bank.address?.streetAddress || "",
+                    city: bank.address?.city || "",
+                    stateProvince: bank.address?.stateProvince || "",
+                    postalCode: bank.address?.postalCode || "",
+                    country: bank.address?.country || "",
+                    extendedAddress: bank.address?.extendedAddress || "",
                   }),
                 );
               }
@@ -219,6 +223,15 @@ export default function PDFUploader({
             toast("Invoice uploaded successfully", {
               type: "success",
             });
+
+            // Add debug logging here
+            console.log("Final document state:", JSON.stringify({
+              issuer: invoiceData.issuer,
+              payer: invoiceData.payer,
+              lineItems: invoiceData.lineItems,
+              paymentRouting: invoiceData.issuer?.paymentRouting,
+              bankDetails: invoiceData.issuer?.paymentRouting?.bank
+            }, null, 2));
 
             changeDropdownOpen(false);
           } else {
