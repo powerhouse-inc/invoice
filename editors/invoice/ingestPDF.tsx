@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { InvoiceAction, actions } from "../../document-models/invoice";
 import { toast } from "@powerhousedao/design-system";
 import { uploadPdfChunked } from "./uploadPdfChunked";
+import { getCountryCodeFromName } from "./utils/utils";
 
 export async function loadPDFFile({
   file,
@@ -110,7 +111,7 @@ export default function PDFUploader({
               dispatch(
                 actions.editIssuer({
                   name: invoiceData.issuer.name || "",
-                  country: invoiceData.issuer.country || "",
+                  country: getCountryCodeFromName(invoiceData.issuer.country) || "",
                   streetAddress:
                     invoiceData.issuer.address?.streetAddress || "",
                   extendedAddress:
@@ -143,7 +144,7 @@ export default function PDFUploader({
                     city: bank.address?.city || "",
                     stateProvince: bank.address?.stateProvince || "",
                     postalCode: bank.address?.postalCode || "",
-                    country: bank.address?.country || "",
+                    country: getCountryCodeFromName(bank.address?.country) || "",
                     extendedAddress: bank.address?.extendedAddress || "",
                   }),
                 );
@@ -170,7 +171,7 @@ export default function PDFUploader({
               dispatch(
                 actions.editPayer({
                   name: invoiceData.payer.name || "",
-                  country: invoiceData.payer.country || "",
+                  country: getCountryCodeFromName(invoiceData.payer.country) || "",
                   streetAddress: invoiceData.payer.address?.streetAddress || "",
                   extendedAddress:
                     invoiceData.payer.address?.extendedAddress || "",
