@@ -19,14 +19,14 @@ const FieldLabel = ({ children }: { readonly children: React.ReactNode }) => (
 
 const TextInput = forwardRef(function TextInput(
   props: ComponentPropsWithRef<"input">,
-  ref: Ref<HTMLInputElement>
+  ref: Ref<HTMLInputElement>,
 ) {
   return (
     <input
       {...props}
       className={twMerge(
         "h-10 w-full rounded-md border border-gray-200 bg-white px-3 transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:p-0",
-        props.className
+        props.className,
       )}
       ref={ref}
       type="text"
@@ -38,14 +38,14 @@ const ACCOUNT_TYPES = ["CHECKING", "SAVINGS", "TRUST"] as const;
 
 const AccountTypeSelect = forwardRef(function AccountTypeSelect(
   props: ComponentPropsWithRef<"select">,
-  ref: Ref<HTMLSelectElement>
+  ref: Ref<HTMLSelectElement>,
 ) {
   return (
     <select
       {...props}
       className={twMerge(
         "h-10 w-full rounded-md border border-gray-200 bg-white px-3 transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:p-0",
-        props.className
+        props.className,
       )}
       ref={ref}
     >
@@ -71,7 +71,7 @@ export type LegalEntityBankSectionProps = Omit<
 export const LegalEntityBankSection = forwardRef(
   function LegalEntityBankSection(
     props: LegalEntityBankSectionProps,
-    ref: Ref<HTMLDivElement>
+    ref: Ref<HTMLDivElement>,
   ) {
     const { value, onChange, disabled, ...divProps } = props;
     const [showIntermediary, setShowIntermediary] = useState(false);
@@ -79,28 +79,28 @@ export const LegalEntityBankSection = forwardRef(
     const handleInputChange = useCallback(
       function handleInputChange(
         field: keyof EditLegalEntityBankInput,
-        event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+        event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
       ) {
         onChange({
           ...value,
           [field]: event.target.value,
         });
       },
-      [onChange, value]
+      [onChange, value],
     );
 
     const handleIntermediaryToggle = useCallback(
       function handleIntermediaryToggle(
-        event: React.ChangeEvent<HTMLInputElement>
+        event: React.ChangeEvent<HTMLInputElement>,
       ) {
         setShowIntermediary(event.target.checked);
       },
-      []
+      [],
     );
 
     function createInputHandler(field: keyof EditLegalEntityBankInput) {
       return function handleFieldChange(
-        event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+        event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
       ) {
         handleInputChange(field, event);
       };
@@ -111,7 +111,7 @@ export const LegalEntityBankSection = forwardRef(
         {...divProps}
         className={twMerge(
           "rounded-lg border border-gray-200 bg-white p-6",
-          props.className
+          props.className,
         )}
         ref={ref}
       >
@@ -275,7 +275,7 @@ export const LegalEntityBankSection = forwardRef(
                         <AccountTypeSelect
                           disabled={disabled}
                           onChange={createInputHandler(
-                            "accountTypeIntermediary"
+                            "accountTypeIntermediary",
                           )}
                           value={value.accountTypeIntermediary ?? ""}
                         />
@@ -337,7 +337,7 @@ export const LegalEntityBankSection = forwardRef(
                     <TextInput
                       disabled={disabled}
                       onChange={createInputHandler(
-                        "extendedAddressIntermediary"
+                        "extendedAddressIntermediary",
                       )}
                       placeholder="Extended Address"
                       value={value.extendedAddressIntermediary ?? ""}
@@ -352,7 +352,7 @@ export const LegalEntityBankSection = forwardRef(
                       <TextInput
                         disabled={disabled}
                         onChange={createInputHandler(
-                          "stateProvinceIntermediary"
+                          "stateProvinceIntermediary",
                         )}
                         placeholder="State/Province"
                         value={value.stateProvinceIntermediary ?? ""}
@@ -392,5 +392,5 @@ export const LegalEntityBankSection = forwardRef(
         </div>
       </div>
     );
-  }
+  },
 );

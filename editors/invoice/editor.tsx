@@ -15,7 +15,7 @@ import PDFUploader, { loadPDFFile } from "./ingestPDF";
 import RequestFinance from "./requestFinance";
 import InvoiceToGnosis from "./invoiceToGnosis";
 import axios from "axios";
-import { toast } from "@powerhousedao/design-system";
+import { toast, ToastContainer } from "@powerhousedao/design-system";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { InvoicePDF } from "./InvoicePDF";
 import { createRoot } from "react-dom/client";
@@ -25,16 +25,16 @@ import { downloadUBL, exportToUBL } from "./exportUBL";
 function formatNumber(value: number): string {
   // Check if the value has decimal places
   const hasDecimals = value % 1 !== 0;
-  
+
   // If no decimals or only trailing zeros after 2 decimal places, show 2 decimal places
-  if (!hasDecimals || (value.toFixed(5).endsWith('000'))) {
+  if (!hasDecimals || value.toFixed(5).endsWith("000")) {
     return value.toFixed(2);
   }
-  
+
   // Otherwise, show actual decimal places up to 5
   const stringValue = value.toString();
-  const decimalPart = stringValue.split('.')[1] || '';
-  
+  const decimalPart = stringValue.split(".")[1] || "";
+
   // Determine how many decimal places to show (up to 5)
   const decimalPlaces = Math.min(Math.max(2, decimalPart.length), 5);
   return value.toFixed(decimalPlaces);
@@ -240,14 +240,14 @@ export default function Editor(
     try {
       // Generate a PDF blob first
       const pdfBlob = await generatePDFBlob();
-      
+
       // Generate filename based on invoice number
       const filename = `invoice_${state.invoiceNo || "export"}.xml`;
 
-      return await downloadUBL({ 
-        invoice: state, 
+      return await downloadUBL({
+        invoice: state,
         filename,
-        pdfBlob  // Pass the PDF blob to be embedded in the UBL file
+        pdfBlob, // Pass the PDF blob to be embedded in the UBL file
       });
     } catch (error) {
       console.error("Error exporting to UBL:", error);
@@ -311,6 +311,18 @@ export default function Editor(
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
+      <ToastContainer
+        position="bottom-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       {/* Header Section */}
       <div className="flex items-center justify-between gap-4 mb-6">
         {/* Left side with Invoice title, input, and upload */}

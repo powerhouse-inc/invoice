@@ -111,7 +111,8 @@ export default function PDFUploader({
               dispatch(
                 actions.editIssuer({
                   name: invoiceData.issuer.name || "",
-                  country: getCountryCodeFromName(invoiceData.issuer.country) || "",
+                  country:
+                    getCountryCodeFromName(invoiceData.issuer.country) || "",
                   streetAddress:
                     invoiceData.issuer.address?.streetAddress || "",
                   extendedAddress:
@@ -144,7 +145,8 @@ export default function PDFUploader({
                     city: bank.address?.city || "",
                     stateProvince: bank.address?.stateProvince || "",
                     postalCode: bank.address?.postalCode || "",
-                    country: getCountryCodeFromName(bank.address?.country) || "",
+                    country:
+                      getCountryCodeFromName(bank.address?.country) || "",
                     extendedAddress: bank.address?.extendedAddress || "",
                   }),
                 );
@@ -171,7 +173,8 @@ export default function PDFUploader({
               dispatch(
                 actions.editPayer({
                   name: invoiceData.payer.name || "",
-                  country: getCountryCodeFromName(invoiceData.payer.country) || "",
+                  country:
+                    getCountryCodeFromName(invoiceData.payer.country) || "",
                   streetAddress: invoiceData.payer.address?.streetAddress || "",
                   extendedAddress:
                     invoiceData.payer.address?.extendedAddress || "",
@@ -226,13 +229,20 @@ export default function PDFUploader({
             });
 
             // Add debug logging here
-            console.log("Final document state:", JSON.stringify({
-              issuer: invoiceData.issuer,
-              payer: invoiceData.payer,
-              lineItems: invoiceData.lineItems,
-              paymentRouting: invoiceData.issuer?.paymentRouting,
-              bankDetails: invoiceData.issuer?.paymentRouting?.bank
-            }, null, 2));
+            console.log(
+              "Final document state:",
+              JSON.stringify(
+                {
+                  issuer: invoiceData.issuer,
+                  payer: invoiceData.payer,
+                  lineItems: invoiceData.lineItems,
+                  paymentRouting: invoiceData.issuer?.paymentRouting,
+                  bankDetails: invoiceData.issuer?.paymentRouting?.bank,
+                },
+                null,
+                2,
+              ),
+            );
 
             changeDropdownOpen(false);
           } else {

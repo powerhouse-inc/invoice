@@ -16,16 +16,16 @@ interface ExportUBLOptions {
 function formatNumber(value: number): string {
   // Check if the value has decimal places
   const hasDecimals = value % 1 !== 0;
-  
+
   // If no decimals or only trailing zeros after 2 decimal places, show 2 decimal places
-  if (!hasDecimals || (value.toFixed(5).endsWith('000'))) {
+  if (!hasDecimals || value.toFixed(5).endsWith("000")) {
     return value.toFixed(2);
   }
-  
+
   // Otherwise, show actual decimal places up to 5
   const stringValue = value.toString();
-  const decimalPart = stringValue.split('.')[1] || '';
-  
+  const decimalPart = stringValue.split(".")[1] || "";
+
   // Determine how many decimal places to show (up to 5)
   const decimalPlaces = Math.min(Math.max(2, decimalPart.length), 5);
   return value.toFixed(decimalPlaces);
@@ -308,7 +308,7 @@ export class UBLExporter {
     for (const item of this.invoice.lineItems) {
       const taxRate = item.taxPercent;
       const taxAmount = item.totalPriceTaxIncl - item.totalPriceTaxExcl;
-      
+
       if (taxGroups.has(taxRate)) {
         taxGroups.set(taxRate, (taxGroups.get(taxRate) || 0) + taxAmount);
       } else {
@@ -320,7 +320,7 @@ export class UBLExporter {
 
     const taxTotalAmount = Array.from(taxGroups.values()).reduce(
       (sum, amount) => sum + amount,
-      0
+      0,
     );
 
     // Add tax totals
@@ -442,12 +442,12 @@ export class UBLExporter {
    */
   private async generatePDFAttachment(): Promise<string> {
     if (!this.pdfBlob) return "";
-    
+
     try {
       // Convert PDF blob to base64
       const base64Data = await this.blobToBase64(this.pdfBlob);
       const filename = `${this.invoice.invoiceNo || "invoice"}.pdf`;
-      
+
       return `<cac:AdditionalDocumentReference>
   <cbc:ID>${filename}</cbc:ID>
   <cbc:DocumentType>PrimaryImage</cbc:DocumentType>
@@ -462,7 +462,7 @@ export class UBLExporter {
       return "";
     }
   }
-  
+
   /**
    * Convert a Blob to base64 string
    */
@@ -472,7 +472,7 @@ export class UBLExporter {
       reader.onloadend = () => {
         const base64data = reader.result as string;
         // Remove data URL prefix if present
-        const base64Content = base64data.split(',')[1] || base64data;
+        const base64Content = base64data.split(",")[1] || base64data;
         resolve(base64Content);
       };
       reader.onerror = reject;

@@ -10,16 +10,16 @@ import { v4 as uuidv4 } from "uuid";
 function formatNumber(value: number): string {
   // Check if the value has decimal places
   const hasDecimals = value % 1 !== 0;
-  
+
   // If no decimals or only trailing zeros after 2 decimal places, show 2 decimal places
-  if (!hasDecimals || (value.toFixed(5).endsWith('000'))) {
+  if (!hasDecimals || value.toFixed(5).endsWith("000")) {
     return value.toFixed(2);
   }
-  
+
   // Otherwise, show actual decimal places up to 5
   const stringValue = value.toString();
-  const decimalPart = stringValue.split('.')[1] || '';
-  
+  const decimalPart = stringValue.split(".")[1] || "";
+
   // Determine how many decimal places to show (up to 5)
   const decimalPlaces = Math.min(Math.max(2, decimalPart.length), 5);
   return value.toFixed(decimalPlaces);
@@ -70,17 +70,26 @@ const EditableLineItem = forwardRef(function EditableLineItem(
   });
 
   const calculatedValues = useMemo(() => {
-    const quantity = typeof editedItem.quantity === 'string' ? 
-      (editedItem.quantity === "" ? 0 : Number(editedItem.quantity)) : 
-      (editedItem.quantity ?? 0);
-      
-    const unitPriceTaxExcl = typeof editedItem.unitPriceTaxExcl === 'string' ? 
-      (editedItem.unitPriceTaxExcl === "" ? 0 : Number(editedItem.unitPriceTaxExcl)) : 
-      (editedItem.unitPriceTaxExcl ?? 0);
-      
-    const taxPercent = typeof editedItem.taxPercent === 'string' ? 
-      (editedItem.taxPercent === "" ? 0 : Number(editedItem.taxPercent)) : 
-      (editedItem.taxPercent ?? 0);
+    const quantity =
+      typeof editedItem.quantity === "string"
+        ? editedItem.quantity === ""
+          ? 0
+          : Number(editedItem.quantity)
+        : (editedItem.quantity ?? 0);
+
+    const unitPriceTaxExcl =
+      typeof editedItem.unitPriceTaxExcl === "string"
+        ? editedItem.unitPriceTaxExcl === ""
+          ? 0
+          : Number(editedItem.unitPriceTaxExcl)
+        : (editedItem.unitPriceTaxExcl ?? 0);
+
+    const taxPercent =
+      typeof editedItem.taxPercent === "string"
+        ? editedItem.taxPercent === ""
+          ? 0
+          : Number(editedItem.taxPercent)
+        : (editedItem.taxPercent ?? 0);
 
     const totalPriceTaxExcl = quantity * unitPriceTaxExcl;
     const taxAmount = totalPriceTaxExcl * (taxPercent / 100);
@@ -97,18 +106,18 @@ const EditableLineItem = forwardRef(function EditableLineItem(
   function handleInputChange(field: keyof EditableLineItem) {
     return function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
       const value = event.target.value;
-      
+
       if (field === "description") {
         setEditedItem((prev) => ({ ...prev, [field]: value }));
         return;
       }
-      
+
       // For numeric fields
       if (value === "" || value === "0") {
         setEditedItem((prev) => ({ ...prev, [field]: value }));
         return;
       }
-      
+
       if (field === "quantity") {
         // Allow only integers for quantity
         if (/^\d+$/.test(value)) {
@@ -134,18 +143,27 @@ const EditableLineItem = forwardRef(function EditableLineItem(
   }
 
   function handleSave() {
-    const quantity = typeof editedItem.quantity === 'string' ? 
-      (editedItem.quantity === "" ? 0 : Number(editedItem.quantity)) : 
-      (editedItem.quantity ?? 0);
-      
-    const unitPriceTaxExcl = typeof editedItem.unitPriceTaxExcl === 'string' ? 
-      (editedItem.unitPriceTaxExcl === "" ? 0 : Number(editedItem.unitPriceTaxExcl)) : 
-      (editedItem.unitPriceTaxExcl ?? 0);
-      
-    const taxPercent = typeof editedItem.taxPercent === 'string' ? 
-      (editedItem.taxPercent === "" ? 0 : Number(editedItem.taxPercent)) : 
-      (editedItem.taxPercent ?? 0);
-      
+    const quantity =
+      typeof editedItem.quantity === "string"
+        ? editedItem.quantity === ""
+          ? 0
+          : Number(editedItem.quantity)
+        : (editedItem.quantity ?? 0);
+
+    const unitPriceTaxExcl =
+      typeof editedItem.unitPriceTaxExcl === "string"
+        ? editedItem.unitPriceTaxExcl === ""
+          ? 0
+          : Number(editedItem.unitPriceTaxExcl)
+        : (editedItem.unitPriceTaxExcl ?? 0);
+
+    const taxPercent =
+      typeof editedItem.taxPercent === "string"
+        ? editedItem.taxPercent === ""
+          ? 0
+          : Number(editedItem.taxPercent)
+        : (editedItem.taxPercent ?? 0);
+
     const completeItem: LineItem = {
       id: editedItem.id ?? uuidv4(),
       currency: editedItem.currency!,
@@ -188,7 +206,11 @@ const EditableLineItem = forwardRef(function EditableLineItem(
           onChange={handleInputChange("unitPriceTaxExcl")}
           step="0.00001"
           type="number"
-          value={editedItem.unitPriceTaxExcl === 0 ? "" : editedItem.unitPriceTaxExcl ?? ""}
+          value={
+            editedItem.unitPriceTaxExcl === 0
+              ? ""
+              : (editedItem.unitPriceTaxExcl ?? "")
+          }
         />
       </td>
       <td className="border border-gray-200 p-3">
@@ -199,7 +221,9 @@ const EditableLineItem = forwardRef(function EditableLineItem(
           onChange={handleInputChange("taxPercent")}
           step="1"
           type="number"
-          value={editedItem.taxPercent === 0 ? "" : editedItem.taxPercent ?? ""}
+          value={
+            editedItem.taxPercent === 0 ? "" : (editedItem.taxPercent ?? "")
+          }
         />
       </td>
       <td className="border border-gray-200 p-3 text-right font-medium">
@@ -348,7 +372,10 @@ export function LineItemsTable({
                     {formatNumber(item.unitPriceTaxExcl)}
                   </td>
                   <td className="border-b border-gray-200 p-3 text-right">
-                    {typeof item.taxPercent === 'number' ? Math.round(item.taxPercent) : 0}%
+                    {typeof item.taxPercent === "number"
+                      ? Math.round(item.taxPercent)
+                      : 0}
+                    %
                   </td>
                   <td className="border-b border-gray-200 p-3 text-right font-medium">
                     {formatNumber(item.totalPriceTaxExcl)}
