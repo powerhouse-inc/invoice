@@ -215,26 +215,6 @@ export default function Editor(
     }
   };
 
-  const handleReset = () => {
-    dispatch(actions.editStatus({ status: "DRAFT" }));
-  };
-
-  const handleUpdateInvoiceStatus = async () => {
-    try {
-      const response = await axios.post(
-        "http://localhost:5001/api/update-invoice-status",
-        {
-          invoiceNo: state.invoiceNo,
-        }
-      );
-      toast(response.data.message, {
-        type: "success",
-      });
-      console.log("Response: ", response.data.message);
-    } catch (error) {
-      console.error("Error updating invoice status:", error);
-    }
-  };
 
   async function handleExportUBL() {
     try {

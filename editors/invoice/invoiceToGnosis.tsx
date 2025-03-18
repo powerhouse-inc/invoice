@@ -13,34 +13,6 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
   const [invoiceStatusResponse, setInvoiceStatusResponse] = useState<any>(null);
   const [safeTxHash, setsafeTxHash] = useState<string | null>(null);
 
-  // useEffect(() => {
-  //   if (safeTxHash) {
-  //     const eventSource = new EventSource(
-  //       `http://localhost:5001/api/transaction-status/${safeTxHash}/${docState.invoiceNo}`,
-  //     );
-
-  //     eventSource.onmessage = (event) => {
-  //       const data = JSON.parse(event.data);
-  //       console.log("SSE data: ", data);
-  //       if (data.status === "completed") {
-  //         console.log("Transaction completed and status updated");
-  //         toast("Invoice Paid", {
-  //           type: "success",
-  //         });
-  //         eventSource.close(); // Close the connection immediately
-  //       }
-  //     };
-
-  //     eventSource.onerror = () => {
-  //       eventSource.close();
-  //     };
-
-  //     return () => {
-  //       eventSource.close();
-  //     };
-  //   }
-  // }, [safeTxHash]);
-
   const TOKEN_ADDRESSES = {
     BASE: {
       USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
@@ -139,21 +111,6 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
     } catch (error) {
       console.error("Error during transfer:", error);
       setIsLoading(false);
-    }
-  };
-
-  const handleUpdateInvoiceStatus = async () => {
-    try {
-      const response = await axios.post(
-        "http://localhost:5001/api/update-invoice-status",
-        {
-          invoiceNo: docState.invoiceNo,
-        },
-      );
-      console.log("Response: ", response.data.message);
-      setInvoiceStatusResponse(response.data.message);
-    } catch (error) {
-      console.error("Error updating invoice status:", error);
     }
   };
 
