@@ -60,9 +60,10 @@ export default function PDFUploader({
         console.log("Base64 data prepared for upload");
 
         try {
+          const endpoint = `${window.location.protocol}//${window.location.hostname}:8441/invoice`;
           const result = await uploadPdfChunked(
             base64Data,
-            "http://localhost:4001/invoice",
+            endpoint,
             50 * 1024,
             (progress) => setUploadProgress(progress),
           );

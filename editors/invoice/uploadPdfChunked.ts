@@ -7,7 +7,7 @@
  */
 export async function uploadPdfChunked(
   pdfData: string,
-  endpoint: string = "http://localhost:4001/invoice",
+  endpoint: string = `${window.location.protocol}//${window.location.hostname}:8441/invoice`,
   chunkSize: number = 500 * 1024, // 500KB chunks
   onProgress?: (progress: number) => void,
 ): Promise<any> {

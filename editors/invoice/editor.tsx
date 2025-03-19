@@ -41,7 +41,7 @@ function formatNumber(value: number): string {
 }
 
 export default function Editor(
-  props: EditorProps<InvoiceState, InvoiceAction, InvoiceLocalState>
+  props: EditorProps<InvoiceState, InvoiceAction, InvoiceLocalState>,
 ) {
   // generate a random id
   // const id = documentModelUtils.hashKey();
@@ -123,7 +123,7 @@ export default function Editor(
   ];
 
   const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -143,7 +143,7 @@ export default function Editor(
   };
 
   const handlePdfUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -206,7 +206,7 @@ export default function Editor(
             }
             return null;
           }}
-        </PDFDownloadLink>
+        </PDFDownloadLink>,
       );
     } catch (error) {
       console.error("Error exporting PDF:", error);
@@ -214,7 +214,6 @@ export default function Editor(
       toast("Failed to export PDF", { type: "error" });
     }
   };
-
 
   async function handleExportUBL() {
     try {
@@ -279,7 +278,7 @@ export default function Editor(
               }
               return null;
             }}
-          </PDFDownloadLink>
+          </PDFDownloadLink>,
         );
       } catch (error) {
         console.error("Error generating PDF blob:", error);
@@ -484,7 +483,7 @@ export default function Editor(
                 inputType="date"
                 onChange={(e) =>
                   dispatch(
-                    actions.editInvoice({ dateDelivered: e.target.value })
+                    actions.editInvoice({ dateDelivered: e.target.value }),
                   )
                 }
                 value={state.dateDelivered || state.dateIssued}

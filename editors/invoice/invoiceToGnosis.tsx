@@ -69,7 +69,8 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:4001/invoice", {
+      const endpoint = `${window.location.protocol}//${window.location.hostname}:8441/invoice`;
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

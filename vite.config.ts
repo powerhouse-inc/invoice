@@ -48,6 +48,11 @@ export default defineConfig(() => {
 
     return {
         test,
+        server: {
+            allowedHosts: [
+                process.env.HOSTNAME || 'localhost',
+            ],
+        },
         build: {
             outDir: `dist`,
             emptyOutDir: true,
