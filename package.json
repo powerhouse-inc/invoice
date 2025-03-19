@@ -32,6 +32,11 @@
       "types": "./dist/manifest.d.ts",
       "require": "./dist/cjs/manifest.js",
       "import": "./dist/es/manifest.js"
+    },
+    "./subgraphs": {
+      "types": "./dist/subgraphs.d.ts",
+      "import": "./dist/es/subgraphs.js",
+      "require": "./dist/cjs/subgraphs.js"
     }
   },
   "scripts": {
