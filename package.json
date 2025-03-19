@@ -62,7 +62,7 @@
     "service-unstartup": "bash ./node_modules/@powerhousedao/ph-cli/dist/scripts/service-unstartup.sh"
   },
   "peerDependencies": {
-    "document-model": "^2.20.0",
+    "document-model": "2.18.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -84,7 +84,7 @@
     "@typescript-eslint/eslint-plugin": "^8.21.0",
     "@typescript-eslint/parser": "^8.21.0",
     "autoprefixer": "^10.4.20",
-    "document-model": "^2.20.0",
+    "document-model": "2.18.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.3",
