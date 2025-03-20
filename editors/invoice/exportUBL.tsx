@@ -53,24 +53,23 @@ export class UBLExporter {
     const pdfAttachmentSection = await this.generatePDFAttachment();
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
-  xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
-  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2 UBL-Invoice-2.1.xsd">
+<Invoice xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" 
+         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2 UBL-Invoice-2.1.xsd" 
+         xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
   <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
-  <cbc:CustomizationID>urn:cen.eu:en16931:2017</cbc:CustomizationID>
   <cbc:ID>${this.escapeXml(this.invoice.invoiceNo || "")}</cbc:ID>
   <cbc:IssueDate>${issueDate}</cbc:IssueDate>
   ${dueDate ? `<cbc:DueDate>${dueDate}</cbc:DueDate>` : ""}
   <cbc:InvoiceTypeCode listID="UNCL1001" listAgencyID="6">380</cbc:InvoiceTypeCode>
-  ${deliveryDate ? `<cbc:TaxPointDate>${deliveryDate}</cbc:TaxPointDate>` : ""}
-  <cbc:DocumentCurrencyCode listID="ISO4217" listAgencyID="6">${this.escapeXml(this.invoice.currency || "USD")}</cbc:DocumentCurrencyCode>
-  
+  <cbc:DocumentCurrencyCode listID="ISO4217" listAgencyID="6">${this.escapeXml(this.invoice.currency || "")}</cbc:DocumentCurrencyCode>
+  ${this.invoice.payer?.name ? `<cbc:BuyerReference>${this.escapeXml(this.invoice.payer.name)}</cbc:BuyerReference>` : ""}
   ${pdfAttachmentSection}
   ${this.generateSupplierParty(this.invoice.issuer)}
   ${this.generateCustomerParty(this.invoice.payer)}
   ${this.generatePaymentMeans()}
+  ${this.generatePaymentTerms()}
   ${this.generateTaxSummary()}
   ${this.generateLegalMonetaryTotal()}
   ${this.generateInvoiceLines()}
@@ -142,43 +141,37 @@ export class UBLExporter {
   private generateSupplierParty(issuer: LegalEntity | null): string {
     if (!issuer) return "";
 
+    const taxId = (issuer.id as Maybe<LegalEntityTaxId>)?.taxId;
+    const corpRegId = (issuer.id as Maybe<LegalEntityCorporateRegistrationId>)?.corpRegId;
+    const companyId = taxId || corpRegId;
+
     return `<cac:AccountingSupplierParty>
   <cac:Party>
-    ${
-      issuer.id
-        ? `<cac:PartyIdentification>
-      <cbc:ID>${this.escapeXml((issuer.id as Maybe<LegalEntityTaxId>)?.taxId || (issuer.id as LegalEntityCorporateRegistrationId)?.corpRegId)}</cbc:ID>
-    </cac:PartyIdentification>`
-        : ""
-    }
-    ${
-      issuer.name
-        ? `<cac:PartyName>
+    ${companyId ? `<cbc:EndpointID schemeID="0106">${this.escapeXml(companyId)}</cbc:EndpointID>` : ""}
+    ${issuer.name ? `<cac:PartyName>
       <cbc:Name>${this.escapeXml(issuer.name)}</cbc:Name>
-    </cac:PartyName>`
-        : ""
-    }
+    </cac:PartyName>` : ""}
     <cac:PostalAddress>
       ${issuer.address?.streetAddress ? `<cbc:StreetName>${this.escapeXml(issuer.address?.streetAddress)}</cbc:StreetName>` : ""}
       ${issuer.address?.city ? `<cbc:CityName>${this.escapeXml(issuer.address?.city)}</cbc:CityName>` : ""}
       ${issuer.address?.postalCode ? `<cbc:PostalZone>${this.escapeXml(issuer.address?.postalCode)}</cbc:PostalZone>` : ""}
-      ${issuer.address?.stateProvince ? `<cbc:CountrySubentity>${this.escapeXml(issuer.address?.stateProvince)}</cbc:CountrySubentity>` : ""}
-      ${
-        issuer.country
-          ? `<cac:Country>
-        <cbc:IdentificationCode>${this.escapeXml(issuer.country)}</cbc:IdentificationCode>
-      </cac:Country>`
-          : ""
-      }
+      ${issuer.country ? `<cac:Country>
+        <cbc:IdentificationCode listID="ISO3166-1:Alpha2" listAgencyID="6">${this.escapeXml(issuer.country)}</cbc:IdentificationCode>
+      </cac:Country>` : ""}
     </cac:PostalAddress>
-    ${
-      issuer.contactInfo?.tel || issuer.contactInfo?.email
-        ? `<cac:Contact>
-      ${issuer.contactInfo?.tel ? `<cbc:Telephone>${this.escapeXml(issuer.contactInfo?.tel)}</cbc:Telephone>` : ""}
-      ${issuer.contactInfo?.email ? `<cbc:ElectronicMail>${this.escapeXml(issuer.contactInfo?.email)}</cbc:ElectronicMail>` : ""}
-    </cac:Contact>`
-        : ""
-    }
+    ${taxId && issuer.country ? `<cac:PartyTaxScheme>
+      <cbc:CompanyID schemeID="${issuer.country}:VAT">${this.escapeXml(taxId)}</cbc:CompanyID>
+      <cac:TaxScheme>
+        <cbc:ID schemeID="UN/ECE 5153">VAT</cbc:ID>
+      </cac:TaxScheme>
+    </cac:PartyTaxScheme>` : ""}
+    <cac:PartyLegalEntity>
+      <cbc:RegistrationName>${this.escapeXml(issuer.name || "")}</cbc:RegistrationName>
+      ${companyId ? `<cbc:CompanyID schemeID="0106">${this.escapeXml(companyId)}</cbc:CompanyID>` : ""}
+    </cac:PartyLegalEntity>
+    ${issuer.contactInfo?.email ? `<cac:Contact>
+      <cbc:ElectronicMail>${this.escapeXml(issuer.contactInfo.email)}</cbc:ElectronicMail>
+    </cac:Contact>` : ""}
   </cac:Party>
 </cac:AccountingSupplierParty>`;
   }
@@ -191,117 +184,76 @@ export class UBLExporter {
 
     return `<cac:AccountingCustomerParty>
   <cac:Party>
-    ${
-      payer.id
-        ? `<cac:PartyIdentification>
-      <cbc:ID>${this.escapeXml((payer.id as Maybe<LegalEntityTaxId>)?.taxId || (payer.id as LegalEntityCorporateRegistrationId)?.corpRegId)}</cbc:ID>
-    </cac:PartyIdentification>`
-        : ""
-    }
-    ${
-      payer.name
-        ? `<cac:PartyName>
+    ${payer.name ? `<cac:PartyName>
       <cbc:Name>${this.escapeXml(payer.name)}</cbc:Name>
-    </cac:PartyName>`
-        : ""
-    }
+    </cac:PartyName>` : ""}
     <cac:PostalAddress>
       ${payer.address?.streetAddress ? `<cbc:StreetName>${this.escapeXml(payer.address?.streetAddress)}</cbc:StreetName>` : ""}
       ${payer.address?.city ? `<cbc:CityName>${this.escapeXml(payer.address?.city)}</cbc:CityName>` : ""}
       ${payer.address?.postalCode ? `<cbc:PostalZone>${this.escapeXml(payer.address?.postalCode)}</cbc:PostalZone>` : ""}
-      ${payer.address?.stateProvince ? `<cbc:CountrySubentity>${this.escapeXml(payer.address?.stateProvince)}</cbc:CountrySubentity>` : ""}
-      ${
-        payer.country
-          ? `<cac:Country>
-        <cbc:IdentificationCode>${this.escapeXml(payer.country)}</cbc:IdentificationCode>
-      </cac:Country>`
-          : ""
-      }
+      ${payer.country ? `<cac:Country>
+        <cbc:IdentificationCode listID="ISO3166-1:Alpha2" listAgencyID="6">${this.escapeXml(payer.country)}</cbc:IdentificationCode>
+      </cac:Country>` : ""}
     </cac:PostalAddress>
-    ${
-      payer.contactInfo?.tel || payer.contactInfo?.email
-        ? `<cac:Contact>
-      ${payer.contactInfo?.tel ? `<cbc:Telephone>${this.escapeXml(payer.contactInfo?.tel)}</cbc:Telephone>` : ""}
-      ${payer.contactInfo?.email ? `<cbc:ElectronicMail>${this.escapeXml(payer.contactInfo?.email)}</cbc:ElectronicMail>` : ""}
-    </cac:Contact>`
-        : ""
-    }
-    ${
-      this.invoice.payer?.paymentRouting?.bank?.accountNum
-        ? `<cac:FinancialAccount>
-      <cbc:ID>${this.escapeXml(this.invoice.payer.paymentRouting.bank.accountNum)}</cbc:ID>
-      ${
-        this.invoice.payer.paymentRouting.bank.name ||
-        this.invoice.payer.paymentRouting.bank.SWIFT
-          ? `<cac:FinancialInstitutionBranch>
-        <cac:FinancialInstitution>
-          ${this.invoice.payer.paymentRouting.bank.name ? `<cbc:Name>${this.escapeXml(this.invoice.payer.paymentRouting.bank.name)}</cbc:Name>` : ""}
-          ${this.invoice.payer.paymentRouting.bank.SWIFT ? `<cbc:ID>${this.escapeXml(this.invoice.payer.paymentRouting.bank.SWIFT)}</cbc:ID>` : ""}
-        </cac:FinancialInstitution>
-      </cac:FinancialInstitutionBranch>`
-          : ""
-      }
-    </cac:FinancialAccount>`
-        : ""
-    }
+    <cac:PartyLegalEntity>
+      <cbc:RegistrationName>${this.escapeXml(payer.name || "")}</cbc:RegistrationName>
+    </cac:PartyLegalEntity>
+    ${payer.contactInfo?.email ? `<cac:Contact>
+    </cac:Contact>` : ""}
   </cac:Party>
 </cac:AccountingCustomerParty>`;
+  }
+
+  /**
+   * Generate payment terms section
+   */
+  private generatePaymentTerms(): string {
+    const dueDate = this.formatDate(this.invoice.dateDue);
+    const amount = this.invoice.lineItems.reduce((sum, item) => sum + item.totalPriceTaxIncl, 0);
+    const currency = this.invoice.currency;
+    const paymentRef = `RF47${this.invoice.invoiceNo?.replace(/[^a-zA-Z0-9]/g, "")}`;
+
+    if (!dueDate || !currency) return "";
+
+    const note = `We kindly request you to pay the above amount of ${currency}${amount} before ${dueDate} to our bank account with the description ${paymentRef}. For questions you can contact us by email.`;
+
+    return `<cac:PaymentTerms>
+      <cbc:Note>${this.escapeXml(note)}</cbc:Note>
+    </cac:PaymentTerms>`;
   }
 
   /**
    * Generate the PaymentMeans section with bank details
    */
   private generatePaymentMeans(): string {
-    if (
-      !this.invoice.issuer?.paymentRouting?.bank?.accountNum &&
-      !this.invoice.issuer?.paymentRouting?.wallet?.address
-    )
-      return "";
-
-    if (this.invoice.issuer?.paymentRouting?.wallet?.address) {
-      return `<cac:PaymentMeans>
-      <cbc:PaymentMeansCode>30</cbc:PaymentMeansCode>
-      <cac:PayeeFinancialAccount>
-        <cbc:ID schemeID="walletAddress">${this.escapeXml(this.invoice.issuer.paymentRouting?.wallet?.address || "")}</cbc:ID>
-        <cbc:ID schemeID="chainName">${this.escapeXml(this.invoice.issuer.paymentRouting?.wallet?.chainName || "")}</cbc:ID>
-        <cbc:ID schemeID="chainId">${this.escapeXml(this.invoice.issuer.paymentRouting?.wallet?.chainId || "")}</cbc:ID>
-      </cac:PayeeFinancialAccount>
-    </cac:PaymentMeans>`;
-    }
-
     const bank = this.invoice.issuer?.paymentRouting?.bank;
-    if (!bank) return "";
+    if (!bank?.accountNum) return "";
+
+    const dueDate = this.formatDate(this.invoice.dateDue);
+    // Generate a payment reference based on invoice number
+    const paymentRef = `RF47${this.invoice.invoiceNo?.replace(/[^a-zA-Z0-9]/g, "")}`;
 
     return `<cac:PaymentMeans>
-  <cbc:PaymentMeansCode>30</cbc:PaymentMeansCode>
-  <cac:PayeeFinancialAccount>
-    <cbc:ID${bank.accountNum ? ' schemeID="IBAN"' : ""}>${this.escapeXml(bank.accountNum || "")}</cbc:ID>
-    ${bank.BIC ? `<cbc:ID schemeID="BIC">${this.escapeXml(bank.BIC)}</cbc:ID>` : ""}
-    ${bank.SWIFT ? `<cbc:ID schemeID="SWIFT">${this.escapeXml(bank.SWIFT)}</cbc:ID>` : ""}
-    ${bank.ABA ? `<cbc:ID schemeID="ABA">${this.escapeXml(bank.ABA)}</cbc:ID>` : ""}
-    ${
-      bank.name
-        ? `<cac:FinancialInstitutionBranch>
-      <cac:FinancialInstitution>
-        <cbc:Name>${this.escapeXml(bank.name)}</cbc:Name>
-      ${bank.address?.streetAddress ? `<cbc:StreetName schemeID="streetAddress">${this.escapeXml(bank.address.streetAddress)}</cbc:StreetName>` : ""}
-      ${bank.address?.extendedAddress ? `<cbc:AdditionalStreetName schemeID="extendedAddress">${this.escapeXml(bank.address.extendedAddress)}</cbc:AdditionalStreetName>` : ""}
-      ${bank.address?.city ? `<cbc:CityName schemeID="city">${this.escapeXml(bank.address.city)}</cbc:CityName>` : ""}
-      ${bank.address?.stateProvince ? `<cbc:CountrySubentity schemeID="stateProvince">${this.escapeXml(bank.address.stateProvince)}</cbc:CountrySubentity>` : ""}
-      ${bank.address?.postalCode ? `<cbc:PostalZone schemeID="postalCode">${this.escapeXml(bank.address.postalCode)}</cbc:PostalZone>` : ""}
-      ${bank.address?.country ? `<cac:Country><cbc:IdentificationCode schemeID="country">${this.escapeXml(bank.address.country)}</cbc:IdentificationCode></cac:Country>` : ""}
-      </cac:FinancialInstitution>
-    </cac:FinancialInstitutionBranch>`
-        : ""
-    }
-  </cac:PayeeFinancialAccount>
-</cac:PaymentMeans>`;
+      <cbc:PaymentMeansCode listID="UNCL4461" listAgencyID="6">30</cbc:PaymentMeansCode>
+      ${dueDate ? `<cbc:PaymentDueDate>${dueDate}</cbc:PaymentDueDate>` : ""}
+      ${paymentRef ? `<cbc:PaymentID>${this.escapeXml(paymentRef)}</cbc:PaymentID>` : ""}
+      <cac:PayeeFinancialAccount>
+        <cbc:ID schemeID="IBAN">${this.escapeXml(bank.accountNum)}</cbc:ID>
+        ${bank.BIC || bank.SWIFT ? `<cac:FinancialInstitutionBranch>
+          <cac:FinancialInstitution>
+            <cbc:ID schemeID="BIC">${this.escapeXml(bank.BIC || bank.SWIFT || "")}</cbc:ID>
+          </cac:FinancialInstitution>
+        </cac:FinancialInstitutionBranch>` : ""}
+      </cac:PayeeFinancialAccount>
+    </cac:PaymentMeans>`;
   }
 
   /**
    * Generate tax summary section
    */
   private generateTaxSummary(): string {
+    if (!this.invoice.currency) return "";
+    const currency = this.invoice.currency;
     const taxGroups = new Map<number, number>();
 
     // Group tax amounts by tax rate
@@ -325,7 +277,7 @@ export class UBLExporter {
 
     // Add tax totals
     let xml = `<cac:TaxTotal>
-<cbc:TaxAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${formatNumber(taxTotalAmount)}</cbc:TaxAmount>`;
+<cbc:TaxAmount currencyID="${this.escapeXml(currency)}">${formatNumber(taxTotalAmount)}</cbc:TaxAmount>`;
 
     // Add tax subtotals for each tax rate
     const taxSubtotals: Record<
@@ -352,13 +304,13 @@ export class UBLExporter {
     )) {
       xml += `
 <cac:TaxSubtotal>
-<cbc:TaxableAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${formatNumber(taxableAmount)}</cbc:TaxableAmount>
-<cbc:TaxAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${formatNumber(taxAmount)}</cbc:TaxAmount>
+<cbc:TaxableAmount currencyID="${this.escapeXml(currency)}">${formatNumber(taxableAmount)}</cbc:TaxableAmount>
+<cbc:TaxAmount currencyID="${this.escapeXml(currency)}">${formatNumber(taxAmount)}</cbc:TaxAmount>
 <cac:TaxCategory>
-<cbc:ID>S</cbc:ID>
+<cbc:ID schemeID="UNCL5305">S</cbc:ID>
 <cbc:Percent>${taxRate}</cbc:Percent>
 <cac:TaxScheme>
-<cbc:ID>VAT</cbc:ID>
+<cbc:ID schemeID="UN/ECE 5153">VAT</cbc:ID>
 </cac:TaxScheme>
 </cac:TaxCategory>
 </cac:TaxSubtotal>`;
@@ -374,6 +326,9 @@ export class UBLExporter {
    * Generate the LegalMonetaryTotal section
    */
   private generateLegalMonetaryTotal(): string {
+    if (!this.invoice.currency) return "";
+    const currency = this.invoice.currency;
+
     // Calculate totals
     const lineExtensionAmount = this.invoice.lineItems.reduce(
       (sum, item) => sum + item.totalPriceTaxExcl,
@@ -381,19 +336,19 @@ export class UBLExporter {
     );
 
     const taxExclusiveAmount = lineExtensionAmount;
-
     const taxInclusiveAmount = this.invoice.lineItems.reduce(
       (sum, item) => sum + item.totalPriceTaxIncl,
       0,
     );
-
+    const allowanceTotalAmount = 0; // Add if we implement allowances
     const payableAmount = taxInclusiveAmount;
 
     return `<cac:LegalMonetaryTotal>
-  <cbc:LineExtensionAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${formatNumber(lineExtensionAmount)}</cbc:LineExtensionAmount>
-  <cbc:TaxExclusiveAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${formatNumber(taxExclusiveAmount)}</cbc:TaxExclusiveAmount>
-  <cbc:TaxInclusiveAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${formatNumber(taxInclusiveAmount)}</cbc:TaxInclusiveAmount>
-  <cbc:PayableAmount currencyID="${this.escapeXml(this.invoice.currency || "USD")}">${formatNumber(payableAmount)}</cbc:PayableAmount>
+  <cbc:LineExtensionAmount currencyID="${this.escapeXml(currency)}">${formatNumber(lineExtensionAmount)}</cbc:LineExtensionAmount>
+  <cbc:TaxExclusiveAmount currencyID="${this.escapeXml(currency)}">${formatNumber(taxExclusiveAmount)}</cbc:TaxExclusiveAmount>
+  <cbc:TaxInclusiveAmount currencyID="${this.escapeXml(currency)}">${formatNumber(taxInclusiveAmount)}</cbc:TaxInclusiveAmount>
+  <cbc:AllowanceTotalAmount currencyID="${this.escapeXml(currency)}">${formatNumber(allowanceTotalAmount)}</cbc:AllowanceTotalAmount>
+  <cbc:PayableAmount currencyID="${this.escapeXml(currency)}">${formatNumber(payableAmount)}</cbc:PayableAmount>
 </cac:LegalMonetaryTotal>`;
   }
 
@@ -401,23 +356,17 @@ export class UBLExporter {
    * Generate InvoiceLine sections for each line item
    */
   private generateInvoiceLines(): string {
-    if (!this.invoice.lineItems.length) return "";
+    if (!this.invoice.lineItems.length || !this.invoice.currency) return "";
+    const currency = this.invoice.currency;
 
     return this.invoice.lineItems
       .map((item, index) => {
         const lineId = item.id || (index + 1).toString();
-        const currency = this.escapeXml(
-          item.currency || this.invoice.currency || "USD",
-        );
-        const taxAmount = item.totalPriceTaxIncl - item.totalPriceTaxExcl;
 
         return `<cac:InvoiceLine>
   <cbc:ID>${this.escapeXml(lineId)}</cbc:ID>
-  <cbc:InvoicedQuantity unitCode="ZZ" unitCodeListID="UNECERec20">${item.quantity}</cbc:InvoicedQuantity>
+  <cbc:InvoicedQuantity unitCode="ZZ" unitCodeListID="UNECERec20">${formatNumber(item.quantity)}</cbc:InvoicedQuantity>
   <cbc:LineExtensionAmount currencyID="${currency}">${formatNumber(item.totalPriceTaxExcl)}</cbc:LineExtensionAmount>
-  <cac:TaxTotal>
-    <cbc:TaxAmount currencyID="${currency}">${formatNumber(taxAmount)}</cbc:TaxAmount>
-  </cac:TaxTotal>
   <cac:Item>
     <cbc:Description>${this.escapeXml(item.description || "")}</cbc:Description>
     <cbc:Name>${this.escapeXml(item.description || "")}</cbc:Name>
