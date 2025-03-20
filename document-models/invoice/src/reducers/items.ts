@@ -68,33 +68,36 @@ function updateTotals(state: InvoiceState) {
 }
 
 function validatePrices(item: InvoiceLineItem) {
+  const EPSILON = 0.00001; // Small value for floating point comparisons
+  
   // Calculate total prices from unit prices and quantity
   const calcPriceIncl = item.quantity * item.unitPriceTaxIncl;
   const calcPriceExcl = item.quantity * item.unitPriceTaxExcl;
 
-  // Validate that calculated totals match input totals
-  if (calcPriceIncl !== item.totalPriceTaxIncl) {
-    throw new Error("Calculated unitPriceTaxIncl does not match input total");
-  }
-
-  if (calcPriceExcl !== item.totalPriceTaxExcl) {
-    throw new Error("Calculated unitPriceTaxExcl does not match input total");
-  }
-
   // Convert tax percentage to decimal rate
   const taxRate = item.taxPercent / 100;
 
+  // Helper function to compare floating point numbers
+  const isClose = (a: number, b: number) => Math.abs(a - b) < EPSILON;
+
   // Validate unit prices (tax-exclusive should equal tax-inclusive / (1 + taxRate))
-  const expectedUnitPriceExcl = (item.unitPriceTaxIncl / (1 + taxRate)).toFixed(
-    2,
-  );
-  if (item.unitPriceTaxExcl.toFixed(2) !== expectedUnitPriceExcl) {
+  const expectedUnitPriceExcl = item.unitPriceTaxIncl / (1 + taxRate);
+  if (!isClose(item.unitPriceTaxExcl, expectedUnitPriceExcl)) {
     throw new Error("Tax inclusive/exclusive unit prices failed comparison.");
   }
 
-  // Validate total prices using the same formula
-  const expectedTotalPriceExcl = (calcPriceIncl / (1 + taxRate)).toFixed(2);
-  if (calcPriceExcl.toFixed(2) !== expectedTotalPriceExcl) {
+  // Validate total prices
+  if (!isClose(calcPriceIncl, item.totalPriceTaxIncl)) {
+    throw new Error("Calculated unitPriceTaxIncl does not match input total");
+  }
+
+  if (!isClose(calcPriceExcl, item.totalPriceTaxExcl)) {
+    throw new Error("Calculated unitPriceTaxExcl does not match input total");
+  }
+
+  // Validate total prices using the tax rate
+  const expectedTotalPriceExcl = calcPriceIncl / (1 + taxRate);
+  if (!isClose(calcPriceExcl, expectedTotalPriceExcl)) {
     throw new Error("Tax inclusive/exclusive totals failed comparison.");
   }
 }

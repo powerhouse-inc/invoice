@@ -6,6 +6,7 @@ import { EditInvoiceInput, DeleteLineItemInput } from "document-models/invoice";
 import { forwardRef, useState, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { CurrencyForm } from "./components/currencyForm";
+import { NumberForm } from "./components/numberForm";
 
 // Helper function to format numbers with appropriate decimal places
 function formatNumber(value: number): string {
@@ -125,8 +126,9 @@ const EditableLineItem = forwardRef(function EditableLineItem(
           setEditedItem((prev) => ({ ...prev, [field]: value }));
         }
       } else if (field === "taxPercent") {
-        // Allow only integers from 0-100 for tax percent
-        if (/^\d+$/.test(value) && parseInt(value, 10) <= 100) {
+        // Allow integers from 0-100 for tax percent, with more permissive validation
+        const numValue = parseInt(value, 10);
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
           setEditedItem((prev) => ({ ...prev, [field]: value }));
         }
       } else if (field === "unitPriceTaxExcl") {
@@ -191,40 +193,26 @@ const EditableLineItem = forwardRef(function EditableLineItem(
         />
       </td>
       <td className="border border-gray-200 p-3">
-        <input
-          className="w-full rounded border p-1 text-right"
-          min="0"
-          onChange={handleInputChange("quantity")}
-          step="1"
-          type="number"
-          value={editedItem.quantity ?? ""}
+        <NumberForm
+          number={editedItem.quantity ?? ""}
+          precision={0}
+          handleInputChange={handleInputChange("quantity")}
         />
       </td>
       <td className="border border-gray-200 p-3">
-        <input
-          className="w-full rounded border p-1 text-right"
-          min="0"
-          onChange={handleInputChange("unitPriceTaxExcl")}
-          step="0.00001"
-          type="number"
-          value={
-            editedItem.unitPriceTaxExcl === 0
-              ? ""
-              : (editedItem.unitPriceTaxExcl ?? "")
-          }
+        <NumberForm
+          number={editedItem.unitPriceTaxExcl ?? ""}
+          precision={5}
+          handleInputChange={handleInputChange("unitPriceTaxExcl")}
         />
       </td>
       <td className="border border-gray-200 p-3">
-        <input
-          className="w-full rounded border p-1 text-right"
-          max="100"
-          min="0"
-          onChange={handleInputChange("taxPercent")}
-          step="1"
-          type="number"
-          value={
-            editedItem.taxPercent === 0 ? "" : (editedItem.taxPercent ?? "")
-          }
+        <NumberForm
+          number={editedItem.taxPercent ?? ""}
+          precision={0}
+          min={0}
+          max={100}
+          handleInputChange={handleInputChange("taxPercent")}
         />
       </td>
       <td className="border border-gray-200 p-3 text-right font-medium">
