@@ -20,6 +20,7 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import { InvoicePDF } from "./InvoicePDF";
 import { createRoot } from "react-dom/client";
 import { downloadUBL, exportToUBL } from "./exportUBL";
+import { CurrencyForm } from "./components/currencyForm";
 
 // Helper function to format numbers with appropriate decimal places
 function formatNumber(value: number): string {
@@ -442,26 +443,12 @@ export default function Editor(
 
         {/* Currency selector */}
         <div className="flex items-center gap-2">
-          <select
-            id="currency"
-            className="rounded border border-gray-200 px-2 py-1"
-            value={state.currency}
-            onChange={(e) => {
-              const input = {
-                currency: e.target.value,
-              };
-              setFiatMode(input.currency !== "USDS");
-              dispatch(actions.editInvoice(input));
+          <CurrencyForm
+            currency={state.currency}
+            handleInputChange={(e) => {
+              dispatch(actions.editInvoice({ currency: e.target.value }));
             }}
-          >
-            <option value="USD">USD</option>
-            <option value="USDS">USDS</option>
-            <option value="EUR">EUR</option>
-            <option value="GBP">GBP</option>
-            <option value="JPY">JPY</option>
-            <option value="CNY">CNY</option>
-            <option value="CHF">CHF</option>
-          </select>
+          />
         </div>
 
         {/* Status on the right */}

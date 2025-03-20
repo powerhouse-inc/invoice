@@ -5,6 +5,7 @@ import { RWAButton } from "@powerhousedao/design-system";
 import { EditInvoiceInput, DeleteLineItemInput } from "document-models/invoice";
 import { forwardRef, useState, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { CurrencyForm } from "./components/currencyForm";
 
 // Helper function to format numbers with appropriate decimal places
 function formatNumber(value: number): string {
@@ -58,7 +59,7 @@ type EditableLineItemProps = {
 
 const EditableLineItem = forwardRef(function EditableLineItem(
   props: EditableLineItemProps,
-  ref: React.Ref<HTMLTableRowElement>,
+  ref: React.Ref<HTMLTableRowElement>
 ) {
   const { item, onSave, onCancel, currency } = props;
   const [editedItem, setEditedItem] = useState<Partial<EditableLineItem>>({
@@ -296,20 +297,12 @@ export function LineItemsTable({
         <div className="flex items-center gap-4">
           <h4 className="text-xl font-semibold text-gray-900">Line Items</h4>
           <div className="flex items-center gap-2">
-            <select
-              id="currency"
-              className="rounded border border-gray-200 px-2 py-1"
-              value={currency}
-              onChange={handleCurrencyChange}
-            >
-              <option value="USD">USD</option>
-              <option value="USDS">USDS</option>
-              <option value="EUR">EUR</option>
-              <option value="GBP">GBP</option>
-              <option value="JPY">JPY</option>
-              <option value="CNY">CNY</option>
-              <option value="CHF">CHF</option>
-            </select>
+            <CurrencyForm
+              currency={currency}
+              handleInputChange={(e) => {
+                onUpdateCurrency({ currency: e.target.value });
+              }}
+            />
           </div>
         </div>
 
@@ -401,7 +394,7 @@ export function LineItemsTable({
                     </div>
                   </td>
                 </tr>
-              ),
+              )
             )}
             {isAddingNew ? (
               <EditableLineItem

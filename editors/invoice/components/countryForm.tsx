@@ -22,7 +22,7 @@ export const CountryForm = ({
         enableSearch
         name="country"
         placeholder="Country"
-        onChange={(value: string) => {
+        onChange={(value: string | string[]) => {
           const syntheticEvent = {
             target: {
               value: value,
