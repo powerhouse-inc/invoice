@@ -6,7 +6,7 @@ export const module: EditorModule<InvoiceDocument> = {
   Component: Editor,
   documentTypes: ["powerhouse/invoice"],
   config: {
-    id: "editor-id",
+    id: "powerhouse-invoice-editor",
     disableExternalControls: true,
     documentToolbarEnabled: true,
     showSwitchboardLink: true,
