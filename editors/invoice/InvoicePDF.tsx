@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-import { InvoiceState } from "../../document-models/invoice";
+import { InvoiceState } from "../../document-models/invoice/index.js";
 
 // Create styles
 const styles = StyleSheet.create({

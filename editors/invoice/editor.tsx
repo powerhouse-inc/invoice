@@ -2,16 +2,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { EditorProps } from "document-model";
 import {
   type InvoiceDocument,
+  Status,
   actions,
 } from "../../document-models/invoice/index.js";
 import { DateTimeLocalInput } from "./dateTimeLocalInput.js";
 import { LegalEntityForm } from "./legalEntity/legalEntity.js";
 import { LineItemsTable } from "./lineItems.js";
 import { loadUBLFile } from "./ingestUBL.js";
-import PDFUploader, { loadPDFFile } from "./ingestPDF.js";
+import PDFUploader from "./ingestPDF.js";
 import RequestFinance from "./requestFinance.js";
 import InvoiceToGnosis from "./invoiceToGnosis.js";
-import axios from "axios";
 import { toast, ToastContainer } from "@powerhousedao/design-system";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { InvoicePDF } from "./InvoicePDF.js";
@@ -51,6 +51,7 @@ export default function Editor(props: IProps) {
   const [fiatMode, setFiatMode] = useState(state.currency != "USDS");
   const [uploadDropdownOpen, setUploadDropdownOpen] = useState(false);
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const [invoiceNoInput, setInvoiceNoInput] = useState(state.invoiceNo || "");
   const uploadDropdownRef = useRef<HTMLDivElement>(null);
   const exportDropdownRef = useRef<HTMLDivElement>(null);
   const [isPdfLoading, setIsPdfLoading] = useState(false);
@@ -141,22 +142,6 @@ export default function Editor(props: IProps) {
     }
   };
 
-  const handlePdfUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setIsPdfLoading(true);
-    try {
-      await loadPDFFile({ file, dispatch });
-    } catch (error) {
-      console.error("Error handling PDF file:", error);
-    } finally {
-      setIsPdfLoading(false);
-    }
-  };
-
   const handleExportPDF = () => {
     // Create a temporary container for the PDFDownloadLink
     const container = window.document.createElement("div");
@@ -211,27 +196,6 @@ export default function Editor(props: IProps) {
       console.error("Error exporting PDF:", error);
       cleanup();
       toast("Failed to export PDF", { type: "error" });
-    }
-  };
-
-  const handleReset = () => {
-    dispatch(actions.editStatus({ status: "DRAFT" }));
-  };
-
-  const handleUpdateInvoiceStatus = async () => {
-    try {
-      const response = await axios.post(
-        "http://localhost:5001/api/update-invoice-status",
-        {
-          invoiceNo: state.invoiceNo,
-        }
-      );
-      toast(response.data.message, {
-        type: "success",
-      });
-      console.log("Response: ", response.data.message);
-    } catch (error) {
-      console.error("Error updating invoice status:", error);
     }
   };
 
@@ -329,15 +293,15 @@ export default function Editor(props: IProps) {
           <h1 className="text-3xl font-bold whitespace-nowrap">Invoice</h1>
           <input
             className="min-w-[12rem] max-w-xs rounded-lg border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500"
-            onChange={(e) =>
-              dispatch(actions.editInvoice({ invoiceNo: e.target.value }))
-            }
-            placeholder={new Date()
-              .toISOString()
-              .substring(0, 10)
-              .replaceAll("-", "")}
+            onChange={(e) => setInvoiceNoInput(e.target.value)}
+            onBlur={() => {
+              if (invoiceNoInput !== state.invoiceNo) {
+                dispatch(actions.editInvoice({ invoiceNo: invoiceNoInput }));
+              }
+            }}
+            placeholder={'Add invoice number'}
             type="text"
-            value={state.invoiceNo || ""}
+            value={invoiceNoInput}
           />
 
           {/* Upload Dropdown Button */}

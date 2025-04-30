@@ -3,7 +3,7 @@ import {
   InvoiceAction,
   LegalEntity,
   actions,
-} from "../../document-models/invoice";
+} from "../../document-models/invoice/index.js";
 
 interface LoadUBLFileProps {
   file: File;

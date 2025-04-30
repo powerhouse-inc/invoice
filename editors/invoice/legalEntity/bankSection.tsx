@@ -1,17 +1,14 @@
 import {
-  ComponentProps,
   ComponentPropsWithRef,
   forwardRef,
   Ref,
   useCallback,
   useState,
+  useEffect,
 } from "react";
 import { twMerge } from "tailwind-merge";
-import {
-  EditLegalEntityBankInput,
-  EditLegalEntityWalletInput,
-} from "./legalEntity";
-import { CountryForm } from "../components/countryForm";
+import { EditLegalEntityBankInput } from "./legalEntity.js";
+import { CountryForm } from "../components/countryForm.js";
 
 const FieldLabel = ({ children }: { readonly children: React.ReactNode }) => (
   <label className="block text-sm font-medium text-gray-700">{children}</label>
@@ -19,14 +16,14 @@ const FieldLabel = ({ children }: { readonly children: React.ReactNode }) => (
 
 const TextInput = forwardRef(function TextInput(
   props: ComponentPropsWithRef<"input">,
-  ref: Ref<HTMLInputElement>,
+  ref: Ref<HTMLInputElement>
 ) {
   return (
     <input
       {...props}
       className={twMerge(
         "h-10 w-full rounded-md border border-gray-200 bg-white px-3 transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:p-0",
-        props.className,
+        props.className
       )}
       ref={ref}
       type="text"
@@ -38,14 +35,14 @@ const ACCOUNT_TYPES = ["CHECKING", "SAVINGS", "TRUST"] as const;
 
 const AccountTypeSelect = forwardRef(function AccountTypeSelect(
   props: ComponentPropsWithRef<"select">,
-  ref: Ref<HTMLSelectElement>,
+  ref: Ref<HTMLSelectElement>
 ) {
   return (
     <select
       {...props}
       className={twMerge(
         "h-10 w-full rounded-md border border-gray-200 bg-white px-3 transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:p-0",
-        props.className,
+        props.className
       )}
       ref={ref}
     >
@@ -71,38 +68,63 @@ export type LegalEntityBankSectionProps = Omit<
 export const LegalEntityBankSection = forwardRef(
   function LegalEntityBankSection(
     props: LegalEntityBankSectionProps,
-    ref: Ref<HTMLDivElement>,
+    ref: Ref<HTMLDivElement>
   ) {
     const { value, onChange, disabled, ...divProps } = props;
     const [showIntermediary, setShowIntermediary] = useState(false);
+    const [localState, setLocalState] = useState(value);
+
+    useEffect(() => {
+      setLocalState(value);
+    }, [value]);
 
     const handleInputChange = useCallback(
       function handleInputChange(
         field: keyof EditLegalEntityBankInput,
-        event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+        event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
       ) {
-        onChange({
-          ...value,
+        setLocalState({
+          ...localState,
           [field]: event.target.value,
         });
       },
-      [onChange, value],
+      [localState]
+    );
+
+    const handleBlur = useCallback(
+      function handleBlur(
+        field: keyof EditLegalEntityBankInput,
+        event: React.FocusEvent<HTMLInputElement | HTMLSelectElement>
+      ) {
+        onChange({
+          [field]: event.target.value,
+        } as Partial<EditLegalEntityBankInput>);
+      },
+      [onChange]
     );
 
     const handleIntermediaryToggle = useCallback(
       function handleIntermediaryToggle(
-        event: React.ChangeEvent<HTMLInputElement>,
+        event: React.ChangeEvent<HTMLInputElement>
       ) {
         setShowIntermediary(event.target.checked);
       },
-      [],
+      []
     );
 
     function createInputHandler(field: keyof EditLegalEntityBankInput) {
       return function handleFieldChange(
-        event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+        event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
       ) {
         handleInputChange(field, event);
+      };
+    }
+
+    function createBlurHandler(field: keyof EditLegalEntityBankInput) {
+      return function handleFieldBlur(
+        event: React.FocusEvent<HTMLInputElement | HTMLSelectElement>
+      ) {
+        handleBlur(field, event);
       };
     }
 
@@ -111,7 +133,7 @@ export const LegalEntityBankSection = forwardRef(
         {...divProps}
         className={twMerge(
           "rounded-lg border border-gray-200 bg-white p-6",
-          props.className,
+          props.className
         )}
         ref={ref}
       >
@@ -125,8 +147,9 @@ export const LegalEntityBankSection = forwardRef(
               <TextInput
                 disabled={disabled}
                 onChange={createInputHandler("accountNum")}
+                onBlur={createBlurHandler("accountNum")}
                 placeholder="Account Number"
-                value={value.accountNum ?? ""}
+                value={localState.accountNum ?? ""}
               />
             </div>
 
@@ -137,17 +160,21 @@ export const LegalEntityBankSection = forwardRef(
                   <AccountTypeSelect
                     disabled={disabled}
                     onChange={createInputHandler("accountType")}
-                    value={value.accountType ?? ""}
+                    onBlur={createBlurHandler("accountType")}
+                    value={localState.accountType ?? ""}
                   />
                 </div>
                 <div className="space-y-2">
                   <FieldLabel>ABA/BIC/SWIFT No.</FieldLabel>
-
                   <TextInput
                     disabled={disabled}
                     onChange={createInputHandler("BIC")}
+                    onBlur={createBlurHandler("BIC")}
                     placeholder="ABA/BIC/SWIFT No."
-                    value={(value.ABA || value.BIC || value.SWIFT) ?? ""}
+                    value={
+                      (localState.ABA || localState.BIC || localState.SWIFT) ??
+                      ""
+                    }
                   />
                 </div>
               </div>
@@ -159,8 +186,9 @@ export const LegalEntityBankSection = forwardRef(
             <TextInput
               disabled={disabled}
               onChange={createInputHandler("beneficiary")}
+              onBlur={createBlurHandler("beneficiary")}
               placeholder="Beneficiary Name"
-              value={value.beneficiary ?? ""}
+              value={localState.beneficiary ?? ""}
             />
           </div>
 
@@ -169,8 +197,9 @@ export const LegalEntityBankSection = forwardRef(
             <TextInput
               disabled={disabled}
               onChange={createInputHandler("name")}
+              onBlur={createBlurHandler("name")}
               placeholder="Bank Name"
-              value={value.name ?? ""}
+              value={localState.name ?? ""}
             />
           </div>
 
@@ -180,45 +209,45 @@ export const LegalEntityBankSection = forwardRef(
               <TextInput
                 disabled={disabled}
                 onChange={createInputHandler("streetAddress")}
+                onBlur={createBlurHandler("streetAddress")}
                 placeholder="Street Address"
-                value={value.streetAddress ?? ""}
+                value={localState.streetAddress ?? ""}
               />
               <TextInput
                 disabled={disabled}
                 onChange={createInputHandler("extendedAddress")}
+                onBlur={createBlurHandler("extendedAddress")}
                 placeholder="Extended Address"
-                value={value.extendedAddress ?? ""}
+                value={localState.extendedAddress ?? ""}
               />
               <div className="grid grid-cols-2 gap-4">
                 <TextInput
                   disabled={disabled}
                   onChange={createInputHandler("city")}
+                  onBlur={createBlurHandler("city")}
                   placeholder="City"
-                  value={value.city ?? ""}
+                  value={localState.city ?? ""}
                 />
                 <TextInput
                   disabled={disabled}
                   onChange={createInputHandler("stateProvince")}
+                  onBlur={createBlurHandler("stateProvince")}
                   placeholder="State/Province"
-                  value={value.stateProvince ?? ""}
+                  value={localState.stateProvince ?? ""}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <TextInput
                   disabled={disabled}
                   onChange={createInputHandler("postalCode")}
+                  onBlur={createBlurHandler("postalCode")}
                   placeholder="Postal Code"
-                  value={value.postalCode ?? ""}
+                  value={localState.postalCode ?? ""}
                 />
-                {/* <TextInput
-                  disabled={disabled}
-                  onChange={createInputHandler("country")}
-                  placeholder="Country"
-                  value={value.country ?? ""}
-                /> */}
                 <CountryForm
-                  country={value.country ?? ""}
+                  country={localState.country ?? ""}
                   handleInputChange={createInputHandler("country")}
+                  handleBlur={createBlurHandler("country")}
                 />
               </div>
             </div>
@@ -229,8 +258,9 @@ export const LegalEntityBankSection = forwardRef(
             <TextInput
               disabled={disabled}
               onChange={createInputHandler("memo")}
+              onBlur={createBlurHandler("memo")}
               placeholder="Memo"
-              value={value.memo ?? ""}
+              value={localState.memo ?? ""}
             />
           </div>
 
@@ -263,8 +293,9 @@ export const LegalEntityBankSection = forwardRef(
                     <TextInput
                       disabled={disabled}
                       onChange={createInputHandler("accountNumIntermediary")}
+                      onBlur={createBlurHandler("accountNumIntermediary")}
                       placeholder="Intermediary Account Number"
-                      value={value.accountNumIntermediary ?? ""}
+                      value={localState.accountNumIntermediary ?? ""}
                     />
                   </div>
 
@@ -275,22 +306,23 @@ export const LegalEntityBankSection = forwardRef(
                         <AccountTypeSelect
                           disabled={disabled}
                           onChange={createInputHandler(
-                            "accountTypeIntermediary",
+                            "accountTypeIntermediary"
                           )}
-                          value={value.accountTypeIntermediary ?? ""}
+                          onBlur={createBlurHandler("accountTypeIntermediary")}
+                          value={localState.accountTypeIntermediary ?? ""}
                         />
                       </div>
                       <div className="space-y-2">
                         <FieldLabel>ABA/BIC/SWIFT No.</FieldLabel>
-
                         <TextInput
                           disabled={disabled}
                           onChange={createInputHandler("BICIntermediary")}
+                          onBlur={createBlurHandler("BICIntermediary")}
                           placeholder="ABA/BIC/SWIFT No."
                           value={
-                            (value.ABAIntermediary ||
-                              value.BICIntermediary ||
-                              value.SWIFTIntermediary) ??
+                            (localState.ABAIntermediary ||
+                              localState.BICIntermediary ||
+                              localState.SWIFTIntermediary) ??
                             ""
                           }
                         />
@@ -306,8 +338,9 @@ export const LegalEntityBankSection = forwardRef(
                   <TextInput
                     disabled={disabled}
                     onChange={createInputHandler("beneficiaryIntermediary")}
+                    onBlur={createBlurHandler("beneficiaryIntermediary")}
                     placeholder="Intermediary Beneficiary Name"
-                    value={value.beneficiaryIntermediary ?? ""}
+                    value={localState.beneficiaryIntermediary ?? ""}
                   />
                 </div>
 
@@ -318,8 +351,9 @@ export const LegalEntityBankSection = forwardRef(
                   <TextInput
                     disabled={disabled}
                     onChange={createInputHandler("nameIntermediary")}
+                    onBlur={createBlurHandler("nameIntermediary")}
                     placeholder="Intermediary Bank Name"
-                    value={value.nameIntermediary ?? ""}
+                    value={localState.nameIntermediary ?? ""}
                   />
                 </div>
 
@@ -331,45 +365,49 @@ export const LegalEntityBankSection = forwardRef(
                     <TextInput
                       disabled={disabled}
                       onChange={createInputHandler("streetAddressIntermediary")}
+                      onBlur={createBlurHandler("streetAddressIntermediary")}
                       placeholder="Street Address"
-                      value={value.streetAddressIntermediary ?? ""}
+                      value={localState.streetAddressIntermediary ?? ""}
                     />
                     <TextInput
                       disabled={disabled}
                       onChange={createInputHandler(
-                        "extendedAddressIntermediary",
+                        "extendedAddressIntermediary"
                       )}
+                      onBlur={createBlurHandler("extendedAddressIntermediary")}
                       placeholder="Extended Address"
-                      value={value.extendedAddressIntermediary ?? ""}
+                      value={localState.extendedAddressIntermediary ?? ""}
                     />
                     <div className="grid grid-cols-2 gap-4">
                       <TextInput
                         disabled={disabled}
                         onChange={createInputHandler("cityIntermediary")}
+                        onBlur={createBlurHandler("cityIntermediary")}
                         placeholder="City"
-                        value={value.cityIntermediary ?? ""}
+                        value={localState.cityIntermediary ?? ""}
                       />
                       <TextInput
                         disabled={disabled}
                         onChange={createInputHandler(
-                          "stateProvinceIntermediary",
+                          "stateProvinceIntermediary"
                         )}
+                        onBlur={createBlurHandler("stateProvinceIntermediary")}
                         placeholder="State/Province"
-                        value={value.stateProvinceIntermediary ?? ""}
+                        value={localState.stateProvinceIntermediary ?? ""}
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <TextInput
                         disabled={disabled}
                         onChange={createInputHandler("postalCodeIntermediary")}
+                        onBlur={createBlurHandler("postalCodeIntermediary")}
                         placeholder="Postal Code"
-                        value={value.postalCodeIntermediary ?? ""}
+                        value={localState.postalCodeIntermediary ?? ""}
                       />
-                      <TextInput
-                        disabled={disabled}
-                        onChange={createInputHandler("countryIntermediary")}
-                        placeholder="Country"
-                        value={value.countryIntermediary ?? ""}
+                      <CountryForm
+                        country={localState.countryIntermediary ?? ""}
+                        handleInputChange={createInputHandler("countryIntermediary")}
+                        handleBlur={createBlurHandler("countryIntermediary")}
                       />
                     </div>
                   </div>
@@ -382,8 +420,9 @@ export const LegalEntityBankSection = forwardRef(
                   <TextInput
                     disabled={disabled}
                     onChange={createInputHandler("memoIntermediary")}
+                    onBlur={createBlurHandler("memoIntermediary")}
                     placeholder="Memo"
-                    value={value.memoIntermediary ?? ""}
+                    value={localState.memoIntermediary ?? ""}
                   />
                 </div>
               </div>
@@ -392,5 +431,5 @@ export const LegalEntityBankSection = forwardRef(
         </div>
       </div>
     );
-  },
+  }
 );

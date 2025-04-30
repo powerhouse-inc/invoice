@@ -4,7 +4,7 @@ import {
   LegalEntityCorporateRegistrationId,
   LegalEntityTaxId,
   Maybe,
-} from "../../document-models/invoice";
+} from "../../document-models/invoice/index.js";
 
 interface ExportUBLOptions {
   invoice: InvoiceState;

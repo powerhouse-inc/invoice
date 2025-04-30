@@ -11,19 +11,18 @@ import {
   LegalEntity,
   LegalEntityCorporateRegistrationId,
   LegalEntityTaxId,
-} from "../../../document-models/invoice";
+} from "../../../document-models/invoice/index.js";
 import {
-  EditIssuerBankInputSchema,
   EditIssuerInputSchema,
   EditIssuerWalletInputSchema,
-} from "../../../document-models/invoice/gen/schema/zod";
+} from "../../../document-models/invoice/gen/schema/zod.js";
 
 import React, { ComponentProps, useEffect, useState } from "react";
 import { ComponentPropsWithRef, Ref } from "react";
 import { twMerge } from "tailwind-merge";
-import { LegalEntityWalletSection } from "./walletSection";
-import { LegalEntityBankSection } from "./bankSection";
-import { CountryForm } from "../components/countryForm";
+import { LegalEntityWalletSection } from "./walletSection.js";
+import { LegalEntityBankSection } from "./bankSection.js";
+import { CountryForm } from "../components/countryForm.js";
 
 export type EditLegalEntityWalletInput =
   | EditIssuerWalletInput
@@ -38,7 +37,7 @@ function TextInput(props: ComponentProps<"input">) {
       {...props}
       className={twMerge(
         "h-10 w-full rounded-md border border-gray-200 bg-white px-3 transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:p-0",
-        props.className,
+        props.className
       )}
       type="text"
     />
@@ -67,20 +66,31 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
       : ((id as any)?.taxId ?? (id as any)?.corpRegId ?? "");
   };
 
+  const [localState, setLocalState] = useState(value);
   const [taxId, setTaxId] = useState(normalizeId(value.id));
 
   useEffect(() => {
+    setLocalState(value);
     setTaxId(normalizeId(value.id));
   }, [value]);
 
   const handleInputChange =
     (field: keyof EditLegalEntityInput) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      onChange({
-        ...value,
-        id: field === "id" ? e.target.value : value.id, // Ensure `id` remains a string
+      setLocalState({
+        ...localState,
+        id: field === "id" ? e.target.value : localState.id,
         [field]: e.target.value,
       });
+    };
+
+  const handleBlur =
+    (field: keyof EditLegalEntityInput) =>
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const update = {
+        [field]: e.target.value,
+      } as Partial<EditLegalEntityInput>;
+      onChange(update);
     };
 
   return (
@@ -88,7 +98,7 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
       {...divProps}
       className={twMerge(
         "rounded-lg border border-gray-200 bg-white p-6",
-        props.className,
+        props.className
       )}
     >
       <h3 className="mb-4 text-lg font-semibold text-gray-900">
@@ -100,8 +110,9 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
           <TextInput
             disabled={disabled}
             onChange={handleInputChange("name")}
+            onBlur={handleBlur("name")}
             placeholder="Legal Entity Name"
-            value={value.name ?? ""}
+            value={localState.name ?? ""}
           />
         </div>
 
@@ -115,7 +126,7 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
                 id: taxId,
               })
             }
-            placeholder="123456789..."
+            placeholder="332..."
             value={taxId}
           />
         </div>
@@ -126,14 +137,16 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
             <TextInput
               disabled={disabled}
               onChange={handleInputChange("streetAddress")}
+              onBlur={handleBlur("streetAddress")}
               placeholder="Street Address"
-              value={value.streetAddress ?? ""}
+              value={localState.streetAddress ?? ""}
             />
             <TextInput
               disabled={disabled}
               onChange={handleInputChange("extendedAddress")}
+              onBlur={handleBlur("extendedAddress")}
               placeholder="Extended Address"
-              value={value.extendedAddress ?? ""}
+              value={localState.extendedAddress ?? ""}
             />
           </div>
 
@@ -143,8 +156,9 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
               <TextInput
                 disabled={disabled}
                 onChange={handleInputChange("city")}
+                onBlur={handleBlur("city")}
                 placeholder="City"
-                value={value.city ?? ""}
+                value={localState.city ?? ""}
               />
             </div>
             <div className="space-y-2">
@@ -152,8 +166,9 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
               <TextInput
                 disabled={disabled}
                 onChange={handleInputChange("stateProvince")}
+                onBlur={handleBlur("stateProvince")}
                 placeholder="State/Province"
-                value={value.stateProvince ?? ""}
+                value={localState.stateProvince ?? ""}
               />
             </div>
           </div>
@@ -164,15 +179,17 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
               <TextInput
                 disabled={disabled}
                 onChange={handleInputChange("postalCode")}
+                onBlur={handleBlur("postalCode")}
                 placeholder="Postal Code"
-                value={value.postalCode ?? ""}
+                value={localState.postalCode ?? ""}
               />
             </div>
             <div className="space-y-2">
               <FieldLabel>Country</FieldLabel>
               <CountryForm
-                country={value.country ?? ""}
+                country={localState.country ?? ""}
                 handleInputChange={handleInputChange("country")}
+                handleBlur={handleBlur("country")}
               />
             </div>
           </div>
@@ -184,9 +201,10 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
             <TextInput
               disabled={disabled}
               onChange={handleInputChange("email")}
+              onBlur={handleBlur("email")}
               placeholder="Email"
               type="email"
-              value={value.email ?? ""}
+              value={localState.email ?? ""}
             />
           </div>
           <div className="space-y-2">
@@ -194,9 +212,10 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
             <TextInput
               disabled={disabled}
               onChange={handleInputChange("tel")}
+              onBlur={handleBlur("tel")}
               placeholder="Telephone"
               type="tel"
-              value={value.tel ?? ""}
+              value={localState.tel ?? ""}
             />
           </div>
         </div>

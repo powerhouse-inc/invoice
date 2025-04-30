@@ -28,27 +28,27 @@ export const getCountryCodeFromName = (
 
   // Check if input is already a valid country code (2-letter code)
   if (countryName.length === 2 && /^[A-Z]{2}$/.test(countryName)) {
-    const isValidCode = countries.some((c) => c.cca2 === countryName);
+    const isValidCode = countries.some((c:any) => c.cca2 === countryName);
     if (isValidCode) return countryName;
   }
 
   // Try exact match first (case-insensitive)
   const exactMatch = countries.find(
-    (c) => c.name.common.toLowerCase() === lowerCountryName,
+    (c:any) => c.name.common.toLowerCase() === lowerCountryName,
   );
   if (exactMatch) return exactMatch.cca2;
 
   // Try official name match
   const officialMatch = countries.find(
-    (c) => c.name.official.toLowerCase() === lowerCountryName,
+    (c:any) => c.name.official.toLowerCase() === lowerCountryName,
   );
   if (officialMatch) return officialMatch.cca2;
 
   // Try native name matches
-  const nativeMatch = countries.find((c) => {
+  const nativeMatch = countries.find((c:any) => {
     if (!c.name.native) return false;
     return Object.values(c.name.native).some(
-      (n) =>
+      (n:any) =>
         n.common.toLowerCase() === lowerCountryName ||
         n.official.toLowerCase() === lowerCountryName,
     );
@@ -57,7 +57,7 @@ export const getCountryCodeFromName = (
 
   // Try partial match if no exact match found
   const partialMatch = countries.find(
-    (c) =>
+    (c:any) =>
       c.name.common.toLowerCase().includes(lowerCountryName) ||
       lowerCountryName.includes(c.name.common.toLowerCase()),
   );

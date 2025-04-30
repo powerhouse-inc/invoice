@@ -1,7 +1,7 @@
-import { ComponentProps } from "react";
+import { ComponentProps, useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { EditLegalEntityWalletInput } from "./legalEntity";
-import { TextInput, FieldLabel } from "./common";
+import { EditLegalEntityWalletInput } from "./legalEntity.js";
+import { TextInput, FieldLabel } from "./common.js";
 
 export type LegalEntityWalletSectionProps = Omit<
   ComponentProps<"div">,
@@ -16,15 +16,29 @@ export const LegalEntityWalletSection = (
   props: LegalEntityWalletSectionProps,
 ) => {
   const { value, onChange, disabled, ...divProps } = props;
+  const [localState, setLocalState] = useState(value);
+
+  useEffect(() => {
+    setLocalState(value);
+  }, [value]);
 
   const handleInputChange = (
     field: keyof EditLegalEntityWalletInput,
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    onChange({
-      ...value,
+    setLocalState({
+      ...localState,
       [field]: event.target.value,
     });
+  };
+
+  const handleBlur = (
+    field: keyof EditLegalEntityWalletInput,
+    event: React.FocusEvent<HTMLInputElement>,
+  ) => {
+    onChange({
+      [field]: event.target.value,
+    } as Partial<EditLegalEntityWalletInput>);
   };
 
   const CHAIN_PRESETS = [
@@ -48,7 +62,7 @@ export const LegalEntityWalletSection = (
 
   const renderPresets = () => {
     const activePreset = CHAIN_PRESETS.find(
-      (p) => p.chainName == value.chainName,
+      (p) => p.chainName == localState.chainName,
     );
 
     const handleSelectPreset = (e: { target: { value: string } }) => {
@@ -56,6 +70,10 @@ export const LegalEntityWalletSection = (
         (p) => p.chainName == e.target.value && p.chainId !== "0",
       );
       if (preset) {
+        setLocalState({
+          chainId: preset.chainId,
+          chainName: preset.chainName,
+        });
         onChange({
           chainId: preset.chainId,
           chainName: preset.chainName,
@@ -69,7 +87,6 @@ export const LegalEntityWalletSection = (
           className={
             "px-4 py-2 rounded-full font-semibold text-sm bg-gray-200 text-gray-800"
           }
-          onBlur={handleSelectPreset}
           onChange={handleSelectPreset}
         >
           {activePreset ? (
@@ -89,7 +106,7 @@ export const LegalEntityWalletSection = (
             ),
           )}
         </select>
-        {value.chainName !== "Base" && (
+        {localState.chainName !== "Base" && (
           <div className="space-y-4" style={{ color: "red" }}>
             Unsupported Chain
           </div>
@@ -107,7 +124,7 @@ export const LegalEntityWalletSection = (
       )}
     >
       <div className="grid grid-cols-2 gap-4 items-center">
-        <h3 className="mb-4 text-lg font-semibold text-gray-200">
+        <h3 className="mb-4 text-lg font-semibold text-black-200">
           Wallet Information
         </h3>
 
@@ -120,8 +137,9 @@ export const LegalEntityWalletSection = (
           <TextInput
             disabled={disabled}
             onChange={(e) => handleInputChange("address", e)}
+            onBlur={(e) => handleBlur("address", e)}
             placeholder="0x..."
-            value={value.address ?? ""}
+            value={localState.address ?? ""}
           />
         </div>
       </div>
