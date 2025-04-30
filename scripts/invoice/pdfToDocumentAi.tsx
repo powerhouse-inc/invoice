@@ -4,7 +4,7 @@ import {
     InvoiceState,
     InvoiceAction,
     actions,
-  } from "../../document-models/invoice";
+  } from "../../document-models/invoice/index.js";
 import crypto from 'crypto';
 
 interface DocumentAIEntity {
@@ -68,12 +68,12 @@ export async function uploadPdfAndGetJson(inputDoc: any) {
         };
 
         const entities = extractEntities(result.document.entities);
-        console.log("Entities:", JSON.stringify(entities, null, 2));
+        // console.log("Entities:", JSON.stringify(entities, null, 2));
 
         // Map the entities to invoice format
         const invoiceData = mapDocumentAiToInvoice(entities);
         
-        console.log("Mapped invoice data:", JSON.stringify(invoiceData, null, 2));
+        // console.log("Mapped invoice data:", JSON.stringify(invoiceData, null, 2));
 
         return { invoiceData };
     } catch (error) {
@@ -206,7 +206,7 @@ function convertCurrencySymbolToCode(symbol: string): string {
         return 'USD'; // Default to USD
     }
 
-    console.log(`Converting currency symbol/name: "${symbol}"`);
+    // console.log(`Converting currency symbol/name: "${symbol}"`);
     
     // Clean up the input - remove whitespace and normalize
     const cleanSymbol = symbol.trim().toUpperCase();
@@ -261,23 +261,23 @@ function convertCurrencySymbolToCode(symbol: string): string {
 
     // Check if the symbol is in our map
     if (currencyMap[cleanSymbol]) {
-        console.log(`Mapped currency "${symbol}" to "${currencyMap[cleanSymbol]}"`);
+        // console.log(`Mapped currency "${symbol}" to "${currencyMap[cleanSymbol]}"`);
         return currencyMap[cleanSymbol];
     }
     
     // Check if it's a 3-letter currency code
     if (cleanSymbol.length === 3 && /^[A-Z]{3}$/.test(cleanSymbol)) {
-        console.log(`Using 3-letter currency code as is: "${cleanSymbol}"`);
+        // console.log(`Using 3-letter currency code as is: "${cleanSymbol}"`);
         return cleanSymbol;
     }
     
     // Special case for "EURO" which should be "EUR"
     if (cleanSymbol === 'EURO' || cleanSymbol === 'EUROS') {
-        console.log(`Converting "${cleanSymbol}" to "EUR"`);
+        // console.log(`Converting "${cleanSymbol}" to "EUR"`);
         return 'EUR';
     }
     
-    console.log(`Unknown currency symbol/name: "${symbol}", defaulting to "USD"`);
+    // console.log(`Unknown currency symbol/name: "${symbol}", defaulting to "USD"`);
     return 'USD';  // Default to USD for unknown currencies
 }
 

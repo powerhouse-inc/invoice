@@ -1,26 +1,24 @@
-import { Action, EditorProps } from "document-model/document";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { EditorProps } from "document-model";
 import {
-  InvoiceState,
-  InvoiceAction,
-  InvoiceLocalState,
+  type InvoiceDocument,
   actions,
-  Status,
-} from "../../document-models/invoice";
-import { DateTimeLocalInput } from "./dateTimeLocalInput";
-import { LegalEntityForm } from "./legalEntity/legalEntity";
-import { LineItemsTable } from "./lineItems";
-import { loadUBLFile } from "./ingestUBL";
-import PDFUploader, { loadPDFFile } from "./ingestPDF";
-import RequestFinance from "./requestFinance";
-import InvoiceToGnosis from "./invoiceToGnosis";
+} from "../../document-models/invoice/index.js";
+import { DateTimeLocalInput } from "./dateTimeLocalInput.js";
+import { LegalEntityForm } from "./legalEntity/legalEntity.js";
+import { LineItemsTable } from "./lineItems.js";
+import { loadUBLFile } from "./ingestUBL.js";
+import PDFUploader, { loadPDFFile } from "./ingestPDF.js";
+import RequestFinance from "./requestFinance.js";
+import InvoiceToGnosis from "./invoiceToGnosis.js";
 import axios from "axios";
 import { toast, ToastContainer } from "@powerhousedao/design-system";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { InvoicePDF } from "./InvoicePDF";
+import { InvoicePDF } from "./InvoicePDF.js";
 import { createRoot } from "react-dom/client";
-import { downloadUBL, exportToUBL } from "./exportUBL";
-import { CurrencyForm } from "./components/currencyForm";
+import { downloadUBL, exportToUBL } from "./exportUBL.js";
+import { CurrencyForm } from "./components/currencyForm.js";
+
 
 // Helper function to format numbers with appropriate decimal places
 function formatNumber(value: number): string {
@@ -41,9 +39,9 @@ function formatNumber(value: number): string {
   return value.toFixed(decimalPlaces);
 }
 
-export default function Editor(
-  props: EditorProps<InvoiceState, InvoiceAction, InvoiceLocalState>
-) {
+export type IProps = EditorProps<InvoiceDocument>;
+
+export default function Editor(props: IProps) {
   // generate a random id
   // const id = documentModelUtils.hashKey();
 

@@ -4,21 +4,19 @@
  */
 
 import { generateMock } from "@powerhousedao/codegen";
-import { utils as documentModelUtils } from "document-model/document";
-
-import utils from "../../gen/utils";
+import utils from "../../gen/utils.js";
 import {
   z,
-  EditIssuerInput,
-  EditIssuerBankInput,
-  EditIssuerWalletInput,
-  EditPayerInput,
-  EditPayerBankInput,
-  EditPayerWalletInput,
-} from "../../gen/schema";
-import { reducer } from "../../gen/reducer";
-import * as creators from "../../gen/parties/creators";
-import { InvoiceDocument } from "../../gen/types";
+  type EditIssuerInput,
+  type EditIssuerBankInput,
+  type EditIssuerWalletInput,
+  type EditPayerInput,
+  type EditPayerBankInput,
+  type EditPayerWalletInput,
+} from "../../gen/schema/index.js";
+import { reducer } from "../../gen/reducer.js";
+import * as creators from "../../gen/parties/creators.js";
+import type { InvoiceDocument } from "../../gen/types.js";
 
 describe("Parties Operations", () => {
   let document: InvoiceDocument;

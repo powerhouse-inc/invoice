@@ -4,18 +4,16 @@
  */
 
 import { generateMock } from "@powerhousedao/codegen";
-import { utils as documentModelUtils } from "document-model/document";
-
-import utils from "../../gen/utils";
+import utils from "../../gen/utils.js";
 import {
   z,
-  AddLineItemInput,
-  EditLineItemInput,
-  DeleteLineItemInput,
-} from "../../gen/schema";
-import { reducer } from "../../gen/reducer";
-import * as creators from "../../gen/items/creators";
-import { InvoiceDocument } from "../../gen/types";
+  type AddLineItemInput,
+  type EditLineItemInput,
+  type DeleteLineItemInput,
+} from "../../gen/schema/index.js";
+import { reducer } from "../../gen/reducer.js";
+import * as creators from "../../gen/items/creators.js";
+import type { InvoiceDocument } from "../../gen/types.js";
 
 describe("Items Operations", () => {
   let document: InvoiceDocument;

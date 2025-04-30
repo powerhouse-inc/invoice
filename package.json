@@ -1,131 +1,105 @@
 {
-  "name": "@liberuum-org/invoice",
-  "version": "0.0.6",
+  "name": "updatedinvoice",
+  "description": "",
+  "version": "1.0.0",
   "license": "AGPL-3.0-only",
-  "types": "dist/index.d.ts",
-  "main": "dist/cjs/index.js",
-  "module": "dist/es/index.js",
   "type": "module",
   "files": [
     "/dist"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/es/index.js",
-      "require": "./dist/cjs/index.js"
-    },
-    "./editors": {
-      "types": "./dist/editors.d.ts",
-      "import": "./dist/es/editors.js",
-      "require": "./dist/cjs/editors.js"
+      "default": "./dist/index.js"
     },
     "./document-models": {
-      "types": "./dist/documentModels.d.ts",
-      "import": "./dist/es/documentModels.js",
-      "require": "./dist/cjs/documentModels.js"
+      "types": "./dist/document-models/index.d.ts",
+      "default": "./dist/document-models/index.js"
+    },
+    "./editors": {
+      "types": "./dist/editors/index.d.ts",
+      "default": "./dist/editors/index.js"
+    },
+    "./subgraphs": {
+      "types": "./dist/subgraphs/index.d.ts",
+      "default": "./dist/subgraphs/index.js"
+    },
+    "./processors": {
+      "types": "./dist/processors/index.d.ts",
+      "default": "./dist/processors/index.js"
     },
     "./manifest": {
       "types": "./dist/manifest.d.ts",
-      "require": "./dist/cjs/manifest.js",
-      "import": "./dist/es/manifest.js"
+      "default": "./dist/manifest.js"
     },
-    "./subgraphs": {
-      "types": "./dist/subgraphs.d.ts",
-      "import": "./dist/es/subgraphs.js",
-      "require": "./dist/cjs/subgraphs.js"
-    }
+    "./style.css": "./dist/style.css"
   },
   "scripts": {
-    "generate": "powerhouse generate",
-    "dev": "ph-cli dev --config-file ./powerhouse.config.json",
-    "format-generated": "npx prettier \"**/{gen,processors,editors}/**/*\" --write --ignore-path --no-error-on-unmatched-pattern >> /dev/null",
-    "postgenerate": "npm run format-generated",
-    "check-types": "tsc",
-    "postlint": "npm run check-types",
-    "lint": "eslint",
-    "build": "npm run generate && vite build",
-    "storybook": "npm run install:storybook && npm run generate && storybook dev -p 6006",
-    "build-storybook": "npm run generate && storybook build",
+    "lint": "eslint .",
+    "build:tsc": "tsc",
+    "build:tsc:watch": "tsc --watch",
+    "build:css": "npx @tailwindcss/cli -i ./style.css -o ./dist/style.css",
+    "build:css:watch": "npx @tailwindcss/cli -i ./style.css -o ./dist/style.css --watch",
+    "build": "npm run build:tsc && npm run build:css",
     "test": "vitest run",
-    "test:nogen": "vitest run",
     "test:watch": "vitest",
     "prepublishOnly": "npm run build",
+    "generate": "ph-cli generate",
     "connect": "ph-cli connect",
     "reactor": "ph-cli reactor",
-    "install:storybook": "tsx scripts/index.ts",
     "service": "ph-cli service",
     "service-startup": "bash ./node_modules/@powerhousedao/ph-cli/dist/scripts/service-startup.sh",
     "service-unstartup": "bash ./node_modules/@powerhousedao/ph-cli/dist/scripts/service-unstartup.sh"
   },
-  "peerDependencies": {
-    "document-model": "^2.18.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
-  "devDependencies": {
-    "@eslint/compat": "^1.2.5",
-    "@eslint/eslintrc": "^3.2.0",
-    "@eslint/js": "^9.18.0",
-    "@powerhousedao/analytics-engine-core": "^0.3.2",
-    "@powerhousedao/codegen": "^0.32.0",
-    "@powerhousedao/config": "^1.13.0",
-    "@powerhousedao/design-system": "^1.38.0",
-    "@powerhousedao/ph-cli": "^0.34.5",
-    "@powerhousedao/reactor-api": "^1.20.2",
-    "@powerhousedao/reactor-local": "^1.21.2",
-    "@powerhousedao/scalars": "^1.20.0",
-    "@types/eslint__js": "^8.42.3",
-    "@types/node": "^22.10.9",
-    "@types/react": "^18.3.18",
-    "@typescript-eslint/eslint-plugin": "^8.21.0",
-    "@typescript-eslint/parser": "^8.21.0",
-    "autoprefixer": "^10.4.20",
-    "document-model": "^2.18.0",
-    "eslint": "^9.18.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.3",
-    "eslint-plugin-react": "^7.37.4",
-    "globals": "^15.14.0",
-    "package-manager-detector": "^0.2.8",
-    "pm2": "^5.4.3",
-    "postcss": "^8.5.1",
-    "prettier": "^3.4.2",
-    "prettier-plugin-organize-imports": "^4.1.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tailwind-scrollbar": "^3.1.0",
-    "tailwindcss": "^3.4.17",
-    "tailwindcss-animate": "^1.0.7",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.21.0",
-    "vite": "^6.0.11",
-    "vite-plugin-dts": "^4.5.0",
-    "vite-plugin-generate-file": "^0.2.0",
-    "vitest": "^2.1.8",
-    "zod": "^3.24.1"
-  },
-  "description": "",
   "dependencies": {
     "@google-cloud/documentai": "^8.12.0",
-    "@powerhousedao/reactor-browser": "^1.11.1",
-    "@react-pdf/renderer": "^4.2.2",
-    "@safe-global/sdk-starter-kit": "^1.1.7",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
-    "@types/react-dom": "^19.0.4",
-    "axios": "^1.8.1",
+    "@powerhousedao/builder-tools": "staging",
+    "@powerhousedao/common": "staging",
+    "@powerhousedao/design-system": "staging",
+    "@react-pdf/renderer": "^4.3.0",
+    "@safe-global/sdk-starter-kit": "^2.0.2",
+    "axios": "^1.9.0",
     "cors": "^2.8.5",
-    "document-drive": "^1.22.3",
-    "express": "^4.21.2",
+    "document-model": "staging",
+    "dotenv": "^16.5.0",
+    "error": "^10.4.0",
+    "ethers": "^6.13.7",
     "google-auth-library": "^9.15.1",
+    "graphql": "^16.10.0",
     "graphql-tag": "^2.12.6",
-    "semver": "^7.7.1",
-    "tailwind-merge": "^3.0.2",
-    "uuid": "^11.1.0"
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "@powerhousedao/analytics-engine-core": "^0.4.0",
+    "@powerhousedao/codegen": "staging",
+    "@powerhousedao/ph-cli": "staging",
+    "@powerhousedao/reactor-api": "staging",
+    "@powerhousedao/reactor-browser": "staging",
+    "@powerhousedao/reactor-local": "staging",
+    "@powerhousedao/scalars": "staging",
+    "@tailwindcss/cli": "^4.1.4",
+    "@types/node": "^22.14.1",
+    "@types/react": "^18.3.20",
+    "@vitejs/plugin-react": "^4.4.1",
+    "bun-types": "^1.2.11",
+    "document-drive": "staging",
+    "eslint": "^9.25.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^16.0.0",
+    "package-manager-detector": "^0.2.8",
+    "pm2": "^5.4.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^4.1.4",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.30.1",
+    "vite": "^6.2.3",
+    "vitest": "^3.0.9"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }

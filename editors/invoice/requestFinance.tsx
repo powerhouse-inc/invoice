@@ -18,15 +18,15 @@ const RequestFinance: React.FC<RequestFinanceProps> = ({ docState }) => {
   const createDirectPayment = async (paymentData: any) => {
     try {
       // GraphQL mutation request
-      const response = await fetch("http://localhost:4001/invoice", {
+      const response = await fetch("http://localhost:4001/graphql/invoice", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           query: `
-            mutation CreateDirectPayment($paymentData: JSON!) {
-              createDirectPayment(paymentData: $paymentData) {
+            mutation Invoice_createRequestFinancePayment($paymentData: JSON!) {
+              Invoice_createRequestFinancePayment(paymentData: $paymentData) {
                 success
                 data
                 error
@@ -45,12 +45,12 @@ const RequestFinance: React.FC<RequestFinanceProps> = ({ docState }) => {
         throw new Error(result.errors[0].message);
       }
 
-      if (result.data?.createDirectPayment?.success) {
+      if (result.data?.Invoice_createRequestFinancePayment?.success) {
         setDirectPaymentStatus("Direct payment created successfully");
-        return result.data.createDirectPayment.data;
+        return result.data.Invoice_createRequestFinancePayment.data;
       } else {
         throw new Error(
-          result.data?.createDirectPayment?.error || "Unknown error",
+          result.data?.Invoice_createRequestFinancePayment?.error || "Unknown error",
         );
       }
     } catch (err) {

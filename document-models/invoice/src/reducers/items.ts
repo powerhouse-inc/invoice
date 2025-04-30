@@ -4,8 +4,8 @@
  * - delete the file and run the code generator again to have it reset
  */
 
-import { InvoiceLineItem, InvoiceState } from "document-models/invoice";
-import { InvoiceItemsOperations } from "../../gen/items/operations";
+import type { InvoiceItemsOperations } from "../../gen/items/operations.js";
+import type { InvoiceLineItem, InvoiceState } from "../../gen/types.js";
 
 export const reducer: InvoiceItemsOperations = {
   addLineItemOperation(state, action, dispatch) {
@@ -56,6 +56,7 @@ export const reducer: InvoiceItemsOperations = {
     }
   },
 };
+
 
 function updateTotals(state: InvoiceState) {
   state.totalPriceTaxExcl = state.lineItems.reduce((total, lineItem) => {

@@ -1,24 +1,25 @@
 {
-    "name": "Contributor Billing",
-    "description": "Contributor billing package allows contributors of open organisations to get paid in cash and crypto valuta's anonymously for their work.",
-    "category": "Workforce",
+    "name": "your-model-name",
+    "description": "A brief description of your PH package.",
+    "category": "your-category",
     "publisher": {
-      "name": "Powerhouse",
-      "url": "https://www.powerhouse.inc/"
+        "name": "your-publisher-name",
+        "url": "your-publisher-url"
     },
     "documentModels": [
-      {
-        "id": "Invoice",
-        "name": "Invoice"
-      }
+        {
+            "id": "your-model-id",
+            "name": "your-model-name"
+        }
     ],
     "editors": [
-      {
-        "id": "powerhouse/invoice-editor",
-        "name": "Invoice",
-        "documentTypes": ["Invoice"]
-      }
+        {
+            "id": "your-editor-id",
+            "name": "your-editor-name",
+            "documentTypes": ["your-model-id"]
+        }
     ],
-    "apps": []
-  }
-  
+    "apps": [],
+    "subgraphs": [],
+    "importScripts": []
+}

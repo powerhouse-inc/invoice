@@ -1,6 +1,6 @@
 import { BaseDocumentDriveServer } from "document-drive";
-import { createReactorAndCreateLocalDrive } from "../utils/drive-actions";
-import { Invoice, actions as invoiceActions, InvoiceDocument } from "../../document-models/invoice";
+import { createReactorAndCreateLocalDrive } from "../utils/drive-actions.js";
+import { actions as invoiceActions, InvoiceDocument } from "../../document-models/invoice/index.js";
 
 export const updateInvoiceStatus = async (
   invoiceNumber: string,

@@ -1,1 +1,1 @@
-export * as InvoiceSubgraph from "./invoice";
+export * as InvoiceSubgraph from "./invoice/index.js";

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { InvoiceAction, actions } from "../../document-models/invoice";
+import { InvoiceAction, actions } from "../../document-models/invoice/index.js";
 import { toast } from "@powerhousedao/design-system";
-import { uploadPdfChunked } from "./uploadPdfChunked";
-import { getCountryCodeFromName } from "./utils/utils";
+import { uploadPdfChunked } from "./uploadPdfChunked.js";
+import { getCountryCodeFromName } from "./utils/utils.js";
 
 export async function loadPDFFile({
   file,
@@ -47,7 +47,6 @@ export default function PDFUploader({
     setIsLoading(true);
     setUploadProgress(0);
 
-    console.log("File selected for upload:", file.name);
 
     try {
       const reader = new FileReader();
@@ -57,22 +56,16 @@ export default function PDFUploader({
           throw new Error("Failed to read file");
         }
 
-        console.log("Base64 data prepared for upload");
-
         try {
           const result = await uploadPdfChunked(
             base64Data,
-            "http://localhost:4001/invoice",
+            "http://localhost:4001/graphql/invoice",
             50 * 1024,
             (progress) => setUploadProgress(progress),
           );
 
           if (result.success) {
             const invoiceData = result.data.invoiceData;
-            console.log("Extracted response:", result);
-
-            console.log("Extracted data:", invoiceData);
-            console.log("Extracted date issued:", invoiceData.dateIssued);
 
             // Dispatch the parsed invoice data
             dispatch(

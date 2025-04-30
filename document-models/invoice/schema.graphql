@@ -10,6 +10,10 @@ scalar OLabel
 scalar Currency
 scalar PHID
 scalar OID
+scalar Amount_Fiat
+scalar Amount_Currency
+scalar Amount_Crypto
+scalar Amount
 type InvoiceState {
   invoiceNo: String!
   dateIssued: String!
@@ -148,7 +152,7 @@ input EditInvoiceInput {
 }
 
 input EditStatusInput {
-    status: Status!
+  status: Status!
 }
 
 input AddRefInput {
@@ -162,7 +166,7 @@ input EditRefInput {
 }
 
 input DeleteRefInput {
-    id: OID!
+  id: OID!
 }
 
 # parties
@@ -181,7 +185,7 @@ input EditIssuerInput {
 }
 
 input EditIssuerBankInput {
-    name: String
+  name: String
     streetAddress: String
     extendedAddress: String
     city: String
@@ -265,10 +269,10 @@ input EditPayerBankInput {
 }
 
 input EditPayerWalletInput {
-  rpc: String
-  chainName: String
-  chainId: String
-  address: String
+    rpc: String
+    chainName: String
+    chainId: String
+    address: String
 }
 
 # items

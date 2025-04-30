@@ -4,8 +4,7 @@
  * - delete the file and run the code generator again to have it reset
  */
 
-import { LegalEntityId, Maybe } from "document-models/invoice/gen";
-import { InvoicePartiesOperations } from "../../gen/parties/operations";
+import type { InvoicePartiesOperations } from "../../gen/parties/operations.js";
 
 function getStateValue<T>(
   input: T | undefined,

@@ -13,34 +13,6 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
   const [invoiceStatusResponse, setInvoiceStatusResponse] = useState<any>(null);
   const [safeTxHash, setsafeTxHash] = useState<string | null>(null);
 
-  // useEffect(() => {
-  //   if (safeTxHash) {
-  //     const eventSource = new EventSource(
-  //       `http://localhost:5001/api/transaction-status/${safeTxHash}/${docState.invoiceNo}`,
-  //     );
-
-  //     eventSource.onmessage = (event) => {
-  //       const data = JSON.parse(event.data);
-  //       console.log("SSE data: ", data);
-  //       if (data.status === "completed") {
-  //         console.log("Transaction completed and status updated");
-  //         toast("Invoice Paid", {
-  //           type: "success",
-  //         });
-  //         eventSource.close(); // Close the connection immediately
-  //       }
-  //     };
-
-  //     eventSource.onerror = () => {
-  //       eventSource.close();
-  //     };
-
-  //     return () => {
-  //       eventSource.close();
-  //     };
-  //   }
-  // }, [safeTxHash]);
-
   const TOKEN_ADDRESSES = {
     BASE: {
       USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
@@ -97,15 +69,15 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:4001/invoice", {
+      const response = await fetch("http://localhost:4001/graphql/invoice", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           query: `
-            mutation ProcessGnosisPayment($payerWallet: JSON!, $paymentDetails: JSON!, $invoiceNo: String!) {
-              processGnosisPayment(payerWallet: $payerWallet, paymentDetails: $paymentDetails, invoiceNo: $invoiceNo) {
+            mutation Invoice_processGnosisPayment($payerWallet: JSON!, $paymentDetails: JSON!, $invoiceNo: String!) {
+              Invoice_processGnosisPayment(payerWallet: $payerWallet, paymentDetails: $paymentDetails, invoiceNo: $invoiceNo) {
                 success
                 data
                 error
@@ -121,7 +93,7 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
       });
 
       const result = await response.json();
-      const data = result.data.processGnosisPayment;
+      const data = result.data.Invoice_processGnosisPayment;
 
       if (data.success) {
         console.log("Transfer result:", data);

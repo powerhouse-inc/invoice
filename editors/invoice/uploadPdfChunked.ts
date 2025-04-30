@@ -7,7 +7,7 @@
  */
 export async function uploadPdfChunked(
   pdfData: string,
-  endpoint: string = "http://localhost:4001/invoice",
+  endpoint: string = "http://localhost:4001/graphql/invoice",
   chunkSize: number = 500 * 1024, // 500KB chunks
   onProgress?: (progress: number) => void,
 ): Promise<any> {
@@ -35,14 +35,14 @@ export async function uploadPdfChunked(
       },
       body: JSON.stringify({
         query: `
-          mutation UploadInvoicePdfChunk(
+          mutation Invoice_uploadInvoicePdfChunk(
             $chunk: String!
             $chunkIndex: Int!
             $totalChunks: Int!
             $fileName: String!
             $sessionId: String!
           ) {
-            uploadInvoicePdfChunk(
+            Invoice_uploadInvoicePdfChunk(
               chunk: $chunk
               chunkIndex: $chunkIndex
               totalChunks: $totalChunks
@@ -74,15 +74,15 @@ export async function uploadPdfChunked(
     }
 
     // If this is the last chunk and it was successful, return the final result
-    if (i === totalChunks - 1 && result.data?.uploadInvoicePdfChunk?.success) {
-      return result.data.uploadInvoicePdfChunk;
+    if (i === totalChunks - 1 && result.data?.Invoice_uploadInvoicePdfChunk?.success) {
+      return result.data.Invoice_uploadInvoicePdfChunk;
     }
   }
 
   // If we get here, something went wrong
   const lastResult = results[results.length - 1];
   return (
-    lastResult?.data?.uploadInvoicePdfChunk || {
+    lastResult?.data?.Invoice_uploadInvoicePdfChunk || {
       success: false,
       error: "Failed to upload all chunks",
     }

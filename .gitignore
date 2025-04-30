@@ -1,13 +1,10 @@
-/dist
-/coverage
-/node_modules
-/storybook-static
-
-**/gen
+dist
+coverage
+node_modules
 
 .env.local
-.env
-keyFile.json
 
 .ph
 projects-import.js
+.env
+keyFile.json

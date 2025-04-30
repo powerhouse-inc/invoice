@@ -3,17 +3,20 @@
  * - change it by adding new tests or modifying the existing ones
  */
 
-import utils, { initialGlobalState, initialLocalState } from "../../gen/utils";
+import utils, {
+  initialGlobalState,
+  initialLocalState,
+} from "../../gen/utils.js";
 
-describe("Invoice Model Document Model", () => {
-  it("should create a new Invoice Model document", () => {
+describe("Invoice Document Model", () => {
+  it("should create a new Invoice document", () => {
     const document = utils.createDocument();
 
     expect(document).toBeDefined();
-    expect(document.documentType).toBe("Invoice");
+    expect(document.documentType).toBe("powerhouse/invoice");
   });
 
-  it("should create a new Invoice Model document with a valid initial state", () => {
+  it("should create a new Invoice document with a valid initial state", () => {
     const document = utils.createDocument();
     expect(document.state.global).toStrictEqual(initialGlobalState);
     expect(document.state.local).toStrictEqual(initialLocalState);

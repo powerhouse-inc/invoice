@@ -1,11 +1,10 @@
 {
   "documentModelsDir": "./document-models",
   "editorsDir": "./editors",
-  "dbPath": "postgres://postgres:postgres@localhost:5444/postgres",
-  "reactor": {
-    "port": 8441
-  },
   "studio": {
-    "port": 8442
+    "port": 3000
+  },
+  "reactor": {
+    "port": 4001
   }
 }

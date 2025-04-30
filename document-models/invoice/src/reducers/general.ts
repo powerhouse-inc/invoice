@@ -4,7 +4,7 @@
  * - delete the file and run the code generator again to have it reset
  */
 
-import { InvoiceGeneralOperations } from "../../gen/general/operations";
+import type { InvoiceGeneralOperations } from "../../gen/general/operations.js";
 
 export const reducer: InvoiceGeneralOperations = {
   editInvoiceOperation(state, action, dispatch) {
