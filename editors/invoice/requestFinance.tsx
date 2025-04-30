@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import axios, { AxiosError } from "axios"; // or use fetch API directly
-
 interface RequestFinanceProps {
   docState: any; // Replace 'any' with the appropriate type if available
 }

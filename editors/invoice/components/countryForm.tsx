@@ -1,14 +1,16 @@
 import { Form, CountryCodeField } from "@powerhousedao/design-system/scalars";
-import { getCountryCodeFromName } from "../utils/utils";
+import { getCountryCodeFromName } from "../utils/utils.js";
 
 interface CountryFormProps {
   country: string;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
 }
 
 export const CountryForm = ({
   country,
   handleInputChange,
+  handleBlur,
 }: CountryFormProps) => {
   // Convert country name to country code if needed
   const countryCode = getCountryCodeFromName(country);
@@ -30,6 +32,15 @@ export const CountryForm = ({
           } as React.ChangeEvent<HTMLInputElement>;
 
           handleInputChange(syntheticEvent);
+          
+          if (handleBlur) {
+            const blurEvent = {
+              target: {
+                value: value,
+              },
+            } as React.FocusEvent<HTMLInputElement>;
+            handleBlur(blurEvent);
+          }
         }}
         // required
         // defaultValue={countryCode}
