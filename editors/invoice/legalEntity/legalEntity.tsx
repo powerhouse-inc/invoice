@@ -23,6 +23,7 @@ import { twMerge } from "tailwind-merge";
 import { LegalEntityWalletSection } from "./walletSection.js";
 import { LegalEntityBankSection } from "./bankSection.js";
 import { CountryForm } from "../components/countryForm.js";
+import { ValidationResult } from "../validation/validationManager.js";
 
 export type EditLegalEntityWalletInput =
   | EditIssuerWalletInput
@@ -232,6 +233,9 @@ type LegalEntityFormProps = {
   readonly basicInfoDisabled?: boolean;
   readonly bankDisabled?: boolean;
   readonly walletDisabled?: boolean;
+  readonly currency: string;
+  readonly status: string;
+  readonly walletvalidation?: ValidationResult | null;
 };
 
 export function LegalEntityForm({
@@ -242,6 +246,9 @@ export function LegalEntityForm({
   basicInfoDisabled,
   bankDisabled,
   walletDisabled,
+  currency,
+  status,
+  walletvalidation,
 }: LegalEntityFormProps) {
   const basicInfo = EditIssuerInputSchema().parse({
     ...legalEntity,
@@ -328,6 +335,9 @@ export function LegalEntityForm({
         <LegalEntityWalletSection
           onChange={onChangeWallet}
           value={walletInfo}
+          currency={currency}
+          status={status}
+          walletvalidation={walletvalidation}
         />
       )}
       {!bankDisabled && !!onChangeBank && (

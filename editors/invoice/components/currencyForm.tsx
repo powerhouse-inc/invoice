@@ -26,6 +26,9 @@ export const CurrencyForm = ({
       resetOnSuccessfulSubmit
     >
       <CurrencyCodeField
+        style={{
+          width: "100px",
+        }}
         name="currency"
         placeholder="Currency"
         currencies={currencyList}

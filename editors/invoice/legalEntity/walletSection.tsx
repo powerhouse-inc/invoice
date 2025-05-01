@@ -2,6 +2,8 @@ import { ComponentProps, useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { EditLegalEntityWalletInput } from "./legalEntity.js";
 import { TextInput, FieldLabel } from "./common.js";
+import { InputField } from "../components/inputField.js";
+import { validateField, ValidationContext, ValidationResult } from "../validation/validationManager.js";
 
 export type LegalEntityWalletSectionProps = Omit<
   ComponentProps<"div">,
@@ -10,12 +12,15 @@ export type LegalEntityWalletSectionProps = Omit<
   readonly value: EditLegalEntityWalletInput;
   readonly onChange: (value: EditLegalEntityWalletInput) => void;
   readonly disabled?: boolean;
+  readonly currency: string;
+  readonly status: string;
+  readonly walletvalidation?: ValidationResult | null;
 };
 
 export const LegalEntityWalletSection = (
-  props: LegalEntityWalletSectionProps,
+  props: LegalEntityWalletSectionProps
 ) => {
-  const { value, onChange, disabled, ...divProps } = props;
+  const { value, onChange, disabled, currency, status, walletvalidation, ...divProps } = props;
   const [localState, setLocalState] = useState(value);
 
   useEffect(() => {
@@ -24,7 +29,7 @@ export const LegalEntityWalletSection = (
 
   const handleInputChange = (
     field: keyof EditLegalEntityWalletInput,
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLTextAreaElement>,
   ) => {
     setLocalState({
       ...localState,
@@ -34,10 +39,11 @@ export const LegalEntityWalletSection = (
 
   const handleBlur = (
     field: keyof EditLegalEntityWalletInput,
-    event: React.FocusEvent<HTMLInputElement>,
+    event: React.FocusEvent<HTMLTextAreaElement>,
   ) => {
+    const newValue = event.target.value;
     onChange({
-      [field]: event.target.value,
+      [field]: newValue,
     } as Partial<EditLegalEntityWalletInput>);
   };
 
@@ -62,12 +68,12 @@ export const LegalEntityWalletSection = (
 
   const renderPresets = () => {
     const activePreset = CHAIN_PRESETS.find(
-      (p) => p.chainName == localState.chainName,
+      (p) => p.chainName == localState.chainName
     );
 
     const handleSelectPreset = (e: { target: { value: string } }) => {
       const preset = CHAIN_PRESETS.find(
-        (p) => p.chainName == e.target.value && p.chainId !== "0",
+        (p) => p.chainName == e.target.value && p.chainId !== "0"
       );
       if (preset) {
         setLocalState({
@@ -103,7 +109,7 @@ export const LegalEntityWalletSection = (
               <option key={preset.chainId} value={preset.chainName}>
                 {preset.chainName}
               </option>
-            ),
+            )
           )}
         </select>
         {localState.chainName !== "Base" && (
@@ -120,7 +126,7 @@ export const LegalEntityWalletSection = (
       {...divProps}
       className={twMerge(
         "rounded-lg border border-gray-200 bg-white p-6",
-        props.className,
+        props.className
       )}
     >
       <div className="grid grid-cols-2 gap-4 items-center">
@@ -133,13 +139,14 @@ export const LegalEntityWalletSection = (
 
       <div className="space-y-6">
         <div className="space-y-4">
-          <FieldLabel>Wallet Address</FieldLabel>
-          <TextInput
-            disabled={disabled}
-            onChange={(e) => handleInputChange("address", e)}
-            onBlur={(e) => handleBlur("address", e)}
-            placeholder="0x..."
+          <InputField
+            input={localState.address ?? ""}
             value={localState.address ?? ""}
+            label="Wallet Address"
+            placeholder="0x..."
+            onBlur={(e) => handleBlur("address", e)}
+            handleInputChange={(e) => handleInputChange("address", e)}
+            validation={walletvalidation}
           />
         </div>
       </div>

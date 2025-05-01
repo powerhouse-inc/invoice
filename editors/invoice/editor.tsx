@@ -18,7 +18,8 @@ import { InvoicePDF } from "./InvoicePDF.js";
 import { createRoot } from "react-dom/client";
 import { downloadUBL, exportToUBL } from "./exportUBL.js";
 import { CurrencyForm } from "./components/currencyForm.js";
-
+import { InputField } from "./components/inputField.js";
+import { validateField, ValidationContext, ValidationResult } from "./validation/validationManager.js";
 
 // Helper function to format numbers with appropriate decimal places
 function formatNumber(value: number): string {
@@ -56,6 +57,11 @@ export default function Editor(props: IProps) {
   const exportDropdownRef = useRef<HTMLDivElement>(null);
   const [isPdfLoading, setIsPdfLoading] = useState(false);
 
+  // Validation state
+  const [invoiceValidation, setInvoiceValidation] = useState<ValidationResult | null>(null);
+  const [walletValidation, setWalletValidation] = useState<ValidationResult | null>(null);
+
+  
   // Add this useEffect to watch for currency changes
   useEffect(() => {
     setFiatMode(state.currency !== "USDS");
@@ -106,9 +112,9 @@ export default function Editor(props: IProps) {
       case "ACCEPTED":
         return `${baseStyle} bg-green-100 text-green-800`;
       case "REJECTED":
-        return `${baseStyle} bg-red-100 text-red-800`;
+        return `${baseStyle} bg-red-100 text-red-800 border border-red-300`;
       case "PAID":
-        return `${baseStyle} bg-purple-100 text-purple-800`;
+        return `${baseStyle} bg-purple-100 text-purple-800 border border-purple-300`;
       default:
         return baseStyle;
     }
@@ -272,6 +278,46 @@ export default function Editor(props: IProps) {
     });
   }
 
+  // Add validation check when status changes
+  const handleStatusChange = (newStatus: Status) => {
+    if (newStatus === "ISSUED") {
+      const context: ValidationContext = {
+        currency: state.currency,
+        currentStatus: state.status,
+        targetStatus: newStatus
+      };
+      
+      // Collect all validation errors
+      const validationErrors: ValidationResult[] = [];
+      
+      // Validate invoice number
+      const invoiceValidation = validateField('invoiceNo', state.invoiceNo, context);
+      setInvoiceValidation(invoiceValidation);
+      if (invoiceValidation && !invoiceValidation.isValid) {
+        validationErrors.push(invoiceValidation);
+      }
+
+      // Validate wallet address if currency is USDS
+      if (state.currency === 'USDS') {
+        const walletValidation = validateField('address', state.issuer.paymentRouting?.wallet?.address ?? '', context);
+        setWalletValidation(walletValidation);
+        if (walletValidation && !walletValidation.isValid) {
+          validationErrors.push(walletValidation);
+        }
+      }
+
+      // If there are any validation errors, show them and return
+      if (validationErrors.length > 0) {
+        validationErrors.forEach(error => {
+          toast(error.message, { type: error.severity === 'error' ? 'error' : 'warning' });
+        });
+        return;
+      }
+    }
+    
+    dispatch(actions.editStatus({ status: newStatus }));
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <ToastContainer
@@ -291,24 +337,25 @@ export default function Editor(props: IProps) {
         {/* Left side with Invoice title, input, and upload */}
         <div className="flex items-center gap-4 flex-nowrap">
           <h1 className="text-3xl font-bold whitespace-nowrap">Invoice</h1>
-          <input
-            className="min-w-[12rem] max-w-xs rounded-lg border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500"
-            onChange={(e) => setInvoiceNoInput(e.target.value)}
-            onBlur={() => {
-              if (invoiceNoInput !== state.invoiceNo) {
-                dispatch(actions.editInvoice({ invoiceNo: invoiceNoInput }));
+          <InputField
+            placeholder={"Add invoice number"}
+            value={invoiceNoInput}
+            handleInputChange={(e) => setInvoiceNoInput(e.target.value)}
+            onBlur={(e) => {
+              const newValue = e.target.value;
+              if (newValue !== state.invoiceNo) {
+                dispatch(actions.editInvoice({ invoiceNo: newValue }));
               }
             }}
-            placeholder={'Add invoice number'}
-            type="text"
-            value={invoiceNoInput}
+            input={invoiceNoInput}
+            validation={invoiceValidation}
           />
 
           {/* Upload Dropdown Button */}
           <div className="relative" ref={uploadDropdownRef}>
             <button
               onClick={() => setUploadDropdownOpen(!uploadDropdownOpen)}
-              className="inline-flex cursor-pointer items-center rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 whitespace-nowrap"
+              className="inline-flex items-center h-10 px-4 rounded bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors whitespace-nowrap cursor-pointer"
               disabled={isPdfLoading}
             >
               {isPdfLoading ? "Processing..." : "Upload File"}
@@ -356,8 +403,7 @@ export default function Editor(props: IProps) {
           <div className="relative" ref={exportDropdownRef}>
             <button
               onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
-              style={{ backgroundColor: "#000" }}
-              className="inline-flex cursor-pointer items-center rounded px-4 py-2 text-white hover:bg-gray-800 whitespace-nowrap"
+              className="inline-flex items-center h-10 px-4 rounded bg-black hover:bg-gray-800 text-white font-medium transition-colors whitespace-nowrap cursor-pointer"
             >
               Export File
               <svg
@@ -416,9 +462,7 @@ export default function Editor(props: IProps) {
         {/* Status on the right */}
         <select
           className={getStatusStyle(state.status)}
-          onChange={(e) =>
-            dispatch(actions.editStatus({ status: e.target.value as Status }))
-          }
+          onChange={(e) => handleStatusChange(e.target.value as Status)}
           value={state.status}
         >
           {STATUS_OPTIONS.map((status) => (
@@ -469,6 +513,9 @@ export default function Editor(props: IProps) {
             }
             bankDisabled={!fiatMode}
             walletDisabled={fiatMode}
+            currency={state.currency}
+            status={state.status}
+            walletvalidation={walletValidation}
           />
         </div>
 
@@ -490,6 +537,8 @@ export default function Editor(props: IProps) {
             bankDisabled
             legalEntity={state.payer}
             onChangeInfo={(input) => dispatch(actions.editPayer(input))}
+            currency={state.currency}
+            status={state.status}
           />
         </div>
       </div>
