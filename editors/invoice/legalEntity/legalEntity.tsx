@@ -24,6 +24,7 @@ import { LegalEntityWalletSection } from "./walletSection.js";
 import { LegalEntityBankSection } from "./bankSection.js";
 import { CountryForm } from "../components/countryForm.js";
 import { ValidationResult } from "../validation/validationManager.js";
+import { InputField } from "../components/inputField.js";
 
 export type EditLegalEntityWalletInput =
   | EditIssuerWalletInput
@@ -94,11 +95,33 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
       onChange(update);
     };
 
+  const handleTextareaChange =
+    (field: keyof EditLegalEntityInput) =>
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setLocalState({
+        ...localState,
+        id: field === "id" ? e.target.value : localState.id,
+        [field]: e.target.value,
+      });
+    };
+
+  const handleTextareaBlur =
+    (field: keyof EditLegalEntityInput) =>
+    (e: React.FocusEvent<HTMLTextAreaElement>) => {
+      const newValue = e.target.value;
+      if (newValue !== localState[field]) {
+        const update = {
+          [field]: newValue,
+        } as Partial<EditLegalEntityInput>;
+        onChange(update);
+      }
+    };
+
   return (
     <div
       {...divProps}
       className={twMerge(
-        "rounded-lg border border-gray-200 bg-white p-6",
+        "rounded-lg border border-gray-200 bg-white p-6 mb-2",
         props.className
       )}
     >
@@ -107,82 +130,85 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
       </h3>
       <div className="space-y-6">
         <div className="space-y-2">
-          <FieldLabel>Name</FieldLabel>
-          <TextInput
-            disabled={disabled}
-            onChange={handleInputChange("name")}
-            onBlur={handleBlur("name")}
-            placeholder="Legal Entity Name"
+          <InputField
+            input={localState.name ?? ""}
             value={localState.name ?? ""}
+            label="Name"
+            placeholder="Legal Entity Name"
+            onBlur={handleTextareaBlur("name")}
+            handleInputChange={handleTextareaChange("name")}
+            className="h-10 w-full text-md mb-2"
           />
         </div>
 
         <div className="space-y-2">
-          <FieldLabel>Tax ID / Corp. Reg</FieldLabel>
-          <TextInput
-            disabled={disabled}
-            onChange={(e) => setTaxId(e.target.value)}
-            onBlur={(e) =>
-              onChange({
-                id: taxId,
-              })
-            }
-            placeholder="332..."
+          <InputField
+            input={taxId}
             value={taxId}
+            label="Tax ID / Corp. Reg"
+            placeholder="332..."
+            onBlur={handleTextareaBlur("id")}
+            handleInputChange={handleTextareaChange("id")}
+            className="h-10 w-full text-md mb-2"
           />
         </div>
 
         <div className="space-y-4">
-          <FieldLabel>Address</FieldLabel>
           <div className="space-y-4">
-            <TextInput
-              disabled={disabled}
-              onChange={handleInputChange("streetAddress")}
-              onBlur={handleBlur("streetAddress")}
-              placeholder="Street Address"
+            <InputField
+              input={localState.streetAddress ?? ""}
               value={localState.streetAddress ?? ""}
+              label="Address"
+              placeholder="Street Address"
+              onBlur={handleTextareaBlur("streetAddress")}
+              handleInputChange={handleTextareaChange("streetAddress")}
+              className="h-10 w-full text-md mb-2"
             />
-            <TextInput
-              disabled={disabled}
-              onChange={handleInputChange("extendedAddress")}
-              onBlur={handleBlur("extendedAddress")}
-              placeholder="Extended Address"
+            <InputField
+              input={localState.extendedAddress ?? ""}
               value={localState.extendedAddress ?? ""}
+              placeholder="Extended Address"
+              onBlur={handleTextareaBlur("extendedAddress")}
+              handleInputChange={handleTextareaChange("extendedAddress")}
+              className="h-10 w-full text-md mb-2"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <FieldLabel>City</FieldLabel>
-              <TextInput
-                disabled={disabled}
-                onChange={handleInputChange("city")}
-                onBlur={handleBlur("city")}
-                placeholder="City"
+              <InputField
+                input={localState.city ?? ""}
                 value={localState.city ?? ""}
+                label="City"
+                placeholder="City"
+                onBlur={handleTextareaBlur("city")}
+                handleInputChange={handleTextareaChange("city")}
+                className="h-10 w-full text-md mb-2"
               />
             </div>
             <div className="space-y-2">
-              <FieldLabel>State/Province</FieldLabel>
-              <TextInput
-                disabled={disabled}
-                onChange={handleInputChange("stateProvince")}
-                onBlur={handleBlur("stateProvince")}
-                placeholder="State/Province"
+              <InputField
+                input={localState.stateProvince ?? ""}
                 value={localState.stateProvince ?? ""}
+                label="State/Province"
+                placeholder="State/Province"
+                onBlur={handleTextareaBlur("stateProvince")}
+                handleInputChange={handleTextareaChange("stateProvince")}
+                className="h-10 w-full text-md mb-2"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <FieldLabel>Postal Code</FieldLabel>
-              <TextInput
-                disabled={disabled}
-                onChange={handleInputChange("postalCode")}
-                onBlur={handleBlur("postalCode")}
-                placeholder="Postal Code"
+              <InputField
+                input={localState.postalCode ?? ""}
                 value={localState.postalCode ?? ""}
+                label="Postal Code"
+                placeholder="Postal Code"
+                onBlur={handleTextareaBlur("postalCode")}
+                handleInputChange={handleTextareaChange("postalCode")}
+                className="h-10 w-full text-md mb-2"
               />
             </div>
             <div className="space-y-2">
@@ -191,6 +217,7 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
                 country={localState.country ?? ""}
                 handleInputChange={handleInputChange("country")}
                 handleBlur={handleBlur("country")}
+                className="h-10 w-full text-md mb-2"
               />
             </div>
           </div>
@@ -198,25 +225,25 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <FieldLabel>Email</FieldLabel>
-            <TextInput
-              disabled={disabled}
-              onChange={handleInputChange("email")}
-              onBlur={handleBlur("email")}
-              placeholder="Email"
-              type="email"
+            <InputField
+              input={localState.email ?? ""}
               value={localState.email ?? ""}
+              label="Email"
+              placeholder="Email"
+              onBlur={handleTextareaBlur("email")}
+              handleInputChange={handleTextareaChange("email")}
+              className="h-10 w-full text-md mb-2"
             />
           </div>
           <div className="space-y-2">
-            <FieldLabel>Telephone</FieldLabel>
-            <TextInput
-              disabled={disabled}
-              onChange={handleInputChange("tel")}
-              onBlur={handleBlur("tel")}
-              placeholder="Telephone"
-              type="tel"
+            <InputField
+              input={localState.tel ?? ""}
               value={localState.tel ?? ""}
+              label="Telephone"
+              placeholder="Telephone"
+              onBlur={handleTextareaBlur("tel")}
+              handleInputChange={handleTextareaChange("tel")}
+              className="h-10 w-full text-md mb-2"
             />
           </div>
         </div>
