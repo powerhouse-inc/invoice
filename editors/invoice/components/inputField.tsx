@@ -1,6 +1,6 @@
 import { Form, StringField } from "@powerhousedao/design-system/scalars";
 import { ValidationResult } from "../validation/validationManager.js";
-
+import { twMerge } from "tailwind-merge";
 interface InputFieldProps {
   input: string;
   value: string;
@@ -9,6 +9,7 @@ interface InputFieldProps {
   onBlur: (e: React.FocusEvent<HTMLTextAreaElement>) => void;
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   validation?: ValidationResult | null;
+  className?: string;
 }
 
 export const InputField = (props: InputFieldProps) => {
@@ -20,6 +21,7 @@ export const InputField = (props: InputFieldProps) => {
     onBlur,
     handleInputChange,
     validation,
+    className,
   } = props;
 
   const warnings =
@@ -46,6 +48,7 @@ export const InputField = (props: InputFieldProps) => {
           handleInputChange(e);
         }}
         warnings={warnings}
+        className={twMerge(className)}
       />
     </Form>
   );
