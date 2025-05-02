@@ -5,7 +5,6 @@ import {
   Status,
   actions,
 } from "../../document-models/invoice/index.js";
-import { DateTimeLocalInput } from "./dateTimeLocalInput.js";
 import { LegalEntityForm } from "./legalEntity/legalEntity.js";
 import { LineItemsTable } from "./lineItems.js";
 import { loadUBLFile } from "./ingestUBL.js";
@@ -19,7 +18,12 @@ import { createRoot } from "react-dom/client";
 import { downloadUBL, exportToUBL } from "./exportUBL.js";
 import { CurrencyForm } from "./components/currencyForm.js";
 import { InputField } from "./components/inputField.js";
-import { validateField, ValidationContext, ValidationResult } from "./validation/validationManager.js";
+import {
+  validateField,
+  ValidationContext,
+  ValidationResult,
+} from "./validation/validationManager.js";
+import { DatePicker } from "./components/datePicker.js";
 
 // Helper function to format numbers with appropriate decimal places
 function formatNumber(value: number): string {
@@ -58,10 +62,11 @@ export default function Editor(props: IProps) {
   const [isPdfLoading, setIsPdfLoading] = useState(false);
 
   // Validation state
-  const [invoiceValidation, setInvoiceValidation] = useState<ValidationResult | null>(null);
-  const [walletValidation, setWalletValidation] = useState<ValidationResult | null>(null);
+  const [invoiceValidation, setInvoiceValidation] =
+    useState<ValidationResult | null>(null);
+  const [walletValidation, setWalletValidation] =
+    useState<ValidationResult | null>(null);
 
-  
   // Add this useEffect to watch for currency changes
   useEffect(() => {
     setFiatMode(state.currency !== "USDS");
@@ -284,22 +289,30 @@ export default function Editor(props: IProps) {
       const context: ValidationContext = {
         currency: state.currency,
         currentStatus: state.status,
-        targetStatus: newStatus
+        targetStatus: newStatus,
       };
-      
+
       // Collect all validation errors
       const validationErrors: ValidationResult[] = [];
-      
+
       // Validate invoice number
-      const invoiceValidation = validateField('invoiceNo', state.invoiceNo, context);
+      const invoiceValidation = validateField(
+        "invoiceNo",
+        state.invoiceNo,
+        context
+      );
       setInvoiceValidation(invoiceValidation);
       if (invoiceValidation && !invoiceValidation.isValid) {
         validationErrors.push(invoiceValidation);
       }
 
       // Validate wallet address if currency is USDS
-      if (state.currency === 'USDS') {
-        const walletValidation = validateField('address', state.issuer.paymentRouting?.wallet?.address ?? '', context);
+      if (state.currency === "USDS") {
+        const walletValidation = validateField(
+          "address",
+          state.issuer.paymentRouting?.wallet?.address ?? "",
+          context
+        );
         setWalletValidation(walletValidation);
         if (walletValidation && !walletValidation.isValid) {
           validationErrors.push(walletValidation);
@@ -308,13 +321,15 @@ export default function Editor(props: IProps) {
 
       // If there are any validation errors, show them and return
       if (validationErrors.length > 0) {
-        validationErrors.forEach(error => {
-          toast(error.message, { type: error.severity === 'error' ? 'error' : 'warning' });
+        validationErrors.forEach((error) => {
+          toast(error.message, {
+            type: error.severity === "error" ? "error" : "warning",
+          });
         });
         return;
       }
     }
-    
+
     dispatch(actions.editStatus({ status: newStatus }));
   };
 
@@ -479,27 +494,38 @@ export default function Editor(props: IProps) {
         <div className="border border-gray-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Issuer</h3>
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="mb-2">
               <label className="block mb-1 text-sm">Issue Date:</label>
-              <DateTimeLocalInput
+              <DatePicker
+                name="issueDate"
                 className="w-full"
-                inputType="date"
-                onChange={(e) =>
-                  dispatch(actions.editInvoice({ dateIssued: e.target.value }))
-                }
+                onChange={(e) => {
+                  const newDate = e.target.value.split("T")[0];
+                  dispatch(
+                    actions.editInvoice({
+                      dateIssued: newDate,
+                      dateDelivered: newDate,
+                    })
+                  );
+                }}
                 value={state.dateIssued}
               />
             </div>
-            <div>
+            <div className="mb-2">
               <label className="block mb-1 text-sm">Delivery Date:</label>
-              <DateTimeLocalInput
+              <DatePicker
+                name="deliveryDate"
                 className="w-full"
-                inputType="date"
-                onChange={(e) =>
-                  dispatch(
-                    actions.editInvoice({ dateDelivered: e.target.value })
-                  )
-                }
+                onChange={(e) => {
+                  const newValue = e.target.value.split("T")[0];
+                  if (newValue !== state.dateDelivered) {
+                    dispatch(
+                      actions.editInvoice({
+                        dateDelivered: newValue,
+                      })
+                    );
+                  }
+                }}
                 value={state.dateDelivered || state.dateIssued}
               />
             </div>
@@ -522,13 +548,17 @@ export default function Editor(props: IProps) {
         {/* Payer Section */}
         <div className="border border-gray-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Payer</h3>
-          <div>
+          <div className="mb-2">
             <label className="block mb-1 text-sm">Due Date:</label>
-            <DateTimeLocalInput
+            <DatePicker
+              name="dateDue"
               className="w-full"
-              inputType="date"
               onChange={(e) =>
-                dispatch(actions.editInvoice({ dateDue: e.target.value }))
+                dispatch(
+                  actions.editInvoice({
+                    dateDue: e.target.value.split("T")[0],
+                  })
+                )
               }
               value={state.dateDue}
             />
