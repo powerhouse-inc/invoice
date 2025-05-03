@@ -1,12 +1,14 @@
 import { Form, CountryCodeField } from "@powerhousedao/design-system/scalars";
 import { getCountryCodeFromName } from "../utils/utils.js";
 import { twMerge } from "tailwind-merge";
+import { ValidationResult } from "../validation/validationManager.js";
 interface CountryFormProps {
   country: string;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   className?: string;
   label?: string;
+  validation?: ValidationResult | null;
 }
 
 export const CountryForm = ({
@@ -15,9 +17,12 @@ export const CountryForm = ({
   handleBlur,
   className,
   label,
+  validation,
 }: CountryFormProps) => {
   // Convert country name to country code if needed
   const countryCode = getCountryCodeFromName(country);
+  const warnings =
+    validation && !validation.isValid ? [validation.message] : undefined;
   return (
     <Form
       defaultValues={{ country: countryCode || "" }}
@@ -50,6 +55,7 @@ export const CountryForm = ({
         value={countryCode}
         className={twMerge(className)}
         label={label}
+        warnings={warnings}
       />
     </Form>
   );
