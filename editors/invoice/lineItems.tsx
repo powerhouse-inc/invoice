@@ -275,23 +275,11 @@ export function LineItemsTable({
     setIsAddingNew(false);
   }
 
-  function handleCurrencyChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    onUpdateCurrency({ currency: event.target.value });
-  }
-
   return (
-    <div>
+    <div className="mt-4">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h4 className="text-xl font-semibold text-gray-900">Line Items</h4>
-          <div className="flex items-center gap-2">
-            <CurrencyForm
-              currency={currency}
-              handleInputChange={(e) => {
-                onUpdateCurrency({ currency: e.target.value });
-              }}
-            />
-          </div>
         </div>
 
         <RWAButton

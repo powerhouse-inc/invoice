@@ -10,6 +10,7 @@ import { twMerge } from "tailwind-merge";
 import { EditLegalEntityBankInput } from "./legalEntity.js";
 import { CountryForm } from "../components/countryForm.js";
 import { InputField } from "../components/inputField.js";
+import { ValidationResult } from "../validation/validationManager.js";
 
 
 const FieldLabel = ({ children }: { readonly children: React.ReactNode }) => (
@@ -49,6 +50,8 @@ export type LegalEntityBankSectionProps = Omit<
   readonly value: EditLegalEntityBankInput;
   readonly onChange: (value: EditLegalEntityBankInput) => void;
   readonly disabled?: boolean;
+  readonly countryvalidation?: ValidationResult | null;
+  readonly ibanvalidation?: ValidationResult | null;
 };
 
 export const LegalEntityBankSection = forwardRef(
@@ -56,7 +59,7 @@ export const LegalEntityBankSection = forwardRef(
     props: LegalEntityBankSectionProps,
     ref: Ref<HTMLDivElement>
   ) {
-    const { value, onChange, disabled, ...divProps } = props;
+    const { value, onChange, disabled, countryvalidation, ibanvalidation, ...divProps } = props;
     const [showIntermediary, setShowIntermediary] = useState(false);
     const [localState, setLocalState] = useState(value);
 
@@ -145,6 +148,7 @@ export const LegalEntityBankSection = forwardRef(
                 onBlur={createBlurHandler("accountNum")}
                 handleInputChange={createInputHandler("accountNum")}
                 className="h-10 w-full text-md mb-2"
+                validation={ibanvalidation}
               />
             </div>
 
@@ -259,6 +263,7 @@ export const LegalEntityBankSection = forwardRef(
                   handleInputChange={createInputHandler("country")}
                   handleBlur={createBlurHandler("country")}
                   className="h-10 w-full text-md mb-2"
+                  validation={countryvalidation}
                 />
               </div>
             </div>

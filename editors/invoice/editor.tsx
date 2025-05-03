@@ -66,11 +66,17 @@ export default function Editor(props: IProps) {
     useState<ValidationResult | null>(null);
   const [walletValidation, setWalletValidation] =
     useState<ValidationResult | null>(null);
+  const [currencyValidation, setCurrencyValidation] =
+    useState<ValidationResult | null>(null);
+  const [countryValidation, setCountryValidation] =
+    useState<ValidationResult | null>(null);
+  const [ibanValidation, setIbanValidation] =
+    useState<ValidationResult | null>(null);
 
   // Add this useEffect to watch for currency changes
   useEffect(() => {
     setFiatMode(state.currency !== "USDS");
-  }, [state.currency]);
+  }, [state.currency, state]);
 
   // Add click outside listener to close dropdowns
   useEffect(() => {
@@ -319,6 +325,39 @@ export default function Editor(props: IProps) {
         }
       }
 
+      // Validate currency
+      const currencyValidation = validateField(
+        "currency",
+        state.currency,
+        context
+      );
+      setCurrencyValidation(currencyValidation);
+      if (currencyValidation && !currencyValidation.isValid) {
+        validationErrors.push(currencyValidation);
+      }
+
+      // Validate country
+      const countryValidation = validateField(
+        "country",
+        state.issuer.paymentRouting?.bank?.address?.country,
+        context
+      );
+      setCountryValidation(countryValidation);
+      if (countryValidation && !countryValidation.isValid) {
+        validationErrors.push(countryValidation);
+      }
+
+      // Validate EUR&GBP IBAN account number
+      const ibanValidation = validateField(
+        "accountNum",
+        state.issuer.paymentRouting?.bank?.accountNum,
+        context
+      );
+      setIbanValidation(ibanValidation);
+      if (ibanValidation && !ibanValidation.isValid) {
+        validationErrors.push(ibanValidation);
+      }
+
       // If there are any validation errors, show them and return
       if (validationErrors.length > 0) {
         validationErrors.forEach((error) => {
@@ -331,6 +370,11 @@ export default function Editor(props: IProps) {
     }
 
     dispatch(actions.editStatus({ status: newStatus }));
+  };
+
+  const handleIssuerChange = (input: any) => {
+    console.log('edit issuer input', input)
+    dispatch(actions.editIssuer(input));
   };
 
   return (
@@ -471,6 +515,7 @@ export default function Editor(props: IProps) {
             handleInputChange={(e) => {
               dispatch(actions.editInvoice({ currency: e.target.value }));
             }}
+            validation={currencyValidation}
           />
         </div>
 
@@ -542,6 +587,8 @@ export default function Editor(props: IProps) {
             currency={state.currency}
             status={state.status}
             walletvalidation={walletValidation}
+            countryvalidation={countryValidation}
+            ibanvalidation={ibanValidation}
           />
         </div>
 
