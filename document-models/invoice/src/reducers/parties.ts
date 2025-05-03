@@ -16,48 +16,45 @@ function getStateValue<T>(
 export const reducer: InvoicePartiesOperations = {
   editIssuerOperation(state, action, dispatch) {
     try {
-      state.issuer = {
-        ...state.issuer,
-        address: {
-          city: getStateValue(
-            action.input.city,
-            state.issuer.address?.city ?? null,
-          ),
-          country: getStateValue(
-            action.input.country,
-            state.issuer.address?.country ?? null,
-          ),
-          extendedAddress: getStateValue(
-            action.input.extendedAddress,
-            state.issuer.address?.extendedAddress ?? null,
-          ),
-          postalCode: getStateValue(
-            action.input.postalCode,
-            state.issuer.address?.postalCode ?? null,
-          ),
-          stateProvince: getStateValue(
-            action.input.stateProvince,
-            state.issuer.address?.stateProvince ?? null,
-          ),
-          streetAddress: getStateValue(
-            action.input.streetAddress,
-            state.issuer.address?.streetAddress ?? null,
-          ),
-        },
-        contactInfo: {
-          tel: getStateValue(
-            action.input.tel,
-            state.issuer.contactInfo?.tel ?? null,
-          ),
-          email: getStateValue(
-            action.input.email,
-            state.issuer.contactInfo?.email ?? null,
-          ),
-        },
-        country: action.input.country ?? state.issuer.country,
-        id: action.input.id ? { taxId: action.input.id } : { taxId: '' },
-        name: getStateValue(action.input.name, state.issuer.name ?? null),
-      };
+      if ('address' in state.issuer && (
+        'city' in action.input ||
+        'country' in action.input ||
+        'extendedAddress' in action.input ||
+        'postalCode' in action.input ||
+        'stateProvince' in action.input ||
+        'streetAddress' in action.input
+      )) {
+        state.issuer.address = {
+          ...state.issuer.address,
+          city: action.input.city !== undefined ? action.input.city : state.issuer.address?.city ?? null,
+          country: action.input.country !== undefined ? action.input.country : state.issuer.address?.country ?? null,
+          extendedAddress: action.input.extendedAddress !== undefined ? action.input.extendedAddress : state.issuer.address?.extendedAddress ?? null,
+          postalCode: action.input.postalCode !== undefined ? action.input.postalCode : state.issuer.address?.postalCode ?? null,
+          stateProvince: action.input.stateProvince !== undefined ? action.input.stateProvince : state.issuer.address?.stateProvince ?? null,
+          streetAddress: action.input.streetAddress !== undefined ? action.input.streetAddress : state.issuer.address?.streetAddress ?? null,
+        };
+      }
+
+      if ('contactInfo' in state.issuer && (
+        'tel' in action.input ||
+        'email' in action.input
+      )) {
+        state.issuer.contactInfo = {
+          ...state.issuer.contactInfo,
+          tel: action.input.tel !== undefined ? action.input.tel : state.issuer.contactInfo?.tel ?? null,
+          email: action.input.email !== undefined ? action.input.email : state.issuer.contactInfo?.email ?? null,
+        };
+      }
+
+      if ('country' in action.input) {
+        state.issuer.country = action.input.country !== undefined ? action.input.country : state.issuer.country ?? null;
+      }
+      if ('id' in action.input) {
+        state.issuer.id = action.input.id ? { taxId: action.input.id } : null;
+      }
+      if ('name' in action.input) {
+        state.issuer.name = action.input.name !== undefined ? action.input.name : state.issuer.name ?? null;
+      }
     } catch (e) {
       console.error(e);
     }
@@ -231,48 +228,45 @@ export const reducer: InvoicePartiesOperations = {
   },
   editPayerOperation(state, action, dispatch) {
     try {
-      state.payer = {
-        ...state.payer,
-        address: {
-          city: getStateValue(
-            action.input.city,
-            state.payer.address?.city ?? null,
-          ),
-          country: getStateValue(
-            action.input.country,
-            state.payer.address?.country ?? null,
-          ),
-          extendedAddress: getStateValue(
-            action.input.extendedAddress,
-            state.payer.address?.extendedAddress ?? null,
-          ),
-          postalCode: getStateValue(
-            action.input.postalCode,
-            state.payer.address?.postalCode ?? null,
-          ),
-          stateProvince: getStateValue(
-            action.input.stateProvince,
-            state.payer.address?.stateProvince ?? null,
-          ),
-          streetAddress: getStateValue(
-            action.input.streetAddress,
-            state.payer.address?.streetAddress ?? null,
-          ),
-        },
-        contactInfo: {
-          tel: getStateValue(
-            action.input.tel,
-            state.payer.contactInfo?.tel ?? null,
-          ),
-          email: getStateValue(
-            action.input.email,
-            state.payer.contactInfo?.email ?? null,
-          ),
-        },
-        country: action.input.country ?? state.payer.country,
-        id: action.input.id ? { taxId: action.input.id } : { taxId: '' },
-        name: getStateValue(action.input.name, state.payer.name ?? null),
-      };
+      if ('address' in state.payer && (
+        'city' in action.input ||
+        'country' in action.input ||
+        'extendedAddress' in action.input ||
+        'postalCode' in action.input ||
+        'stateProvince' in action.input ||
+        'streetAddress' in action.input
+      )) {
+        state.payer.address = {
+          ...state.payer.address,
+          city: action.input.city !== undefined ? action.input.city : state.payer.address?.city ?? null,
+          country: action.input.country !== undefined ? action.input.country : state.payer.address?.country ?? null,
+          extendedAddress: action.input.extendedAddress !== undefined ? action.input.extendedAddress : state.payer.address?.extendedAddress ?? null,
+          postalCode: action.input.postalCode !== undefined ? action.input.postalCode : state.payer.address?.postalCode ?? null,
+          stateProvince: action.input.stateProvince !== undefined ? action.input.stateProvince : state.payer.address?.stateProvince ?? null,
+          streetAddress: action.input.streetAddress !== undefined ? action.input.streetAddress : state.payer.address?.streetAddress ?? null,
+        };
+      }
+
+      if ('contactInfo' in state.payer && (
+        'tel' in action.input ||
+        'email' in action.input
+      )) {
+        state.payer.contactInfo = {
+          ...state.payer.contactInfo,
+          tel: action.input.tel !== undefined ? action.input.tel : state.payer.contactInfo?.tel ?? null,
+          email: action.input.email !== undefined ? action.input.email : state.payer.contactInfo?.email ?? null,
+        };
+      }
+
+      if ('country' in action.input) {
+        state.payer.country = action.input.country !== undefined ? action.input.country : state.payer.country ?? null;
+      }
+      if ('id' in action.input) {
+        state.payer.id = action.input.id ? { taxId: action.input.id } : null;
+      }
+      if ('name' in action.input) {
+        state.payer.name = action.input.name !== undefined ? action.input.name : state.payer.name ?? null;
+      }
     } catch (e) {
       console.error(e);
     }
