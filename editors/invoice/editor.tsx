@@ -84,6 +84,8 @@ export default function Editor(props: IProps) {
     useState<ValidationResult | null>(null);
   const [payerEmailValidation, setPayerEmailValidation] =
     useState<ValidationResult | null>(null);
+  const [lineItemValidation, setLineItemValidation] =
+    useState<ValidationResult | null>(null);
 
   // Add this useEffect to watch for currency changes
   useEffect(() => {
@@ -436,6 +438,18 @@ export default function Editor(props: IProps) {
       if (payerEmailValidation && !payerEmailValidation.isValid) {
         validationErrors.push(payerEmailValidation);
       }
+
+      // Validate line items
+      const lineItemValidation = validateField(
+        "lineItem",
+        state.lineItems,
+        context
+      ); 
+      setLineItemValidation(lineItemValidation);
+      if (lineItemValidation && !lineItemValidation.isValid) {
+        validationErrors.push(lineItemValidation);
+      }
+      
 
 
       // If there are any validation errors, show them and return

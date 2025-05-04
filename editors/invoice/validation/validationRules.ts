@@ -324,3 +324,29 @@ export const payerEmailRule: ValidationRule = {
         }
     }
 };
+
+export const lineItemRule: ValidationRule = {
+    field: 'lineItem',
+    validate: (value: string) => {
+        if (value.length === 0) {
+            return {
+                isValid: false,
+                message: 'Line item is required - Add at least one line item',
+                severity: 'warning'
+            };
+        }
+        return {
+            isValid: true,
+            message: '',
+            severity: 'none'
+        };
+    },
+    appliesTo: {
+        currencies: ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'CHF'], 
+        statusTransitions: {
+            from: ['DRAFT'],
+            to: ['ISSUED']
+        }
+    }
+};
+
