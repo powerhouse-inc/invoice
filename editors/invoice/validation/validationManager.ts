@@ -1,5 +1,5 @@
 import { Status } from "../../../document-models/invoice/index.js";
-import { EthereumAddress as EthereumAddressScalar } from "@powerhousedao/scalars";
+import { accountNumberRule, bicNumberRule, bankNameRule, countryRule, currencyRule, ethereumAddressRule, invoiceNumberRule, issuerPostalCodeRule, issuerStreetAddressRule, issuerCityRule, payerEmailRule } from "./validationRules.js";
 
 // Types for validation
 export type ValidationSeverity = 'error' | 'warning' | 'none';
@@ -31,74 +31,18 @@ export type ValidationContext = {
 // Validation rules registry
 const validationRules: ValidationRule[] = [];
 
-// Helper function to validate Ethereum address
-function isValidEthereumAddress(address: string): boolean {
-    const ethereumAddressRegex = /^0x[a-fA-F0-9]{40}$/;
-    return ethereumAddressRegex.test(address);
-}
-
-// Invoice number validation rule
-export const invoiceNumberRule: ValidationRule = {
-    field: 'invoiceNo',
-    validate: (value: string) => {
-        if (!value || value.trim() === '') {
-            return {
-                isValid: false,
-                message: 'Invoice number is required',
-                severity: 'warning'
-            };
-        }
-        return {
-            isValid: true,
-            message: '',
-            severity: 'none'
-        };
-    },
-    appliesTo: {
-        currencies: ['ALL'],
-        statusTransitions: {
-            from: ['DRAFT'],
-            to: ['ISSUED']
-        }
-    }
-};
-
-// Ethereum address validation rule
-export const ethereumAddressRule: ValidationRule = {
-    field: 'address',
-    validate: (value: string) => {
-        if (!value || value.trim() === '') {
-            return {
-                isValid: false,
-                message: 'Wallet address is required',
-                severity: 'error'
-            };
-        }
-        if (!isValidEthereumAddress(value)) {
-            return {
-                isValid: false,
-                message: 'Invalid Ethereum address format',
-                severity: 'warning'
-            };
-        }
-        return {
-            isValid: true,
-            message: '',
-            severity: 'none'
-        };
-    },
-    appliesTo: {
-        currencies: ['USDS'],  // Only apply for USDS currency
-        statusTransitions: {
-            from: ['DRAFT'],
-            to: ['ISSUED']
-        }
-    }
-};
-
-// Register both rules
+// Register rules
 validationRules.push(invoiceNumberRule);
 validationRules.push(ethereumAddressRule);
+validationRules.push(currencyRule);
+validationRules.push(countryRule);
+validationRules.push(accountNumberRule);
+validationRules.push(bicNumberRule);
+validationRules.push(bankNameRule);
+validationRules.push(issuerStreetAddressRule);
+validationRules.push(issuerCityRule);
+validationRules.push(issuerPostalCodeRule);
+validationRules.push(payerEmailRule);
 
 // Helper to check if a rule applies to the current context
 function ruleAppliesToContext(rule: ValidationRule, context: ValidationContext): boolean {

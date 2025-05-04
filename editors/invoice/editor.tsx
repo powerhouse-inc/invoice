@@ -72,6 +72,18 @@ export default function Editor(props: IProps) {
     useState<ValidationResult | null>(null);
   const [ibanValidation, setIbanValidation] =
     useState<ValidationResult | null>(null);
+  const [bicValidation, setBicValidation] =
+    useState<ValidationResult | null>(null);
+  const [bankNameValidation, setBankNameValidation] =
+    useState<ValidationResult | null>(null);
+  const [streetAddressValidation, setStreetAddressValidation] =
+    useState<ValidationResult | null>(null);
+  const [cityValidation, setCityValidation] =
+    useState<ValidationResult | null>(null);
+  const [postalCodeValidation, setPostalCodeValidation] =
+    useState<ValidationResult | null>(null);
+  const [payerEmailValidation, setPayerEmailValidation] =
+    useState<ValidationResult | null>(null);
 
   // Add this useEffect to watch for currency changes
   useEffect(() => {
@@ -337,9 +349,10 @@ export default function Editor(props: IProps) {
       }
 
       // Validate country
+      const country = state.issuer.paymentRouting?.bank?.address?.country && state.issuer.country ? state.issuer.paymentRouting?.bank?.address?.country : ''
       const countryValidation = validateField(
         "country",
-        state.issuer.paymentRouting?.bank?.address?.country,
+        country,
         context
       );
       setCountryValidation(countryValidation);
@@ -357,6 +370,73 @@ export default function Editor(props: IProps) {
       if (ibanValidation && !ibanValidation.isValid) {
         validationErrors.push(ibanValidation);
       }
+
+      // Validate BIC number
+      const bicValidation = validateField(
+        "bicNumber",
+        state.issuer.paymentRouting?.bank?.BIC,
+        context
+      );
+      setBicValidation(bicValidation);
+      if (bicValidation && !bicValidation.isValid) {
+        validationErrors.push(bicValidation);
+      }
+
+      // Validate bank name
+      const bankNameValidation = validateField(
+        "bankName",
+        state.issuer.paymentRouting?.bank?.name,
+        context
+      );
+      setBankNameValidation(bankNameValidation);
+      if (bankNameValidation && !bankNameValidation.isValid) {
+        validationErrors.push(bankNameValidation);
+      }
+
+      // Validate street address
+      const streetAddressValidation = validateField(
+        "streetAddress",
+        state.issuer.address?.streetAddress,
+        context
+      );
+      setStreetAddressValidation(streetAddressValidation);
+      if (streetAddressValidation && !streetAddressValidation.isValid) {
+        validationErrors.push(streetAddressValidation);
+      }
+
+      // Validate city
+      const cityValidation = validateField(
+        "city",
+        state.issuer.address?.city,
+        context
+      );
+      setCityValidation(cityValidation);
+      if (cityValidation && !cityValidation.isValid) {
+        validationErrors.push(cityValidation);
+      }
+
+      // Validate postal code
+      const postalCodeValidation = validateField(
+        "postalCode",
+        state.issuer.address?.postalCode,
+        context
+      );
+      setPostalCodeValidation(postalCodeValidation);
+      if (postalCodeValidation && !postalCodeValidation.isValid) {
+        validationErrors.push(postalCodeValidation);
+      }
+      
+      // Validate payer email
+      const payerEmailValidation = validateField(
+        "email",
+        state.payer.contactInfo?.email,
+        context
+      );
+      setPayerEmailValidation(payerEmailValidation);
+      if (payerEmailValidation && !payerEmailValidation.isValid) {
+        validationErrors.push(payerEmailValidation);
+      }
+
 
       // If there are any validation errors, show them and return
       if (validationErrors.length > 0) {
@@ -589,6 +669,11 @@ export default function Editor(props: IProps) {
             walletvalidation={walletValidation}
             countryvalidation={countryValidation}
             ibanvalidation={ibanValidation}
+            bicvalidation={bicValidation}
+            banknamevalidation={bankNameValidation}
+            streetaddressvalidation={streetAddressValidation}
+            cityvalidation={cityValidation}
+            postalcodevalidation={postalCodeValidation}
           />
         </div>
 
@@ -616,6 +701,7 @@ export default function Editor(props: IProps) {
             onChangeInfo={(input) => dispatch(actions.editPayer(input))}
             currency={state.currency}
             status={state.status}
+            payeremailvalidation={payerEmailValidation}
           />
         </div>
       </div>

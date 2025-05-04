@@ -1,7 +1,6 @@
 import { Form, StringField } from "@powerhousedao/design-system/scalars";
 import { ValidationResult } from "../validation/validationManager.js";
 import { twMerge } from "tailwind-merge";
-import { useEffect, useState } from "react";
 
 interface InputFieldProps {
   input?: string;

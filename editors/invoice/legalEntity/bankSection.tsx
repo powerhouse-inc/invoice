@@ -52,19 +52,36 @@ export type LegalEntityBankSectionProps = Omit<
   readonly disabled?: boolean;
   readonly countryvalidation?: ValidationResult | null;
   readonly ibanvalidation?: ValidationResult | null;
+  readonly bicvalidation?: ValidationResult | null;
+  readonly banknamevalidation?: ValidationResult | null;
 };
+
+function flattenBankInput(value: any) {
+  return {
+    ...value,
+    ...(value.address && {
+      streetAddress: value.address.streetAddress ?? "",
+      extendedAddress: value.address.extendedAddress ?? "",
+      city: value.address.city ?? "",
+      postalCode: value.address.postalCode ?? "",
+      country: value.address.country ?? "",
+      stateProvince: value.address.stateProvince ?? "",
+    }),
+  };
+}
 
 export const LegalEntityBankSection = forwardRef(
   function LegalEntityBankSection(
     props: LegalEntityBankSectionProps,
     ref: Ref<HTMLDivElement>
   ) {
-    const { value, onChange, disabled, countryvalidation, ibanvalidation, ...divProps } = props;
+    const { value, onChange, disabled, countryvalidation, ibanvalidation, bicvalidation, banknamevalidation, ...divProps } = props;
     const [showIntermediary, setShowIntermediary] = useState(false);
-    const [localState, setLocalState] = useState(value);
+    
+    const [localState, setLocalState] = useState(flattenBankInput(value));
 
     useEffect(() => {
-      setLocalState(value);
+      setLocalState(flattenBankInput(value));
     }, [value]);
 
     const handleInputChange = useCallback(
@@ -178,6 +195,7 @@ export const LegalEntityBankSection = forwardRef(
                     onBlur={createBlurHandler("BIC")}
                     handleInputChange={createInputHandler("BIC")}
                     className="h-10 w-full text-md mb-2"
+                    validation={bicvalidation}
                   />
                 </div>
               </div>
@@ -205,6 +223,7 @@ export const LegalEntityBankSection = forwardRef(
               onBlur={createBlurHandler("name")}
               handleInputChange={createInputHandler("name")}
               className="h-10 w-full text-md mb-2"
+              validation={banknamevalidation}
             />
           </div>
 

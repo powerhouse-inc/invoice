@@ -44,10 +44,15 @@ export type LegalEntityMainSectionProps = Omit<
   readonly value: EditLegalEntityInput;
   readonly onChange: (value: EditLegalEntityInput) => void;
   readonly disabled?: boolean;
+  readonly countryvalidation?: ValidationResult | null;
+  readonly streetaddressvalidation?: ValidationResult | null;
+  readonly cityvalidation?: ValidationResult | null;
+  readonly postalcodevalidation?: ValidationResult | null;
+  readonly payeremailvalidation?: ValidationResult | null;
 };
 
 export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
-  const { value, onChange, disabled, ...divProps } = props;
+  const { value, onChange, disabled, countryvalidation, streetaddressvalidation, cityvalidation, postalcodevalidation, payeremailvalidation, ...divProps } = props;
 
   const handleInputChange =
     (field: keyof EditLegalEntityInput) =>
@@ -120,6 +125,7 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
               onBlur={handleTextareaBlur("streetAddress")}
               handleInputChange={handleTextareaChange("streetAddress")}
               className="h-10 w-full text-md mb-2"
+              validation={streetaddressvalidation}
             />
             <InputField
               value={value.extendedAddress ?? ""}
@@ -139,6 +145,7 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
                 onBlur={handleTextareaBlur("city")}
                 handleInputChange={handleTextareaChange("city")}
                 className="h-10 w-full text-md mb-2"
+                validation={cityvalidation}
               />
             </div>
             <div className="space-y-2">
@@ -162,6 +169,7 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
                 onBlur={handleTextareaBlur("postalCode")}
                 handleInputChange={handleTextareaChange("postalCode")}
                 className="h-10 w-full text-md mb-2"
+                validation={postalcodevalidation}
               />
             </div>
             <div className="space-y-2">
@@ -171,6 +179,7 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
                 handleInputChange={handleInputChange("country")}
                 handleBlur={handleBlur("country")}
                 className="h-10 w-full text-md mb-2"
+                validation={countryvalidation}
               />
             </div>
           </div>
@@ -185,6 +194,7 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
               onBlur={handleTextareaBlur("email")}
               handleInputChange={handleTextareaChange("email")}
               className="h-10 w-full text-md mb-2"
+              validation={payeremailvalidation}
             />
           </div>
           <div className="space-y-2">
@@ -216,6 +226,12 @@ type LegalEntityFormProps = {
   readonly walletvalidation?: ValidationResult | null;
   readonly countryvalidation?: ValidationResult | null;
   readonly ibanvalidation?: ValidationResult | null;
+  readonly bicvalidation?: ValidationResult | null;
+  readonly banknamevalidation?: ValidationResult | null;
+  readonly streetaddressvalidation?: ValidationResult | null;
+  readonly cityvalidation?: ValidationResult | null;
+  readonly postalcodevalidation?: ValidationResult | null;
+  readonly payeremailvalidation?: ValidationResult | null;
 };
 
 // Helper to flatten LegalEntity to EditLegalEntityInput
@@ -260,6 +276,12 @@ export function LegalEntityForm({
   walletvalidation,
   countryvalidation,
   ibanvalidation,
+  bicvalidation,
+  banknamevalidation,
+  streetaddressvalidation,
+  cityvalidation,
+  postalcodevalidation,
+  payeremailvalidation
 }: LegalEntityFormProps) {
   // Handler for main info section
   const handleChangeInfo = (update: Partial<EditLegalEntityInput>) => {
@@ -273,6 +295,11 @@ export function LegalEntityForm({
         <LegalEntityMainSection
           onChange={handleChangeInfo}
           value={flattenLegalEntityToEditInput(legalEntity)}
+          countryvalidation={countryvalidation}
+          streetaddressvalidation={streetaddressvalidation}
+          cityvalidation={cityvalidation}
+          postalcodevalidation={postalcodevalidation}
+          payeremailvalidation={payeremailvalidation}
         />
       )}
       {!walletDisabled && !!onChangeWallet && (
@@ -290,6 +317,8 @@ export function LegalEntityForm({
           value={legalEntity.paymentRouting?.bank || {}}
           countryvalidation={countryvalidation}
           ibanvalidation={ibanvalidation}
+          bicvalidation={bicvalidation}
+          banknamevalidation={banknamevalidation}
         />
       )}
     </div>
