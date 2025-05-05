@@ -5,7 +5,6 @@ import {
   Status,
   actions,
 } from "../../document-models/invoice/index.js";
-import { DateTimeLocalInput } from "./dateTimeLocalInput.js";
 import { LegalEntityForm } from "./legalEntity/legalEntity.js";
 import { LineItemsTable } from "./lineItems.js";
 import { loadUBLFile } from "./ingestUBL.js";
@@ -18,7 +17,13 @@ import { InvoicePDF } from "./InvoicePDF.js";
 import { createRoot } from "react-dom/client";
 import { downloadUBL, exportToUBL } from "./exportUBL.js";
 import { CurrencyForm } from "./components/currencyForm.js";
-
+import { InputField } from "./components/inputField.js";
+import {
+  validateField,
+  ValidationContext,
+  ValidationResult,
+} from "./validation/validationManager.js";
+import { DatePicker } from "./components/datePicker.js";
 
 // Helper function to format numbers with appropriate decimal places
 function formatNumber(value: number): string {
@@ -56,10 +61,36 @@ export default function Editor(props: IProps) {
   const exportDropdownRef = useRef<HTMLDivElement>(null);
   const [isPdfLoading, setIsPdfLoading] = useState(false);
 
+  // Validation state
+  const [invoiceValidation, setInvoiceValidation] =
+    useState<ValidationResult | null>(null);
+  const [walletValidation, setWalletValidation] =
+    useState<ValidationResult | null>(null);
+  const [currencyValidation, setCurrencyValidation] =
+    useState<ValidationResult | null>(null);
+  const [countryValidation, setCountryValidation] =
+    useState<ValidationResult | null>(null);
+  const [ibanValidation, setIbanValidation] =
+    useState<ValidationResult | null>(null);
+  const [bicValidation, setBicValidation] =
+    useState<ValidationResult | null>(null);
+  const [bankNameValidation, setBankNameValidation] =
+    useState<ValidationResult | null>(null);
+  const [streetAddressValidation, setStreetAddressValidation] =
+    useState<ValidationResult | null>(null);
+  const [cityValidation, setCityValidation] =
+    useState<ValidationResult | null>(null);
+  const [postalCodeValidation, setPostalCodeValidation] =
+    useState<ValidationResult | null>(null);
+  const [payerEmailValidation, setPayerEmailValidation] =
+    useState<ValidationResult | null>(null);
+  const [lineItemValidation, setLineItemValidation] =
+    useState<ValidationResult | null>(null);
+
   // Add this useEffect to watch for currency changes
   useEffect(() => {
     setFiatMode(state.currency !== "USDS");
-  }, [state.currency]);
+  }, [state.currency, state]);
 
   // Add click outside listener to close dropdowns
   useEffect(() => {
@@ -106,9 +137,9 @@ export default function Editor(props: IProps) {
       case "ACCEPTED":
         return `${baseStyle} bg-green-100 text-green-800`;
       case "REJECTED":
-        return `${baseStyle} bg-red-100 text-red-800`;
+        return `${baseStyle} bg-red-100 text-red-800 border border-red-300`;
       case "PAID":
-        return `${baseStyle} bg-purple-100 text-purple-800`;
+        return `${baseStyle} bg-purple-100 text-purple-800 border border-purple-300`;
       default:
         return baseStyle;
     }
@@ -272,6 +303,174 @@ export default function Editor(props: IProps) {
     });
   }
 
+  // Add validation check when status changes
+  const handleStatusChange = (newStatus: Status) => {
+    if (newStatus === "ISSUED") {
+      const context: ValidationContext = {
+        currency: state.currency,
+        currentStatus: state.status,
+        targetStatus: newStatus,
+      };
+
+      // Collect all validation errors
+      const validationErrors: ValidationResult[] = [];
+
+      // Validate invoice number
+      const invoiceValidation = validateField(
+        "invoiceNo",
+        state.invoiceNo,
+        context
+      );
+      setInvoiceValidation(invoiceValidation);
+      if (invoiceValidation && !invoiceValidation.isValid) {
+        validationErrors.push(invoiceValidation);
+      }
+
+      // Validate wallet address if currency is USDS
+      if (state.currency === "USDS") {
+        const walletValidation = validateField(
+          "address",
+          state.issuer.paymentRouting?.wallet?.address ?? "",
+          context
+        );
+        setWalletValidation(walletValidation);
+        if (walletValidation && !walletValidation.isValid) {
+          validationErrors.push(walletValidation);
+        }
+      }
+
+      // Validate currency
+      const currencyValidation = validateField(
+        "currency",
+        state.currency,
+        context
+      );
+      setCurrencyValidation(currencyValidation);
+      if (currencyValidation && !currencyValidation.isValid) {
+        validationErrors.push(currencyValidation);
+      }
+
+      // Validate country
+      const country = state.issuer.paymentRouting?.bank?.address?.country && state.issuer.country ? state.issuer.paymentRouting?.bank?.address?.country : ''
+      const countryValidation = validateField(
+        "country",
+        country,
+        context
+      );
+      setCountryValidation(countryValidation);
+      if (countryValidation && !countryValidation.isValid) {
+        validationErrors.push(countryValidation);
+      }
+
+      // Validate EUR&GBP IBAN account number
+      const ibanValidation = validateField(
+        "accountNum",
+        state.issuer.paymentRouting?.bank?.accountNum,
+        context
+      );
+      setIbanValidation(ibanValidation);
+      if (ibanValidation && !ibanValidation.isValid) {
+        validationErrors.push(ibanValidation);
+      }
+
+      // Validate BIC number
+      const bicValidation = validateField(
+        "bicNumber",
+        state.issuer.paymentRouting?.bank?.BIC,
+        context
+      );
+      setBicValidation(bicValidation);
+      if (bicValidation && !bicValidation.isValid) {
+        validationErrors.push(bicValidation);
+      }
+
+      // Validate bank name
+      const bankNameValidation = validateField(
+        "bankName",
+        state.issuer.paymentRouting?.bank?.name,
+        context
+      );
+      setBankNameValidation(bankNameValidation);
+      if (bankNameValidation && !bankNameValidation.isValid) {
+        validationErrors.push(bankNameValidation);
+      }
+
+      // Validate street address
+      const streetAddressValidation = validateField(
+        "streetAddress",
+        state.issuer.address?.streetAddress,
+        context
+      );
+      setStreetAddressValidation(streetAddressValidation);
+      if (streetAddressValidation && !streetAddressValidation.isValid) {
+        validationErrors.push(streetAddressValidation);
+      }
+
+      // Validate city
+      const cityValidation = validateField(
+        "city",
+        state.issuer.address?.city,
+        context
+      );
+      setCityValidation(cityValidation);
+      if (cityValidation && !cityValidation.isValid) {
+        validationErrors.push(cityValidation);
+      }
+
+      // Validate postal code
+      const postalCodeValidation = validateField(
+        "postalCode",
+        state.issuer.address?.postalCode,
+        context
+      );
+      setPostalCodeValidation(postalCodeValidation);
+      if (postalCodeValidation && !postalCodeValidation.isValid) {
+        validationErrors.push(postalCodeValidation);
+      }
+      
+      // Validate payer email
+      const payerEmailValidation = validateField(
+        "email",
+        state.payer.contactInfo?.email,
+        context
+      );
+      setPayerEmailValidation(payerEmailValidation);
+      if (payerEmailValidation && !payerEmailValidation.isValid) {
+        validationErrors.push(payerEmailValidation);
+      }
+
+      // Validate line items
+      const lineItemValidation = validateField(
+        "lineItem",
+        state.lineItems,
+        context
+      ); 
+      setLineItemValidation(lineItemValidation);
+      if (lineItemValidation && !lineItemValidation.isValid) {
+        validationErrors.push(lineItemValidation);
+      }
+      
+
+
+      // If there are any validation errors, show them and return
+      if (validationErrors.length > 0) {
+        validationErrors.forEach((error) => {
+          toast(error.message, {
+            type: error.severity === "error" ? "error" : "warning",
+          });
+        });
+        return;
+      }
+    }
+
+    dispatch(actions.editStatus({ status: newStatus }));
+  };
+
+  const handleIssuerChange = (input: any) => {
+    console.log('edit issuer input', input)
+    dispatch(actions.editIssuer(input));
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <ToastContainer
@@ -291,24 +490,25 @@ export default function Editor(props: IProps) {
         {/* Left side with Invoice title, input, and upload */}
         <div className="flex items-center gap-4 flex-nowrap">
           <h1 className="text-3xl font-bold whitespace-nowrap">Invoice</h1>
-          <input
-            className="min-w-[12rem] max-w-xs rounded-lg border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500"
-            onChange={(e) => setInvoiceNoInput(e.target.value)}
-            onBlur={() => {
-              if (invoiceNoInput !== state.invoiceNo) {
-                dispatch(actions.editInvoice({ invoiceNo: invoiceNoInput }));
+          <InputField
+            placeholder={"Add invoice number"}
+            value={invoiceNoInput}
+            handleInputChange={(e) => setInvoiceNoInput(e.target.value)}
+            onBlur={(e) => {
+              const newValue = e.target.value;
+              if (newValue !== state.invoiceNo) {
+                dispatch(actions.editInvoice({ invoiceNo: newValue }));
               }
             }}
-            placeholder={'Add invoice number'}
-            type="text"
-            value={invoiceNoInput}
+            input={invoiceNoInput}
+            validation={invoiceValidation}
           />
 
           {/* Upload Dropdown Button */}
           <div className="relative" ref={uploadDropdownRef}>
             <button
               onClick={() => setUploadDropdownOpen(!uploadDropdownOpen)}
-              className="inline-flex cursor-pointer items-center rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 whitespace-nowrap"
+              className="inline-flex items-center h-10 px-4 rounded bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors whitespace-nowrap cursor-pointer"
               disabled={isPdfLoading}
             >
               {isPdfLoading ? "Processing..." : "Upload File"}
@@ -356,8 +556,7 @@ export default function Editor(props: IProps) {
           <div className="relative" ref={exportDropdownRef}>
             <button
               onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
-              style={{ backgroundColor: "#000" }}
-              className="inline-flex cursor-pointer items-center rounded px-4 py-2 text-white hover:bg-gray-800 whitespace-nowrap"
+              className="inline-flex items-center h-10 px-4 rounded bg-black hover:bg-gray-800 text-white font-medium transition-colors whitespace-nowrap cursor-pointer"
             >
               Export File
               <svg
@@ -410,15 +609,14 @@ export default function Editor(props: IProps) {
             handleInputChange={(e) => {
               dispatch(actions.editInvoice({ currency: e.target.value }));
             }}
+            validation={currencyValidation}
           />
         </div>
 
         {/* Status on the right */}
         <select
           className={getStatusStyle(state.status)}
-          onChange={(e) =>
-            dispatch(actions.editStatus({ status: e.target.value as Status }))
-          }
+          onChange={(e) => handleStatusChange(e.target.value as Status)}
           value={state.status}
         >
           {STATUS_OPTIONS.map((status) => (
@@ -435,27 +633,38 @@ export default function Editor(props: IProps) {
         <div className="border border-gray-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Issuer</h3>
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="mb-2">
               <label className="block mb-1 text-sm">Issue Date:</label>
-              <DateTimeLocalInput
+              <DatePicker
+                name="issueDate"
                 className="w-full"
-                inputType="date"
-                onChange={(e) =>
-                  dispatch(actions.editInvoice({ dateIssued: e.target.value }))
-                }
+                onChange={(e) => {
+                  const newDate = e.target.value.split("T")[0];
+                  dispatch(
+                    actions.editInvoice({
+                      dateIssued: newDate,
+                      dateDelivered: newDate,
+                    })
+                  );
+                }}
                 value={state.dateIssued}
               />
             </div>
-            <div>
+            <div className="mb-2">
               <label className="block mb-1 text-sm">Delivery Date:</label>
-              <DateTimeLocalInput
+              <DatePicker
+                name="deliveryDate"
                 className="w-full"
-                inputType="date"
-                onChange={(e) =>
-                  dispatch(
-                    actions.editInvoice({ dateDelivered: e.target.value })
-                  )
-                }
+                onChange={(e) => {
+                  const newValue = e.target.value.split("T")[0];
+                  if (newValue !== state.dateDelivered) {
+                    dispatch(
+                      actions.editInvoice({
+                        dateDelivered: newValue,
+                      })
+                    );
+                  }
+                }}
                 value={state.dateDelivered || state.dateIssued}
               />
             </div>
@@ -469,19 +678,33 @@ export default function Editor(props: IProps) {
             }
             bankDisabled={!fiatMode}
             walletDisabled={fiatMode}
+            currency={state.currency}
+            status={state.status}
+            walletvalidation={walletValidation}
+            countryvalidation={countryValidation}
+            ibanvalidation={ibanValidation}
+            bicvalidation={bicValidation}
+            banknamevalidation={bankNameValidation}
+            streetaddressvalidation={streetAddressValidation}
+            cityvalidation={cityValidation}
+            postalcodevalidation={postalCodeValidation}
           />
         </div>
 
         {/* Payer Section */}
         <div className="border border-gray-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Payer</h3>
-          <div>
+          <div className="mb-2">
             <label className="block mb-1 text-sm">Due Date:</label>
-            <DateTimeLocalInput
+            <DatePicker
+              name="dateDue"
               className="w-full"
-              inputType="date"
               onChange={(e) =>
-                dispatch(actions.editInvoice({ dateDue: e.target.value }))
+                dispatch(
+                  actions.editInvoice({
+                    dateDue: e.target.value.split("T")[0],
+                  })
+                )
               }
               value={state.dateDue}
             />
@@ -490,6 +713,9 @@ export default function Editor(props: IProps) {
             bankDisabled
             legalEntity={state.payer}
             onChangeInfo={(input) => dispatch(actions.editPayer(input))}
+            currency={state.currency}
+            status={state.status}
+            payeremailvalidation={payerEmailValidation}
           />
         </div>
       </div>

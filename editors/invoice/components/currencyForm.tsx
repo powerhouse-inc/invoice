@@ -1,8 +1,10 @@
 import { Form, CurrencyCodeField } from "@powerhousedao/design-system/scalars";
+import { ValidationResult } from "../validation/validationManager.js";
 
 interface CurrencyFormProps {
   currency: string;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  validation?: ValidationResult | null;
 }
 
 const currencyList = [
@@ -18,7 +20,10 @@ const currencyList = [
 export const CurrencyForm = ({
   currency,
   handleInputChange,
+  validation,
 }: CurrencyFormProps) => {
+  const warnings =
+    validation && !validation.isValid ? [validation.message] : undefined;
   return (
     <Form
       defaultValues={{ currency }}
@@ -26,6 +31,9 @@ export const CurrencyForm = ({
       resetOnSuccessfulSubmit
     >
       <CurrencyCodeField
+        style={{
+          width: "100px",
+        }}
         name="currency"
         placeholder="Currency"
         currencies={currencyList}
@@ -39,6 +47,7 @@ export const CurrencyForm = ({
           } as React.ChangeEvent<HTMLInputElement>;
           handleInputChange(syntheticEvent);
         }}
+        warnings={warnings}
       />
     </Form>
   );

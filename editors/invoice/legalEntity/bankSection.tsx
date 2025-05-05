@@ -9,27 +9,14 @@ import {
 import { twMerge } from "tailwind-merge";
 import { EditLegalEntityBankInput } from "./legalEntity.js";
 import { CountryForm } from "../components/countryForm.js";
+import { InputField } from "../components/inputField.js";
+import { ValidationResult } from "../validation/validationManager.js";
+
 
 const FieldLabel = ({ children }: { readonly children: React.ReactNode }) => (
   <label className="block text-sm font-medium text-gray-700">{children}</label>
 );
 
-const TextInput = forwardRef(function TextInput(
-  props: ComponentPropsWithRef<"input">,
-  ref: Ref<HTMLInputElement>
-) {
-  return (
-    <input
-      {...props}
-      className={twMerge(
-        "h-10 w-full rounded-md border border-gray-200 bg-white px-3 transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:p-0",
-        props.className
-      )}
-      ref={ref}
-      type="text"
-    />
-  );
-});
 
 const ACCOUNT_TYPES = ["CHECKING", "SAVINGS", "TRUST"] as const;
 
@@ -63,25 +50,46 @@ export type LegalEntityBankSectionProps = Omit<
   readonly value: EditLegalEntityBankInput;
   readonly onChange: (value: EditLegalEntityBankInput) => void;
   readonly disabled?: boolean;
+  readonly countryvalidation?: ValidationResult | null;
+  readonly ibanvalidation?: ValidationResult | null;
+  readonly bicvalidation?: ValidationResult | null;
+  readonly banknamevalidation?: ValidationResult | null;
 };
+
+function flattenBankInput(value: any) {
+  return {
+    ...value,
+    ...(value.address && {
+      streetAddress: value.address.streetAddress ?? "",
+      extendedAddress: value.address.extendedAddress ?? "",
+      city: value.address.city ?? "",
+      postalCode: value.address.postalCode ?? "",
+      country: value.address.country ?? "",
+      stateProvince: value.address.stateProvince ?? "",
+    }),
+  };
+}
 
 export const LegalEntityBankSection = forwardRef(
   function LegalEntityBankSection(
     props: LegalEntityBankSectionProps,
     ref: Ref<HTMLDivElement>
   ) {
-    const { value, onChange, disabled, ...divProps } = props;
+    const { value, onChange, disabled, countryvalidation, ibanvalidation, bicvalidation, banknamevalidation, ...divProps } = props;
     const [showIntermediary, setShowIntermediary] = useState(false);
-    const [localState, setLocalState] = useState(value);
+    
+    const [localState, setLocalState] = useState(flattenBankInput(value));
 
     useEffect(() => {
-      setLocalState(value);
+      setLocalState(flattenBankInput(value));
     }, [value]);
 
     const handleInputChange = useCallback(
       function handleInputChange(
         field: keyof EditLegalEntityBankInput,
-        event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+        event: React.ChangeEvent<
+          HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+        >
       ) {
         setLocalState({
           ...localState,
@@ -94,7 +102,9 @@ export const LegalEntityBankSection = forwardRef(
     const handleBlur = useCallback(
       function handleBlur(
         field: keyof EditLegalEntityBankInput,
-        event: React.FocusEvent<HTMLInputElement | HTMLSelectElement>
+        event: React.FocusEvent<
+          HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+        >
       ) {
         onChange({
           [field]: event.target.value,
@@ -114,7 +124,9 @@ export const LegalEntityBankSection = forwardRef(
 
     function createInputHandler(field: keyof EditLegalEntityBankInput) {
       return function handleFieldChange(
-        event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+        event: React.ChangeEvent<
+          HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+        >
       ) {
         handleInputChange(field, event);
       };
@@ -122,7 +134,9 @@ export const LegalEntityBankSection = forwardRef(
 
     function createBlurHandler(field: keyof EditLegalEntityBankInput) {
       return function handleFieldBlur(
-        event: React.FocusEvent<HTMLInputElement | HTMLSelectElement>
+        event: React.FocusEvent<
+          HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+        >
       ) {
         handleBlur(field, event);
       };
@@ -143,13 +157,15 @@ export const LegalEntityBankSection = forwardRef(
         <div className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <FieldLabel>Account Number</FieldLabel>
-              <TextInput
-                disabled={disabled}
-                onChange={createInputHandler("accountNum")}
-                onBlur={createBlurHandler("accountNum")}
-                placeholder="Account Number"
+              <InputField
+                input={localState.accountNum ?? ""}
                 value={localState.accountNum ?? ""}
+                label="Account Number"
+                placeholder="Account Number"
+                onBlur={createBlurHandler("accountNum")}
+                handleInputChange={createInputHandler("accountNum")}
+                className="h-10 w-full text-md mb-2"
+                validation={ibanvalidation}
               />
             </div>
 
@@ -165,16 +181,21 @@ export const LegalEntityBankSection = forwardRef(
                   />
                 </div>
                 <div className="space-y-2">
-                  <FieldLabel>ABA/BIC/SWIFT No.</FieldLabel>
-                  <TextInput
-                    disabled={disabled}
-                    onChange={createInputHandler("BIC")}
-                    onBlur={createBlurHandler("BIC")}
-                    placeholder="ABA/BIC/SWIFT No."
+                  <InputField
+                    input={
+                      (localState.ABA || localState.BIC || localState.SWIFT) ??
+                      ""
+                    }
                     value={
                       (localState.ABA || localState.BIC || localState.SWIFT) ??
                       ""
                     }
+                    label="ABA/BIC/SWIFT No."
+                    placeholder="ABA/BIC/SWIFT No."
+                    onBlur={createBlurHandler("BIC")}
+                    handleInputChange={createInputHandler("BIC")}
+                    className="h-10 w-full text-md mb-2"
+                    validation={bicvalidation}
                   />
                 </div>
               </div>
@@ -182,89 +203,104 @@ export const LegalEntityBankSection = forwardRef(
           </div>
 
           <div className="space-y-4">
-            <FieldLabel>Beneficiary Information</FieldLabel>
-            <TextInput
-              disabled={disabled}
-              onChange={createInputHandler("beneficiary")}
-              onBlur={createBlurHandler("beneficiary")}
-              placeholder="Beneficiary Name"
+            <InputField
+              input={localState.beneficiary ?? ""}
               value={localState.beneficiary ?? ""}
+              label="Beneficiary Information"
+              placeholder="Beneficiary Name"
+              onBlur={createBlurHandler("beneficiary")}
+              handleInputChange={createInputHandler("beneficiary")}
+              className="h-10 w-full text-md mb-2"
             />
           </div>
 
           <div className="space-y-4">
-            <FieldLabel>Bank Details</FieldLabel>
-            <TextInput
-              disabled={disabled}
-              onChange={createInputHandler("name")}
-              onBlur={createBlurHandler("name")}
-              placeholder="Bank Name"
+            <InputField
+              input={localState.name ?? ""}
               value={localState.name ?? ""}
+              label="Bank Details"
+              placeholder="Bank Name"
+              onBlur={createBlurHandler("name")}
+              handleInputChange={createInputHandler("name")}
+              className="h-10 w-full text-md mb-2"
+              validation={banknamevalidation}
             />
           </div>
 
           <div className="space-y-4">
-            <FieldLabel>Bank Address</FieldLabel>
-            <div className="space-y-4 rounded-lg bg-gray-50 p-4">
-              <TextInput
-                disabled={disabled}
-                onChange={createInputHandler("streetAddress")}
-                onBlur={createBlurHandler("streetAddress")}
-                placeholder="Street Address"
+            <div className="space-y-4 rounded-lg">
+              <InputField
+                input={localState.streetAddress ?? ""}
                 value={localState.streetAddress ?? ""}
+                label="Bank Address"
+                placeholder="Street Address"
+                onBlur={createBlurHandler("streetAddress")}
+                handleInputChange={createInputHandler("streetAddress")}
+                className="h-10 w-full text-md mb-2"
               />
-              <TextInput
-                disabled={disabled}
-                onChange={createInputHandler("extendedAddress")}
-                onBlur={createBlurHandler("extendedAddress")}
-                placeholder="Extended Address"
+              <InputField
+                input={localState.extendedAddress ?? ""}
                 value={localState.extendedAddress ?? ""}
+                placeholder="Extended Address"
+                onBlur={createBlurHandler("extendedAddress")}
+                handleInputChange={createInputHandler("extendedAddress")}
+                className="h-10 w-full text-md mb-2"
               />
-              <div className="grid grid-cols-2 gap-4">
-                <TextInput
-                  disabled={disabled}
-                  onChange={createInputHandler("city")}
-                  onBlur={createBlurHandler("city")}
-                  placeholder="City"
+              <div className="grid grid-cols-2 gap-2">
+                <InputField
+                  input={localState.city ?? ""}
                   value={localState.city ?? ""}
+                  label="City"
+                  placeholder="City"
+                  onBlur={createBlurHandler("city")}
+                  handleInputChange={createInputHandler("city")}
+                  className="h-10 w-full text-md mb-2"
                 />
-                <TextInput
-                  disabled={disabled}
-                  onChange={createInputHandler("stateProvince")}
-                  onBlur={createBlurHandler("stateProvince")}
-                  placeholder="State/Province"
+                <InputField
+                  input={localState.stateProvince ?? ""}
                   value={localState.stateProvince ?? ""}
+                  label="State/Province"
+                  placeholder="State/Province"
+                  onBlur={createBlurHandler("stateProvince")}
+                  handleInputChange={createInputHandler("stateProvince")}
+                  className="h-10 w-full text-md mb-2"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <TextInput
-                  disabled={disabled}
-                  onChange={createInputHandler("postalCode")}
-                  onBlur={createBlurHandler("postalCode")}
-                  placeholder="Postal Code"
+              <div className="grid grid-cols-2 gap-2">
+                <InputField
+                  input={localState.postalCode ?? ""}
                   value={localState.postalCode ?? ""}
+                  label="Postal Code"
+                  placeholder="Postal Code"
+                  onBlur={createBlurHandler("postalCode")}
+                  handleInputChange={createInputHandler("postalCode")}
+                  className="h-10 w-full text-md mb-2"
                 />
                 <CountryForm
+                  label="Country"
                   country={localState.country ?? ""}
                   handleInputChange={createInputHandler("country")}
                   handleBlur={createBlurHandler("country")}
+                  className="h-10 w-full text-md mb-2"
+                  validation={countryvalidation}
                 />
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <FieldLabel>Memo</FieldLabel>
-            <TextInput
-              disabled={disabled}
-              onChange={createInputHandler("memo")}
-              onBlur={createBlurHandler("memo")}
-              placeholder="Memo"
+            <InputField
+              input={localState.memo ?? ""}
               value={localState.memo ?? ""}
+              label="Memo"
+              placeholder="Memo"
+              onBlur={createBlurHandler("memo")}
+              handleInputChange={createInputHandler("memo")}
+              className="h-10 w-full text-md mb-2"
             />
           </div>
 
-          <div className="border-t border-gray-200 pt-4">
+          <div className="pt-4">
             <label className="flex items-center space-x-2">
               <input
                 checked={showIntermediary}
@@ -287,20 +323,19 @@ export const LegalEntityBankSection = forwardRef(
               <div className="space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Account Number
-                    </label>
-                    <TextInput
-                      disabled={disabled}
-                      onChange={createInputHandler("accountNumIntermediary")}
-                      onBlur={createBlurHandler("accountNumIntermediary")}
-                      placeholder="Intermediary Account Number"
+                    <InputField
+                      input={localState.accountNumIntermediary ?? ""}
                       value={localState.accountNumIntermediary ?? ""}
+                      label="Account Number"
+                      placeholder="Intermediary Account Number"
+                      onBlur={createBlurHandler("accountNumIntermediary")}
+                      handleInputChange={createInputHandler("accountNumIntermediary")}
+                      className="h-10 w-full text-md mb-2"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-2">
                         <FieldLabel>Account Details</FieldLabel>
                         <AccountTypeSelect
@@ -313,18 +348,26 @@ export const LegalEntityBankSection = forwardRef(
                         />
                       </div>
                       <div className="space-y-2">
-                        <FieldLabel>ABA/BIC/SWIFT No.</FieldLabel>
-                        <TextInput
-                          disabled={disabled}
-                          onChange={createInputHandler("BICIntermediary")}
-                          onBlur={createBlurHandler("BICIntermediary")}
-                          placeholder="ABA/BIC/SWIFT No."
+                        <InputField
+                          input={
+                            (localState.ABAIntermediary ||
+                              localState.BICIntermediary ||
+                              localState.SWIFTIntermediary) ??
+                            ""
+                          }
                           value={
                             (localState.ABAIntermediary ||
                               localState.BICIntermediary ||
                               localState.SWIFTIntermediary) ??
                             ""
                           }
+                          label="ABA/BIC/SWIFT No."
+                          placeholder="ABA/BIC/SWIFT No."
+                          onBlur={createBlurHandler("BICIntermediary")}
+                          handleInputChange={createInputHandler(
+                            "BICIntermediary"
+                          )}
+                          className="h-10 w-full text-md mb-2"
                         />
                       </div>
                     </div>
@@ -332,97 +375,110 @@ export const LegalEntityBankSection = forwardRef(
                 </div>
 
                 <div className="space-y-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Beneficiary Information
-                  </label>
-                  <TextInput
-                    disabled={disabled}
-                    onChange={createInputHandler("beneficiaryIntermediary")}
-                    onBlur={createBlurHandler("beneficiaryIntermediary")}
-                    placeholder="Intermediary Beneficiary Name"
+                  <InputField
+                    input={localState.beneficiaryIntermediary ?? ""}
                     value={localState.beneficiaryIntermediary ?? ""}
+                    label="Beneficiary Information"
+                    placeholder="Intermediary Beneficiary Name"
+                    onBlur={createBlurHandler("beneficiaryIntermediary")}
+                    handleInputChange={createInputHandler(
+                      "beneficiaryIntermediary"
+                    )}
+                    className="h-10 w-full text-md mb-2"
                   />
                 </div>
 
                 <div className="space-y-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Bank Details
-                  </label>
-                  <TextInput
-                    disabled={disabled}
-                    onChange={createInputHandler("nameIntermediary")}
-                    onBlur={createBlurHandler("nameIntermediary")}
-                    placeholder="Intermediary Bank Name"
+                  <InputField
+                    input={localState.nameIntermediary ?? ""}
                     value={localState.nameIntermediary ?? ""}
+                    label="Bank Details"
+                    placeholder="Intermediary Bank Name"
+                    onBlur={createBlurHandler("nameIntermediary")}
+                    handleInputChange={createInputHandler("nameIntermediary")}
+                    className="h-10 w-full text-md mb-2"
                   />
                 </div>
 
                 <div className="space-y-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Bank Address
-                  </label>
-                  <div className="space-y-4 rounded-lg bg-gray-100 p-4">
-                    <TextInput
-                      disabled={disabled}
-                      onChange={createInputHandler("streetAddressIntermediary")}
-                      onBlur={createBlurHandler("streetAddressIntermediary")}
-                      placeholder="Street Address"
+                  <div className="space-y-4 rounded-lg">
+                    <InputField
+                      input={localState.streetAddressIntermediary ?? ""}
                       value={localState.streetAddressIntermediary ?? ""}
+                      label="Bank Address"
+                      placeholder="Street Address"
+                      onBlur={createBlurHandler("streetAddressIntermediary")}
+                      handleInputChange={createInputHandler(
+                        "streetAddressIntermediary"
+                      )}
+                      className="h-10 w-full text-md mb-2"
                     />
-                    <TextInput
-                      disabled={disabled}
-                      onChange={createInputHandler(
+                    <InputField
+                      input={localState.extendedAddressIntermediary ?? ""}
+                      value={localState.extendedAddressIntermediary ?? ""}
+                      placeholder="Extended Address"
+                      onBlur={createBlurHandler("extendedAddressIntermediary")}
+                      handleInputChange={createInputHandler(
                         "extendedAddressIntermediary"
                       )}
-                      onBlur={createBlurHandler("extendedAddressIntermediary")}
-                      placeholder="Extended Address"
-                      value={localState.extendedAddressIntermediary ?? ""}
+                      className="h-10 w-full text-md mb-2"
                     />
-                    <div className="grid grid-cols-2 gap-4">
-                      <TextInput
-                        disabled={disabled}
-                        onChange={createInputHandler("cityIntermediary")}
-                        onBlur={createBlurHandler("cityIntermediary")}
-                        placeholder="City"
+                    <div className="grid grid-cols-2 gap-2">
+                      <InputField
+                        input={localState.cityIntermediary ?? ""}
                         value={localState.cityIntermediary ?? ""}
+                        label="City"
+                        placeholder="City"
+                        onBlur={createBlurHandler("cityIntermediary")}
+                        handleInputChange={createInputHandler("cityIntermediary")}
+                        className="h-10 w-full text-md mb-2"
                       />
-                      <TextInput
-                        disabled={disabled}
-                        onChange={createInputHandler(
+                      <InputField
+                        input={localState.stateProvinceIntermediary ?? ""}
+                        value={localState.stateProvinceIntermediary ?? ""}
+                        label="State/Province"
+                        placeholder="State/Province"
+                        onBlur={createBlurHandler("stateProvinceIntermediary")}
+                        handleInputChange={createInputHandler(
                           "stateProvinceIntermediary"
                         )}
-                        onBlur={createBlurHandler("stateProvinceIntermediary")}
-                        placeholder="State/Province"
-                        value={localState.stateProvinceIntermediary ?? ""}
+                        className="h-10 w-full text-md mb-2"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <TextInput
-                        disabled={disabled}
-                        onChange={createInputHandler("postalCodeIntermediary")}
-                        onBlur={createBlurHandler("postalCodeIntermediary")}
-                        placeholder="Postal Code"
+                    <div className="grid grid-cols-2 gap-2">
+                      <InputField
+                        input={localState.postalCodeIntermediary ?? ""}
                         value={localState.postalCodeIntermediary ?? ""}
+                        label="Postal Code"
+                        placeholder="Postal Code"
+                        onBlur={createBlurHandler("postalCodeIntermediary")}
+                        handleInputChange={createInputHandler(
+                          "postalCodeIntermediary"
+                        )}
+                        className="h-10 w-full text-md mb-2"
                       />
                       <CountryForm
+                        label="Country"
                         country={localState.countryIntermediary ?? ""}
-                        handleInputChange={createInputHandler("countryIntermediary")}
+                        handleInputChange={createInputHandler(
+                          "countryIntermediary"
+                        )}
                         handleBlur={createBlurHandler("countryIntermediary")}
+                        className="h-10 w-full text-md mb-2"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Memo
-                  </label>
-                  <TextInput
-                    disabled={disabled}
-                    onChange={createInputHandler("memoIntermediary")}
-                    onBlur={createBlurHandler("memoIntermediary")}
-                    placeholder="Memo"
+                  <InputField
+                    input={localState.memoIntermediary ?? ""}
                     value={localState.memoIntermediary ?? ""}
+                    label="Memo"
+                    placeholder="Memo"
+                    onBlur={createBlurHandler("memoIntermediary")}
+                    handleInputChange={createInputHandler("memoIntermediary")}
+                    className="h-10 w-full text-md mb-2"
                   />
                 </div>
               </div>

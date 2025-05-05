@@ -23,6 +23,8 @@ import { twMerge } from "tailwind-merge";
 import { LegalEntityWalletSection } from "./walletSection.js";
 import { LegalEntityBankSection } from "./bankSection.js";
 import { CountryForm } from "../components/countryForm.js";
+import { ValidationResult } from "../validation/validationManager.js";
+import { InputField } from "../components/inputField.js";
 
 export type EditLegalEntityWalletInput =
   | EditIssuerWalletInput
@@ -30,19 +32,6 @@ export type EditLegalEntityWalletInput =
 
 export type EditLegalEntityBankInput = EditIssuerBankInput | EditPayerBankInput;
 export type EditLegalEntityInput = EditIssuerInput | EditPayerInput;
-
-function TextInput(props: ComponentProps<"input">) {
-  return (
-    <input
-      {...props}
-      className={twMerge(
-        "h-10 w-full rounded-md border border-gray-200 bg-white px-3 transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:p-0",
-        props.className
-      )}
-      type="text"
-    />
-  );
-}
 
 const FieldLabel = ({ children }: { readonly children: React.ReactNode }) => (
   <label className="block text-sm font-medium text-gray-700">{children}</label>
@@ -55,49 +44,49 @@ export type LegalEntityMainSectionProps = Omit<
   readonly value: EditLegalEntityInput;
   readonly onChange: (value: EditLegalEntityInput) => void;
   readonly disabled?: boolean;
+  readonly countryvalidation?: ValidationResult | null;
+  readonly streetaddressvalidation?: ValidationResult | null;
+  readonly cityvalidation?: ValidationResult | null;
+  readonly postalcodevalidation?: ValidationResult | null;
+  readonly payeremailvalidation?: ValidationResult | null;
 };
 
 export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
-  const { value, onChange, disabled, ...divProps } = props;
-
-  const normalizeId = (id: any) => {
-    return typeof value.id === "string"
-      ? id
-      : ((id as any)?.taxId ?? (id as any)?.corpRegId ?? "");
-  };
-
-  const [localState, setLocalState] = useState(value);
-  const [taxId, setTaxId] = useState(normalizeId(value.id));
-
-  useEffect(() => {
-    setLocalState(value);
-    setTaxId(normalizeId(value.id));
-  }, [value]);
+  const { value, onChange, disabled, countryvalidation, streetaddressvalidation, cityvalidation, postalcodevalidation, payeremailvalidation, ...divProps } = props;
 
   const handleInputChange =
     (field: keyof EditLegalEntityInput) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setLocalState({
-        ...localState,
-        id: field === "id" ? e.target.value : localState.id,
-        [field]: e.target.value,
-      });
+      // No-op
     };
 
   const handleBlur =
     (field: keyof EditLegalEntityInput) =>
     (e: React.FocusEvent<HTMLInputElement>) => {
-      const update = {
-        [field]: e.target.value,
-      } as Partial<EditLegalEntityInput>;
-      onChange(update);
+      if (e.target.value !== value[field]) {
+        onChange({ [field]: e.target.value });
+      }
+    };
+
+  const handleTextareaChange =
+    (field: keyof EditLegalEntityInput) =>
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      // No-op
+    };
+
+  const handleTextareaBlur =
+    (field: keyof EditLegalEntityInput) =>
+    (e: React.FocusEvent<HTMLTextAreaElement>) => {
+      if (e.target.value !== value[field]) {
+        onChange({ [field]: e.target.value });
+      }
     };
 
   return (
     <div
       {...divProps}
       className={twMerge(
-        "rounded-lg border border-gray-200 bg-white p-6",
+        "rounded-lg border border-gray-200 bg-white p-6 mb-2",
         props.className
       )}
     >
@@ -106,90 +95,91 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
       </h3>
       <div className="space-y-6">
         <div className="space-y-2">
-          <FieldLabel>Name</FieldLabel>
-          <TextInput
-            disabled={disabled}
-            onChange={handleInputChange("name")}
-            onBlur={handleBlur("name")}
+          <InputField
+            value={value.name ?? ""}
+            label="Name"
             placeholder="Legal Entity Name"
-            value={localState.name ?? ""}
+            onBlur={handleTextareaBlur("name")}
+            handleInputChange={handleTextareaChange("name")}
+            className="h-10 w-full text-md mb-2"
           />
         </div>
 
         <div className="space-y-2">
-          <FieldLabel>Tax ID / Corp. Reg</FieldLabel>
-          <TextInput
-            disabled={disabled}
-            onChange={(e) => setTaxId(e.target.value)}
-            onBlur={(e) =>
-              onChange({
-                id: taxId,
-              })
-            }
+          <InputField
+            value={value.id ?? ""}
+            label="Tax ID / Corp. Reg"
             placeholder="332..."
-            value={taxId}
+            onBlur={handleTextareaBlur("id")}
+            handleInputChange={handleTextareaChange("id")}
+            className="h-10 w-full text-md mb-2"
           />
         </div>
 
         <div className="space-y-4">
-          <FieldLabel>Address</FieldLabel>
           <div className="space-y-4">
-            <TextInput
-              disabled={disabled}
-              onChange={handleInputChange("streetAddress")}
-              onBlur={handleBlur("streetAddress")}
+            <InputField
+              value={value.streetAddress ?? ""}
+              label="Address"
               placeholder="Street Address"
-              value={localState.streetAddress ?? ""}
+              onBlur={handleTextareaBlur("streetAddress")}
+              handleInputChange={handleTextareaChange("streetAddress")}
+              className="h-10 w-full text-md mb-2"
+              validation={streetaddressvalidation}
             />
-            <TextInput
-              disabled={disabled}
-              onChange={handleInputChange("extendedAddress")}
-              onBlur={handleBlur("extendedAddress")}
+            <InputField
+              value={value.extendedAddress ?? ""}
               placeholder="Extended Address"
-              value={localState.extendedAddress ?? ""}
+              onBlur={handleTextareaBlur("extendedAddress")}
+              handleInputChange={handleTextareaChange("extendedAddress")}
+              className="h-10 w-full text-md mb-2"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <FieldLabel>City</FieldLabel>
-              <TextInput
-                disabled={disabled}
-                onChange={handleInputChange("city")}
-                onBlur={handleBlur("city")}
+              <InputField
+                value={value.city ?? ""}
+                label="City"
                 placeholder="City"
-                value={localState.city ?? ""}
+                onBlur={handleTextareaBlur("city")}
+                handleInputChange={handleTextareaChange("city")}
+                className="h-10 w-full text-md mb-2"
+                validation={cityvalidation}
               />
             </div>
             <div className="space-y-2">
-              <FieldLabel>State/Province</FieldLabel>
-              <TextInput
-                disabled={disabled}
-                onChange={handleInputChange("stateProvince")}
-                onBlur={handleBlur("stateProvince")}
+              <InputField
+                value={value.stateProvince ?? ""}
+                label="State/Province"
                 placeholder="State/Province"
-                value={localState.stateProvince ?? ""}
+                onBlur={handleTextareaBlur("stateProvince")}
+                handleInputChange={handleTextareaChange("stateProvince")}
+                className="h-10 w-full text-md mb-2"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <FieldLabel>Postal Code</FieldLabel>
-              <TextInput
-                disabled={disabled}
-                onChange={handleInputChange("postalCode")}
-                onBlur={handleBlur("postalCode")}
+              <InputField
+                value={value.postalCode ?? ""}
+                label="Postal Code"
                 placeholder="Postal Code"
-                value={localState.postalCode ?? ""}
+                onBlur={handleTextareaBlur("postalCode")}
+                handleInputChange={handleTextareaChange("postalCode")}
+                className="h-10 w-full text-md mb-2"
+                validation={postalcodevalidation}
               />
             </div>
             <div className="space-y-2">
               <FieldLabel>Country</FieldLabel>
               <CountryForm
-                country={localState.country ?? ""}
+                country={value.country ?? ""}
                 handleInputChange={handleInputChange("country")}
                 handleBlur={handleBlur("country")}
+                className="h-10 w-full text-md mb-2"
+                validation={countryvalidation}
               />
             </div>
           </div>
@@ -197,25 +187,24 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <FieldLabel>Email</FieldLabel>
-            <TextInput
-              disabled={disabled}
-              onChange={handleInputChange("email")}
-              onBlur={handleBlur("email")}
+            <InputField
+              value={value.email ?? ""}
+              label="Email"
               placeholder="Email"
-              type="email"
-              value={localState.email ?? ""}
+              onBlur={handleTextareaBlur("email")}
+              handleInputChange={handleTextareaChange("email")}
+              className="h-10 w-full text-md mb-2"
+              validation={payeremailvalidation}
             />
           </div>
           <div className="space-y-2">
-            <FieldLabel>Telephone</FieldLabel>
-            <TextInput
-              disabled={disabled}
-              onChange={handleInputChange("tel")}
-              onBlur={handleBlur("tel")}
+            <InputField
+              value={value.tel ?? ""}
+              label="Telephone"
               placeholder="Telephone"
-              type="tel"
-              value={localState.tel ?? ""}
+              onBlur={handleTextareaBlur("tel")}
+              handleInputChange={handleTextareaChange("tel")}
+              className="h-10 w-full text-md mb-2"
             />
           </div>
         </div>
@@ -232,7 +221,47 @@ type LegalEntityFormProps = {
   readonly basicInfoDisabled?: boolean;
   readonly bankDisabled?: boolean;
   readonly walletDisabled?: boolean;
+  readonly currency: string;
+  readonly status: string;
+  readonly walletvalidation?: ValidationResult | null;
+  readonly countryvalidation?: ValidationResult | null;
+  readonly ibanvalidation?: ValidationResult | null;
+  readonly bicvalidation?: ValidationResult | null;
+  readonly banknamevalidation?: ValidationResult | null;
+  readonly streetaddressvalidation?: ValidationResult | null;
+  readonly cityvalidation?: ValidationResult | null;
+  readonly postalcodevalidation?: ValidationResult | null;
+  readonly payeremailvalidation?: ValidationResult | null;
 };
+
+// Helper to flatten LegalEntity to EditLegalEntityInput
+function flattenLegalEntityToEditInput(
+  legalEntity: LegalEntity
+): EditLegalEntityInput {
+  let id = "";
+  if (typeof legalEntity.id === "string") {
+    id = legalEntity.id;
+  } else if (legalEntity.id && typeof legalEntity.id === "object") {
+    if (legalEntity.id && typeof legalEntity.id === "object") {
+      id =
+        "taxId" in legalEntity.id
+          ? legalEntity.id.taxId
+          : legalEntity.id.corpRegId;
+    }
+  }
+  return {
+    id,
+    name: legalEntity.name ?? "",
+    streetAddress: legalEntity.address?.streetAddress ?? "",
+    extendedAddress: legalEntity.address?.extendedAddress ?? "",
+    city: legalEntity.address?.city ?? "",
+    postalCode: legalEntity.address?.postalCode ?? "",
+    country: legalEntity.address?.country ?? "",
+    stateProvince: legalEntity.address?.stateProvince ?? "",
+    tel: legalEntity.contactInfo?.tel ?? "",
+    email: legalEntity.contactInfo?.email ?? "",
+  };
+}
 
 export function LegalEntityForm({
   legalEntity,
@@ -242,96 +271,55 @@ export function LegalEntityForm({
   basicInfoDisabled,
   bankDisabled,
   walletDisabled,
+  currency,
+  status,
+  walletvalidation,
+  countryvalidation,
+  ibanvalidation,
+  bicvalidation,
+  banknamevalidation,
+  streetaddressvalidation,
+  cityvalidation,
+  postalcodevalidation,
+  payeremailvalidation
 }: LegalEntityFormProps) {
-  const basicInfo = EditIssuerInputSchema().parse({
-    ...legalEntity,
-    ...legalEntity.address,
-    ...legalEntity.contactInfo,
-    id:
-      (legalEntity.id as InputMaybe<LegalEntityTaxId>)?.taxId ??
-      (legalEntity.id as InputMaybe<LegalEntityCorporateRegistrationId>)
-        ?.corpRegId ??
-      null,
-  });
-
-  // const bankInfo: EditLegalEntityBankInput = EditIssuerBankInputSchema().parse({
-  //   ...legalEntity.paymentRouting?.bank,
-  //   ...legalEntity.paymentRouting?.bank?.address,
-  //   ...legalEntity.paymentRouting?.bank?.intermediaryBank,
-  //   ...legalEntity.paymentRouting?.bank?.intermediaryBank?.address,
-  // });
-
-  const bankInfo: EditLegalEntityBankInput = {
-    accountNum: legalEntity.paymentRouting?.bank?.accountNum ?? null,
-    accountNumIntermediary:
-      legalEntity.paymentRouting?.bank?.intermediaryBank?.accountNum ?? null,
-    beneficiary: legalEntity.paymentRouting?.bank?.beneficiary ?? null,
-    beneficiaryIntermediary:
-      legalEntity.paymentRouting?.bank?.intermediaryBank?.beneficiary ?? null,
-    SWIFT: legalEntity.paymentRouting?.bank?.SWIFT ?? null,
-    SWIFTIntermediary:
-      legalEntity.paymentRouting?.bank?.intermediaryBank?.SWIFT ?? null,
-    BIC: legalEntity.paymentRouting?.bank?.BIC ?? null,
-    BICIntermediary:
-      legalEntity.paymentRouting?.bank?.intermediaryBank?.BIC ?? null,
-    ABA: legalEntity.paymentRouting?.bank?.ABA ?? null,
-    ABAIntermediary:
-      legalEntity.paymentRouting?.bank?.intermediaryBank?.ABA ?? null,
-    accountType: legalEntity.paymentRouting?.bank?.accountType ?? null,
-    accountTypeIntermediary:
-      legalEntity.paymentRouting?.bank?.intermediaryBank?.accountType ?? null,
-    city: legalEntity.paymentRouting?.bank?.address.city ?? null,
-    cityIntermediary:
-      legalEntity.paymentRouting?.bank?.intermediaryBank?.address.city ?? null,
-    country: legalEntity.paymentRouting?.bank?.address.country ?? null,
-    countryIntermediary:
-      legalEntity.paymentRouting?.bank?.intermediaryBank?.address.country ??
-      null,
-    extendedAddress:
-      legalEntity.paymentRouting?.bank?.address.extendedAddress ?? null,
-    extendedAddressIntermediary:
-      legalEntity.paymentRouting?.bank?.intermediaryBank?.address
-        .extendedAddress ?? null,
-    postalCode: legalEntity.paymentRouting?.bank?.address.postalCode ?? null,
-    postalCodeIntermediary:
-      legalEntity.paymentRouting?.bank?.intermediaryBank?.address.postalCode ??
-      null,
-    stateProvince:
-      legalEntity.paymentRouting?.bank?.address.stateProvince ?? null,
-    stateProvinceIntermediary:
-      legalEntity.paymentRouting?.bank?.intermediaryBank?.address
-        .stateProvince ?? null,
-    streetAddress:
-      legalEntity.paymentRouting?.bank?.address.streetAddress ?? null,
-    streetAddressIntermediary:
-      legalEntity.paymentRouting?.bank?.intermediaryBank?.address
-        .streetAddress ?? null,
-    memo: legalEntity.paymentRouting?.bank?.memo ?? null,
-    memoIntermediary:
-      legalEntity.paymentRouting?.bank?.intermediaryBank?.memo ?? null,
-    name: legalEntity.paymentRouting?.bank?.name ?? null,
-    nameIntermediary:
-      legalEntity.paymentRouting?.bank?.intermediaryBank?.name ?? null,
+  // Handler for main info section
+  const handleChangeInfo = (update: Partial<EditLegalEntityInput>) => {
+    if (!onChangeInfo) return;
+    onChangeInfo(update);
   };
-
-  const walletInfo: EditLegalEntityWalletInput =
-    EditIssuerWalletInputSchema().parse({
-      ...legalEntity.paymentRouting?.wallet,
-    });
 
   return (
     <div className="space-y-8">
       {!basicInfoDisabled && !!onChangeInfo && (
-        <LegalEntityMainSection onChange={onChangeInfo} value={basicInfo} />
+        <LegalEntityMainSection
+          onChange={handleChangeInfo}
+          value={flattenLegalEntityToEditInput(legalEntity)}
+          countryvalidation={countryvalidation}
+          streetaddressvalidation={streetaddressvalidation}
+          cityvalidation={cityvalidation}
+          postalcodevalidation={postalcodevalidation}
+          payeremailvalidation={payeremailvalidation}
+        />
       )}
       {!walletDisabled && !!onChangeWallet && (
         <LegalEntityWalletSection
           onChange={onChangeWallet}
-          value={walletInfo}
+          value={legalEntity.paymentRouting?.wallet || {}}
+          currency={currency}
+          status={status}
+          walletvalidation={walletvalidation}
         />
       )}
       {!bankDisabled && !!onChangeBank && (
-        <LegalEntityBankSection onChange={onChangeBank} value={bankInfo} />
+        <LegalEntityBankSection
+          onChange={onChangeBank}
+          value={legalEntity.paymentRouting?.bank || {}}
+          countryvalidation={countryvalidation}
+          ibanvalidation={ibanvalidation}
+          bicvalidation={bicvalidation}
+          banknamevalidation={banknamevalidation}
+        />
       )}
     </div>
   );

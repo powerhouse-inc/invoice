@@ -68,21 +68,19 @@ const RequestFinance: React.FC<RequestFinanceProps> = ({ docState }) => {
     setDirectPaymentStatus(null);
 
     const bankDetails = {
-      currency: docState.currency || "EUR",
+      currency: docState.currency,
       accountNumber:
-        docState.issuer.paymentRouting.bank.accountNum ||
-        "DE89300500000132013000", // the IBAN
+        docState.issuer.paymentRouting.bank.accountNum,
       country:
-        docState.issuer.paymentRouting.bank.address.country.toUpperCase() ||
-        "DE",
-      bankName: docState.issuer.paymentRouting.bank.name || "GmbH Bank Name",
+        docState.issuer.paymentRouting.bank.address.country.toUpperCase(),
+      bankName: docState.issuer.paymentRouting.bank.name,
       firstName:
         docState.issuer.paymentRouting.bank.beneficiary.split(" ")[0] ||
         "Liberuum",
       lastName:
         docState.issuer.paymentRouting.bank.beneficiary.split(" ")[1] ||
         "Liberty",
-      bicSwift: docState.issuer.paymentRouting.bank.BIC || "GMBHDEFFXXX",
+      bicSwift: docState.issuer.paymentRouting.bank.BIC,
     };
 
     try {
@@ -91,52 +89,39 @@ const RequestFinance: React.FC<RequestFinanceProps> = ({ docState }) => {
           format: "rnf_generic",
           version: "0.0.3",
         },
-        creationDate:
-          `${docState.dateIssued}T09:38:16.916Z` || "2025-01-27T14:38:16.916Z",
+        creationDate: docState.dateIssued,
         invoiceItems: docState.lineItems.map((item: any) => ({
           currency: bankDetails.currency,
           name: item.description,
           quantity: item.quantity,
           unitPrice: item.totalPriceTaxIncl * 100,
-        })) || [
-          {
-            currency: "EUR",
-            name: "test invoice",
-            quantity: 1,
-            unitPrice: "25000",
-          },
-        ],
-        invoiceNumber: docState.invoiceNo || "2.07",
+        })),
+        invoiceNumber: docState.invoiceNo,
         buyerInfo: {
-          // email: docState.payer.contactInfo.email || "liberuum@powerhouse.inc",
-          email: "liberuum@powerhouse.inc",
-          // firstName: docState.payer.name.split(" ")[0] || "Liberuum",
+          email: docState.payer.contactInfo.email,
+          firstName: docState.payer.name,
           // lastName: docState.payer.name.split(" ")[1] || "Liberty",
-          businessName: docState.payer.name || "place holder name",
+          businessName: docState.payer.name,
           address: {
-            country: docState.payer.address.country || "DE",
-            city: docState.payer.address.city || "Berlin",
-            streetAddress:
-              docState.payer.address.streetAddress || "Musterstraße 1",
-            extendedAddress: docState.payer.address.extendedAddress || "",
-            postalCode: docState.payer.address.postalCode || "",
+            country: docState.payer.address.country,
+            city: docState.payer.address.city,
+            streetAddress: docState.payer.address.streetAddress,
+            extendedAddress: docState.payer.address.extendedAddress,
+            postalCode: docState.payer.address.postalCode,
           },
         },
         sellerInfo: {
           email:
-            docState.issuer.contactInfo.email || "contributor@contributor.com",
-          firstName: docState.issuer.name || "place holder name",
-          lastName:
-            docState.issuer.name.split(" ")[
-              docState.issuer.name.split(" ").length - 1
-            ] || "contributor",
+            docState.issuer.contactInfo.email,
+          firstName: docState.issuer.name,
+          lastName: '',
           address: {
-            country: docState.issuer.address.country || "DE",
-            city: docState.issuer.address.city || "Berlin",
+            country: docState.issuer.address.country,
+            city: docState.issuer.address.city,
             streetAddress:
-              docState.issuer.address.streetAddress || "Musterstraße 1",
-            extendedAddress: docState.issuer.address.extendedAddress || "",
-            postalCode: docState.issuer.address.postalCode || "",
+              docState.issuer.address.streetAddress,
+            extendedAddress: docState.issuer.address.extendedAddress,
+            postalCode: docState.issuer.address.postalCode,
           },
         },
         paymentOptions: [
