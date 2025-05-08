@@ -4,7 +4,7 @@
 import { type Subgraph } from "@powerhousedao/reactor-api";
 import { addFile } from "document-drive";
 import { actions } from "../../document-models/invoice/index.js";
-import { generateId, hashKey } from "document-model";
+import { generateId } from "document-model";
 import { uploadPdfAndGetJson } from "../../scripts/invoice/pdfToDocumentAi.js";
 import { requestDirectPayment } from "../../scripts/invoice/requestFinance.js";
 import { executeTokenTransfer } from "../../scripts/invoice/gnosisTransactionBuilder.js";
@@ -100,12 +100,12 @@ export const getResolvers = (subgraph: Subgraph): Record<string, any> => {
               {
                 branch: "main",
                 scope: "global",
-                syncId: hashKey(),
+                syncId: generateId(),
               },
               {
                 branch: "main",
                 scope: "local",
-                syncId: hashKey(),
+                syncId: generateId(),
               },
             ],
           }),

@@ -326,7 +326,7 @@ function parseAddress(addressText: string): ParsedAddress {
 
     const addressData = {
         streetAddress: '',
-        extendedAddress: null,
+        extendedAddress: null as string | null,
         city: '',
         postalCode: '',
         stateProvince: '',
@@ -394,14 +394,14 @@ function parseAddress(addressText: string): ParsedAddress {
             addressData.streetAddress = line;
         }
         // Second line handling (if not already used for city)
-        else if (i === 1 && !addressData.city) {
+        else if (i === 1 && !addressData.city && line) {
             // If we don't have a street address yet, this is probably it
             if (!addressData.streetAddress) {
                 addressData.streetAddress = line;
             }
             // Otherwise, this might be extended address info
             else if (line !== addressData.city) {
-                addressData.extendedAddress = line;
+                addressData.extendedAddress = line || null;
             }
         }
     }
@@ -426,7 +426,7 @@ function parseAddress(addressText: string): ParsedAddress {
 
     return {
         streetAddress: cleanupField(addressData.streetAddress),
-        extendedAddress: addressData.extendedAddress ? cleanupField(addressData.extendedAddress) : null,
+        extendedAddress: addressData.extendedAddress,
         city: cleanupField(addressData.city),
         postalCode: cleanupField(addressData.postalCode),
         stateProvince: cleanupField(addressData.stateProvince),
