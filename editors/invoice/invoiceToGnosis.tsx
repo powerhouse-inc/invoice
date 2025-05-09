@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
-import { toast } from "@powerhousedao/design-system";
 
 interface InvoiceToGnosisProps {
   docState: any; // Replace 'any' with the appropriate type if available
@@ -111,21 +109,6 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
     } catch (error) {
       console.error("Error during transfer:", error);
       setIsLoading(false);
-    }
-  };
-
-  const handleUpdateInvoiceStatus = async () => {
-    try {
-      const response = await axios.post(
-        "http://localhost:5001/api/update-invoice-status",
-        {
-          invoiceNo: docState.invoiceNo,
-        },
-      );
-      console.log("Response: ", response.data.message);
-      setInvoiceStatusResponse(response.data.message);
-    } catch (error) {
-      console.error("Error updating invoice status:", error);
     }
   };
 
