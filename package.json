@@ -1,7 +1,7 @@
 {
   "name": "@liberuum-org/invoice",
   "description": "",
-  "version": "0.0.13",
+  "version": "0.0.15",
   "license": "AGPL-3.0-only",
   "type": "module",
   "files": [

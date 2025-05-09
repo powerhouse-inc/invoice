@@ -48,6 +48,20 @@ export const InputField = (props: InputFieldProps) => {
         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
           handleInputChange(e);
         }}
+        onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            e.currentTarget.blur();
+            // Find and focus the next focusable element
+            const focusableElements = document.querySelectorAll(
+              'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
+            const currentIndex = Array.from(focusableElements).indexOf(e.currentTarget);
+            if (currentIndex > -1 && currentIndex < focusableElements.length - 1) {
+              (focusableElements[currentIndex + 1] as HTMLElement).focus();
+            }
+          }
+        }}
         warnings={warnings}
         className={twMerge(className)}
       />
