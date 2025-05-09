@@ -68,7 +68,7 @@ export const schema: DocumentNode = gql`
     BIC: String
     SWIFT: String
     accountNum: String!
-    accountType: AccountType
+    accountType: InvoiceAccountType
     beneficiary: String
     intermediaryBank: IntermediaryBank
     memo: String
@@ -81,7 +81,7 @@ export const schema: DocumentNode = gql`
     BIC: String
     SWIFT: String
     accountNum: String!
-    accountType: AccountType
+    accountType: InvoiceAccountType
     beneficiary: String
     memo: String
   }
@@ -123,7 +123,14 @@ export const schema: DocumentNode = gql`
     PAID
   }
 
-  enum AccountType {
+  enum InvoiceAccountType {
+    CHECKING
+    SAVINGS
+    TRUST
+    WALLET
+  }
+
+  enum InvoiceAccountTypeInput {
     CHECKING
     SAVINGS
     TRUST
@@ -316,7 +323,7 @@ export const schema: DocumentNode = gql`
     BIC: String
     SWIFT: String
     accountNum: String
-    accountType: AccountType
+    accountType: InvoiceAccountTypeInput
     beneficiary: String
     memo: String
     # intermediaryBank
@@ -331,7 +338,7 @@ export const schema: DocumentNode = gql`
     BICIntermediary: String
     SWIFTIntermediary: String
     accountNumIntermediary: String
-    accountTypeIntermediary: AccountType
+    accountTypeIntermediary: InvoiceAccountTypeInput
     beneficiaryIntermediary: String
     memoIntermediary: String
   }
@@ -365,7 +372,7 @@ export const schema: DocumentNode = gql`
     BIC: String
     SWIFT: String
     accountNum: String
-    accountType: AccountType
+    accountType: InvoiceAccountTypeInput
     beneficiary: String
     memo: String
     # intermediaryBank
@@ -380,7 +387,7 @@ export const schema: DocumentNode = gql`
     BICIntermediary: String
     SWIFTIntermediary: String
     accountNumIntermediary: String
-    accountTypeIntermediary: AccountType
+    accountTypeIntermediary: InvoiceAccountTypeInput
     beneficiaryIntermediary: String
     memoIntermediary: String
   }

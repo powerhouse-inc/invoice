@@ -55,8 +55,6 @@ export type Scalars = {
   URL: { input: string; output: string };
 };
 
-export type AccountType = "CHECKING" | "SAVINGS" | "TRUST" | "WALLET";
-
 export type AddLineItemInput = {
   currency: Scalars["String"]["input"];
   description: Scalars["String"]["input"];
@@ -88,7 +86,7 @@ export type Bank = {
   BIC: Maybe<Scalars["String"]["output"]>;
   SWIFT: Maybe<Scalars["String"]["output"]>;
   accountNum: Scalars["String"]["output"];
-  accountType: Maybe<AccountType | `${AccountType}`>;
+  accountType: Maybe<InvoiceAccountType | `${InvoiceAccountType}`>;
   address: Address;
   beneficiary: Maybe<Scalars["String"]["output"]>;
   intermediaryBank: Maybe<IntermediaryBank>;
@@ -126,8 +124,12 @@ export type EditIssuerBankInput = {
   SWIFTIntermediary?: InputMaybe<Scalars["String"]["input"]>;
   accountNum?: InputMaybe<Scalars["String"]["input"]>;
   accountNumIntermediary?: InputMaybe<Scalars["String"]["input"]>;
-  accountType?: InputMaybe<AccountType | `${AccountType}`>;
-  accountTypeIntermediary?: InputMaybe<AccountType | `${AccountType}`>;
+  accountType?: InputMaybe<
+    InvoiceAccountTypeInput | `${InvoiceAccountTypeInput}`
+  >;
+  accountTypeIntermediary?: InputMaybe<
+    InvoiceAccountTypeInput | `${InvoiceAccountTypeInput}`
+  >;
   beneficiary?: InputMaybe<Scalars["String"]["input"]>;
   beneficiaryIntermediary?: InputMaybe<Scalars["String"]["input"]>;
   city?: InputMaybe<Scalars["String"]["input"]>;
@@ -189,8 +191,12 @@ export type EditPayerBankInput = {
   SWIFTIntermediary?: InputMaybe<Scalars["String"]["input"]>;
   accountNum?: InputMaybe<Scalars["String"]["input"]>;
   accountNumIntermediary?: InputMaybe<Scalars["String"]["input"]>;
-  accountType?: InputMaybe<AccountType | `${AccountType}`>;
-  accountTypeIntermediary?: InputMaybe<AccountType | `${AccountType}`>;
+  accountType?: InputMaybe<
+    InvoiceAccountTypeInput | `${InvoiceAccountTypeInput}`
+  >;
+  accountTypeIntermediary?: InputMaybe<
+    InvoiceAccountTypeInput | `${InvoiceAccountTypeInput}`
+  >;
   beneficiary?: InputMaybe<Scalars["String"]["input"]>;
   beneficiaryIntermediary?: InputMaybe<Scalars["String"]["input"]>;
   city?: InputMaybe<Scalars["String"]["input"]>;
@@ -245,12 +251,20 @@ export type IntermediaryBank = {
   BIC: Maybe<Scalars["String"]["output"]>;
   SWIFT: Maybe<Scalars["String"]["output"]>;
   accountNum: Scalars["String"]["output"];
-  accountType: Maybe<AccountType | `${AccountType}`>;
+  accountType: Maybe<InvoiceAccountType | `${InvoiceAccountType}`>;
   address: Address;
   beneficiary: Maybe<Scalars["String"]["output"]>;
   memo: Maybe<Scalars["String"]["output"]>;
   name: Scalars["String"]["output"];
 };
+
+export type InvoiceAccountType = "CHECKING" | "SAVINGS" | "TRUST" | "WALLET";
+
+export type InvoiceAccountTypeInput =
+  | "CHECKING"
+  | "SAVINGS"
+  | "TRUST"
+  | "WALLET";
 
 export type InvoiceLineItem = {
   currency: Scalars["String"]["output"];

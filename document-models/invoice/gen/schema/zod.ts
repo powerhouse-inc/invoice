@@ -1,6 +1,5 @@
 import { z } from "zod";
 import type {
-  AccountType,
   AddLineItemInput,
   AddRefInput,
   Address,
@@ -19,6 +18,8 @@ import type {
   EditRefInput,
   EditStatusInput,
   IntermediaryBank,
+  InvoiceAccountType,
+  InvoiceAccountTypeInput,
   InvoiceLineItem,
   InvoiceState,
   InvoiceWallet,
@@ -44,7 +45,14 @@ export const definedNonNullAnySchema = z
   .any()
   .refine((v) => isDefinedNonNullAny(v));
 
-export const AccountTypeSchema = z.enum([
+export const InvoiceAccountTypeSchema = z.enum([
+  "CHECKING",
+  "SAVINGS",
+  "TRUST",
+  "WALLET",
+]);
+
+export const InvoiceAccountTypeInputSchema = z.enum([
   "CHECKING",
   "SAVINGS",
   "TRUST",
@@ -101,7 +109,7 @@ export function BankSchema(): z.ZodObject<Properties<Bank>> {
     BIC: z.string().nullable(),
     SWIFT: z.string().nullable(),
     accountNum: z.string(),
-    accountType: AccountTypeSchema.nullable(),
+    accountType: InvoiceAccountTypeSchema.nullable(),
     address: AddressSchema(),
     beneficiary: z.string().nullable(),
     intermediaryBank: IntermediaryBankSchema().nullable(),
@@ -158,8 +166,10 @@ export function EditIssuerBankInputSchema(): z.ZodObject<
     SWIFTIntermediary: z.string().nullish(),
     accountNum: z.string().nullish(),
     accountNumIntermediary: z.string().nullish(),
-    accountType: AccountTypeSchema.nullish(),
-    accountTypeIntermediary: AccountTypeSchema.nullish(),
+    accountType: z.lazy(() => InvoiceAccountTypeInputSchema.nullish()),
+    accountTypeIntermediary: z.lazy(() =>
+      InvoiceAccountTypeInputSchema.nullish(),
+    ),
     beneficiary: z.string().nullish(),
     beneficiaryIntermediary: z.string().nullish(),
     city: z.string().nullish(),
@@ -237,8 +247,10 @@ export function EditPayerBankInputSchema(): z.ZodObject<
     SWIFTIntermediary: z.string().nullish(),
     accountNum: z.string().nullish(),
     accountNumIntermediary: z.string().nullish(),
-    accountType: AccountTypeSchema.nullish(),
-    accountTypeIntermediary: AccountTypeSchema.nullish(),
+    accountType: z.lazy(() => InvoiceAccountTypeInputSchema.nullish()),
+    accountTypeIntermediary: z.lazy(() =>
+      InvoiceAccountTypeInputSchema.nullish(),
+    ),
     beneficiary: z.string().nullish(),
     beneficiaryIntermediary: z.string().nullish(),
     city: z.string().nullish(),
@@ -312,7 +324,7 @@ export function IntermediaryBankSchema(): z.ZodObject<
     BIC: z.string().nullable(),
     SWIFT: z.string().nullable(),
     accountNum: z.string(),
-    accountType: AccountTypeSchema.nullable(),
+    accountType: InvoiceAccountTypeSchema.nullable(),
     address: AddressSchema(),
     beneficiary: z.string().nullable(),
     memo: z.string().nullable(),
