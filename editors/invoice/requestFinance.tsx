@@ -16,7 +16,7 @@ const RequestFinance: React.FC<RequestFinanceProps> = ({ docState }) => {
   const createDirectPayment = async (paymentData: any) => {
     try {
       // GraphQL mutation request
-      const response = await fetch("http://localhost:4001/graphql/invoice", {
+      const response = await fetch("https://switchboard.powerhouse.xyz/graphql/invoice", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
