@@ -1,5 +1,21 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { InvoiceState } from "../../document-models/invoice/index.js";
+import countries  from "world-countries";
+
+type Country = {
+  name: {
+    common: string;
+    official: string;
+    native?: Record<string, { common: string; official: string }>;
+  };
+  cca2: string;
+};
+const countriesArray = (countries as unknown) as Country[];
+
+function getCountryName(countryCode: string) {
+  const country = countriesArray.find((c) => c.cca2 === countryCode);
+  return country?.name.common;
+}
 
 // Create styles
 const styles = StyleSheet.create({
@@ -187,7 +203,7 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
             title="Issuer"
             data={{
               ...invoice.issuer,
-              dateDue: invoice.dateDue,
+              dateDelivered: invoice.dateDelivered,
               dateIssued: invoice.dateIssued,
             }}
           />
@@ -276,7 +292,7 @@ const InvoiceSection: React.FC<{ title: string; data: any }> = ({
     {title === "Issuer" && (
       <>
         <InvoiceField label="Issue Date" value={formatDate(data.dateIssued)} />
-        <InvoiceField label="Delivery Date" value={formatDate(data.dateDue)} />
+        <InvoiceField label="Delivery Date" value={formatDate(data.dateDelivered)} />
       </>
     )}
     {title === "Payer" && (
@@ -289,7 +305,7 @@ const InvoiceSection: React.FC<{ title: string; data: any }> = ({
     />
     <InvoiceField label="Address" value={data.address?.streetAddress || ""} />
     <InvoiceField label="City" value={data.address?.city || ""} />
-    <InvoiceField label="Country" value={data.address?.country || ""} />
+    <InvoiceField label="Country" value={getCountryName(data.address?.country || "") || ""} />
     <InvoiceField label="Email" value={data.contactInfo?.email || ""} />
   </View>
 );
@@ -323,7 +339,7 @@ const PaymentSectionFiat: React.FC<{ paymentRouting: any }> = ({
       />
       <InvoiceField
         label="Country"
-        value={paymentRouting.bank?.address?.country || ""}
+        value={getCountryName(paymentRouting.bank?.address?.country || "") || ""}
       />
       <InvoiceField
         label="Extended Address"

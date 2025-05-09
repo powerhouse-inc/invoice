@@ -12,7 +12,7 @@ import PDFUploader from "./ingestPDF.js";
 import RequestFinance from "./requestFinance.js";
 import InvoiceToGnosis from "./invoiceToGnosis.js";
 import { toast, ToastContainer } from "@powerhousedao/design-system";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import { InvoicePDF } from "./InvoicePDF.js";
 import { createRoot } from "react-dom/client";
 import { downloadUBL, exportToUBL } from "./exportUBL.js";
@@ -70,16 +70,19 @@ export default function Editor(props: IProps) {
     useState<ValidationResult | null>(null);
   const [countryValidation, setCountryValidation] =
     useState<ValidationResult | null>(null);
-  const [ibanValidation, setIbanValidation] =
-    useState<ValidationResult | null>(null);
-  const [bicValidation, setBicValidation] =
-    useState<ValidationResult | null>(null);
+  const [ibanValidation, setIbanValidation] = useState<ValidationResult | null>(
+    null
+  );
+  const [bicValidation, setBicValidation] = useState<ValidationResult | null>(
+    null
+  );
   const [bankNameValidation, setBankNameValidation] =
     useState<ValidationResult | null>(null);
   const [streetAddressValidation, setStreetAddressValidation] =
     useState<ValidationResult | null>(null);
-  const [cityValidation, setCityValidation] =
-    useState<ValidationResult | null>(null);
+  const [cityValidation, setCityValidation] = useState<ValidationResult | null>(
+    null
+  );
   const [postalCodeValidation, setPostalCodeValidation] =
     useState<ValidationResult | null>(null);
   const [payerEmailValidation, setPayerEmailValidation] =
@@ -351,12 +354,12 @@ export default function Editor(props: IProps) {
       }
 
       // Validate country
-      const country = state.issuer.paymentRouting?.bank?.address?.country && state.issuer.country ? state.issuer.paymentRouting?.bank?.address?.country : ''
-      const countryValidation = validateField(
-        "country",
-        country,
-        context
-      );
+      const country =
+        state.issuer.paymentRouting?.bank?.address?.country &&
+        state.issuer.country
+          ? state.issuer.paymentRouting?.bank?.address?.country
+          : "";
+      const countryValidation = validateField("country", country, context);
       setCountryValidation(countryValidation);
       if (countryValidation && !countryValidation.isValid) {
         validationErrors.push(countryValidation);
@@ -427,7 +430,7 @@ export default function Editor(props: IProps) {
       if (postalCodeValidation && !postalCodeValidation.isValid) {
         validationErrors.push(postalCodeValidation);
       }
-      
+
       // Validate payer email
       const payerEmailValidation = validateField(
         "email",
@@ -444,13 +447,11 @@ export default function Editor(props: IProps) {
         "lineItem",
         state.lineItems,
         context
-      ); 
+      );
       setLineItemValidation(lineItemValidation);
       if (lineItemValidation && !lineItemValidation.isValid) {
         validationErrors.push(lineItemValidation);
       }
-      
-
 
       // If there are any validation errors, show them and return
       if (validationErrors.length > 0) {
@@ -467,7 +468,7 @@ export default function Editor(props: IProps) {
   };
 
   const handleIssuerChange = (input: any) => {
-    console.log('edit issuer input', input)
+    console.log("edit issuer input", input);
     dispatch(actions.editIssuer(input));
   };
 
@@ -767,6 +768,19 @@ export default function Editor(props: IProps) {
           )}
         </div>
       )}
+
+      {/* Live PDF Preview */}
+      {/* <div className="mt-8 border border-gray-200 rounded-lg overflow-hidden">
+        <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+          <h3 className="text-lg font-semibold">PDF Preview</h3>
+        </div>
+        <div style={{ height: "1000px" }}>
+          <PDFViewer width="100%" height="100%">
+            <InvoicePDF invoice={state} fiatMode={fiatMode} />
+          </PDFViewer>
+        </div>
+      </div> */}
+
     </div>
   );
 }
