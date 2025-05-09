@@ -109,7 +109,7 @@ export const LegalEntityMainSection = (props: LegalEntityMainSectionProps) => {
           <InputField
             value={value.id ?? ""}
             label="Tax ID / Corp. Reg"
-            placeholder="332..."
+            placeholder="Insert your Tax ID / Corp. Reg"
             onBlur={handleTextareaBlur("id")}
             handleInputChange={handleTextareaChange("id")}
             className="h-10 w-full text-md mb-2"
