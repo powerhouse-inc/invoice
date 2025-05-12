@@ -67,7 +67,7 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
     setError(null);
 
     try {
-      const response = await fetch("https://switchboard.powerhouse.xyz/graphql/invoice", {
+      const response = await fetch("https://switchboard-staging.powerhouse.xyz/graphql/invoice", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

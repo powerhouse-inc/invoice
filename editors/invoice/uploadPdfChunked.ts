@@ -7,7 +7,7 @@
  */
 export async function uploadPdfChunked(
   pdfData: string,
-  endpoint: string = "https://switchboard.powerhouse.xyz/graphql/invoice",
+  endpoint: string = "https://switchboard-staging.powerhouse.xyz/graphql/invoice",
   chunkSize: number = 500 * 1024, // 500KB chunks
   onProgress?: (progress: number) => void,
 ): Promise<any> {

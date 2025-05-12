@@ -1,7 +1,7 @@
 {
   "name": "@liberuum-org/invoice",
-  "description": "",
-  "version": "0.0.17",
+  "description": "Invoice editor",
+  "version": "0.0.17-staging",
   "license": "AGPL-3.0-only",
   "type": "module",
   "files": [

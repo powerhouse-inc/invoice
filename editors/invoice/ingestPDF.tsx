@@ -59,7 +59,7 @@ export default function PDFUploader({
         try {
           const result = await uploadPdfChunked(
             base64Data,
-            "https://switchboard.powerhouse.xyz/graphql/invoice",
+            "https://switchboard-staging.powerhouse.xyz/graphql/invoice",
             50 * 1024,
             (progress) => setUploadProgress(progress),
           );
