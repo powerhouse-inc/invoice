@@ -16,7 +16,7 @@ import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import { InvoicePDF } from "./InvoicePDF.js";
 import { createRoot } from "react-dom/client";
 import { downloadUBL, exportToUBL } from "./exportUBL.js";
-import { CurrencyForm } from "./components/currencyForm.js";
+import { CurrencyForm, currencyList } from "./components/currencyForm.js";
 import { InputField } from "./components/inputField.js";
 import {
   validateField,
@@ -44,6 +44,10 @@ function formatNumber(value: number): string {
   return value.toFixed(decimalPlaces);
 }
 
+function isFiatCurrency(currency: string): boolean {
+  return currencyList.find((c) => c.ticker === currency)?.crypto === false;
+}
+
 export type IProps = EditorProps<InvoiceDocument>;
 
 export default function Editor(props: IProps) {
@@ -53,7 +57,7 @@ export default function Editor(props: IProps) {
   const { document: doc, dispatch } = props;
   const state = doc.state.global;
 
-  const [fiatMode, setFiatMode] = useState(state.currency != "USDS");
+  const [fiatMode, setFiatMode] = useState(isFiatCurrency(state.currency));
   const [uploadDropdownOpen, setUploadDropdownOpen] = useState(false);
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
   const [invoiceNoInput, setInvoiceNoInput] = useState(state.invoiceNo || "");
@@ -92,7 +96,7 @@ export default function Editor(props: IProps) {
 
   // Add this useEffect to watch for currency changes
   useEffect(() => {
-    setFiatMode(state.currency !== "USDS");
+    setFiatMode(isFiatCurrency(state.currency));
   }, [state.currency, state]);
 
   // Add click outside listener to close dropdowns
