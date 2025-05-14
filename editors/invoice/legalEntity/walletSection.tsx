@@ -60,10 +60,10 @@ export const LegalEntityWalletSection = (
       chainName: "Arbitrum One",
       chainId: "42161",
     },
-    {
-      chainName: "Gnosis",
-      chainId: "100",
-    },
+    // {
+    //   chainName: "Gnosis",
+    //   chainId: "100",
+    // },
   ];
 
   const renderPresets = () => {
@@ -112,11 +112,11 @@ export const LegalEntityWalletSection = (
             )
           )}
         </select>
-        {localState.chainName !== "Base" && (
+        {/* {localState.chainName !== "Base" && (
           <div className="space-y-4" style={{ color: "red" }}>
             Unsupported Chain
           </div>
-        )}
+        )} */}
       </div>
     );
   };
