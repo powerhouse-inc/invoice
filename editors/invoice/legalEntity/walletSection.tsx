@@ -140,7 +140,6 @@ export const LegalEntityWalletSection = (
       <div className="space-y-6">
         <div className="space-y-4">
           <InputField
-            input={localState.address ?? ""}
             value={localState.address ?? ""}
             label="Wallet Address"
             placeholder="0x..."

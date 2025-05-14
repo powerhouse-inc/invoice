@@ -12,7 +12,7 @@ import PDFUploader from "./ingestPDF.js";
 import RequestFinance from "./requestFinance.js";
 import InvoiceToGnosis from "./invoiceToGnosis.js";
 import { toast, ToastContainer } from "@powerhousedao/design-system";
-import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
+import { G, PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import { InvoicePDF } from "./InvoicePDF.js";
 import { createRoot } from "react-dom/client";
 import { downloadUBL, exportToUBL } from "./exportUBL.js";
@@ -51,8 +51,6 @@ function isFiatCurrency(currency: string): boolean {
 export type IProps = EditorProps<InvoiceDocument>;
 
 export default function Editor(props: IProps) {
-  // generate a random id
-  // const id = documentModelUtils.hashKey();
 
   const { document: doc, dispatch } = props;
   const state = doc.state.global;
@@ -94,7 +92,8 @@ export default function Editor(props: IProps) {
   const [lineItemValidation, setLineItemValidation] =
     useState<ValidationResult | null>(null);
 
-  // Add this useEffect to watch for currency changes
+  const prevStatus = useRef(state.status);
+
   useEffect(() => {
     setFiatMode(isFiatCurrency(state.currency));
   }, [state.currency, state]);
@@ -312,11 +311,11 @@ export default function Editor(props: IProps) {
 
   // Add validation check when status changes
   const handleStatusChange = (newStatus: Status) => {
-    if (newStatus === "ISSUED") {
+    if (newStatus === "ACCEPTED" || newStatus === "ISSUED") {
       const context: ValidationContext = {
         currency: state.currency,
         currentStatus: state.status,
-        targetStatus: newStatus,
+        targetStatus: newStatus === "ACCEPTED" ? "ISSUED" : "ISSUED",
       };
 
       // Collect all validation errors
@@ -333,8 +332,8 @@ export default function Editor(props: IProps) {
         validationErrors.push(invoiceValidation);
       }
 
-      // Validate wallet address if currency is USDS
-      if (state.currency === "USDS") {
+      // Validate wallet address if currency is crypto
+      if (!isFiatCurrency(state.currency)) {
         const walletValidation = validateField(
           "address",
           state.issuer.paymentRouting?.wallet?.address ?? "",
@@ -457,6 +456,18 @@ export default function Editor(props: IProps) {
         validationErrors.push(lineItemValidation);
       }
 
+      if (
+        newStatus === "ACCEPTED" &&
+        !isFiatCurrency(state.currency) &&
+        state.issuer.paymentRouting?.wallet?.chainName === ""
+      ) {
+        validationErrors.push({
+          message: "Select currency and chain before accepting invoice",
+          severity: "warning",
+          isValid: false,
+        });
+      }
+
       // If there are any validation errors, show them and return
       if (validationErrors.length > 0) {
         validationErrors.forEach((error) => {
@@ -471,9 +482,18 @@ export default function Editor(props: IProps) {
     dispatch(actions.editStatus({ status: newStatus }));
   };
 
-  const handleIssuerChange = (input: any) => {
-    console.log("edit issuer input", input);
-    dispatch(actions.editIssuer(input));
+  const handleCurrencyChange = (currency: string) => {
+    if (
+      (prevStatus.current === "ACCEPTED" || prevStatus.current === "DRAFT") &&
+      !isFiatCurrency(currency) &&
+      state.issuer.paymentRouting?.wallet?.chainName === ""
+    ) {
+      dispatch(actions.editStatus({ status: "DRAFT" }));
+      toast("Select currency and chain before accepting invoice", {
+        type: "warning",
+      });
+    }
+    dispatch(actions.editInvoice({ currency }));
   };
 
   return (
@@ -612,7 +632,7 @@ export default function Editor(props: IProps) {
           <CurrencyForm
             currency={state.currency}
             handleInputChange={(e) => {
-              dispatch(actions.editInvoice({ currency: e.target.value }));
+              handleCurrencyChange(e.target.value);
             }}
             validation={currencyValidation}
           />
@@ -765,7 +785,7 @@ export default function Editor(props: IProps) {
       {/* Finance Request Section */}
       {state.status === "ACCEPTED" && (
         <div className="mt-8">
-          {state.currency === "USDS" ? (
+          {!isFiatCurrency(state.currency) ? (
             <InvoiceToGnosis docState={state} />
           ) : (
             <RequestFinance docState={state} />
@@ -784,7 +804,6 @@ export default function Editor(props: IProps) {
           </PDFViewer>
         </div>
       </div> */}
-
     </div>
   );
 }
