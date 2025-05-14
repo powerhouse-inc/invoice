@@ -4,7 +4,7 @@ import { toast } from "@powerhousedao/design-system";
 import { uploadPdfChunked } from "./uploadPdfChunked.js";
 import { getCountryCodeFromName } from "./utils/utils.js";
 
-let GRAPHQL_URL = 'http://localhost:3000/graphql/invoice'
+let GRAPHQL_URL = 'http://localhost:4001/graphql/invoice'
 
 if (window.document.baseURI !== 'http://localhost:3000/') {
   GRAPHQL_URL = 'https://switchboard-dev.powerhouse.xyz/graphql/invoice'

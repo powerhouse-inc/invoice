@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 
-let GRAPHQL_URL = 'http://localhost:3000/graphql/invoice'
+let GRAPHQL_URL = "http://localhost:4001/graphql/invoice";
 
-if (window.document.baseURI !== 'http://localhost:3000/') {
-  GRAPHQL_URL = 'https://switchboard-dev.powerhouse.xyz/graphql/invoice'
+if (window.document.baseURI !== "http://localhost:3000/") {
+  GRAPHQL_URL = "https://switchboard-dev.powerhouse.xyz/graphql/invoice";
 }
 
 interface InvoiceToGnosisProps {
@@ -17,10 +17,26 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
   const [invoiceStatusResponse, setInvoiceStatusResponse] = useState<any>(null);
   const [safeTxHash, setsafeTxHash] = useState<string | null>(null);
 
+  const currency = docState.currency;
+  const chainName = docState.issuer.paymentRouting.wallet.chainName;
+
   const TOKEN_ADDRESSES = {
     BASE: {
       USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
       USDS: "0x820C137fa70C8691f0e44Dc420a5e53c168921Dc",
+      DAI: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
+      // Add more tokens as needed
+    },
+    ETHEREUM: {
+      USDC: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      USDS: "0xdC035D45d973E3EC169d2276DDab16f1e407384F",
+      DAI: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+      // Add more tokens as needed
+    },
+    "ARBITRUM ONE": {
+      USDC: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+      USDS: "0x6491c05A82219b8D1479057361ff1654749b876b",
+      DAI: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
       // Add more tokens as needed
     },
     // Add more networks as needed
@@ -28,14 +44,25 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
 
   // Separate payerWallet configuration
   const payerWallet = {
-    rpc: "https://base.llamarpc.com",
-    chainName: "Base",
-    chainId: "8453",
-    address: "0x1FB6bEF04230d67aF0e3455B997a28AFcCe1F45e", // Safe address
+    BASE: {
+      rpc: "https://base.llamarpc.com",
+      chainName: "Base",
+      chainId: "8453",
+      address: "0x1FB6bEF04230d67aF0e3455B997a28AFcCe1F45e", // Safe address
+    },
+    ETHEREUM: {
+      rpc: "https://eth.llamarpc.com",
+      chainName: "Ethereum",
+      chainId: "1",
+      address: "0x1FB6bEF04230d67aF0e3455B997a28AFcCe1F45e", // Safe address
+    },
+    "ARBITRUM ONE": {
+      rpc: "https://arb1.arbitrum.io/rpc",
+      chainName: "Arbitrum One",
+      chainId: "42161",
+      address: "0x1FB6bEF04230d67aF0e3455B997a28AFcCe1F45e", // Safe address
+    },
   };
-
-  const currency = docState.currency;
-  const chainName = docState.issuer.paymentRouting.wallet.chainName;
 
   // Extract payment details from current-state.json
   const paymentDetails = {
@@ -89,7 +116,8 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
             }
           `,
           variables: {
-            payerWallet: payerWallet,
+            payerWallet:
+              payerWallet[chainName.toUpperCase() as keyof typeof payerWallet],
             paymentDetails: paymentDetails,
             invoiceNo: docState.invoiceNo,
           },
@@ -100,17 +128,20 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
       const data = result.data.Invoice_processGnosisPayment;
 
       if (data.success) {
-        const dataObj = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
+        const dataObj =
+          typeof data.data === "string" ? JSON.parse(data.data) : data.data;
         setsafeTxHash(dataObj.txHash);
-        
+
         if (dataObj.paymentDetails) {
           // Format the payment details for better readability
           const formattedDetails = {
             amount: dataObj.paymentDetails[0].amount,
             token: dataObj.paymentDetails[0].token.symbol,
-            chain: chainName
+            chain: chainName,
           };
-          setInvoiceStatusResponse(`Amount: ${formattedDetails.amount} ${formattedDetails.token} on ${formattedDetails.chain}`);
+          setInvoiceStatusResponse(
+            `Amount: ${formattedDetails.amount} ${formattedDetails.token} on ${formattedDetails.chain}`
+          );
         }
       } else {
         setError(data.error);
@@ -122,26 +153,30 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
     }
   };
 
+  if (!currency || !chainName || currency === "" || chainName === "") {
+    return null;
+  }
+
   return (
     <div className="space-y-4">
-      <button
-        className="bg-blue-500 text-black px-4 py-2 rounded-md hover:bg-blue-600"
-        onClick={handleInvoiceToGnosis}
-        disabled={isLoading}
-      >
-        {isLoading ? "Processing..." : "Send Payment to Gnosis >"}
-      </button>
+      {currency && chainName && currency !== "" && chainName !== "" && (
+        <button
+          className="bg-blue-500 text-black px-4 py-2 rounded-md hover:bg-blue-600"
+          onClick={handleInvoiceToGnosis}
+          disabled={isLoading}
+        >
+          {isLoading ? "Processing..." : "Send Payment to Gnosis >"}
+        </button>
+      )}
 
       {error && (
-        <div className="text-red-500 bg-red-50 p-3 rounded-md">
-          {error}
-        </div>
+        <div className="text-red-500 bg-red-50 p-3 rounded-md">{error}</div>
       )}
 
       {safeTxHash && (
         <div className="bg-gray-50 p-4 rounded-md space-y-2">
           <p className="font-medium">
-            Safe Transaction Hash: 
+            Safe Transaction Hash:
             <span className="font-mono text-sm ml-2 break-all">
               {safeTxHash}
             </span>
