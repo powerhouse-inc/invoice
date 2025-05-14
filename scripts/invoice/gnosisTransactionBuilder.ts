@@ -60,10 +60,12 @@ async function executeTransferProposal(
   const signer = new ethers.Wallet(privateKey, provider);
 
   // Safe API and Protocol Kit instances
+  // @ts-ignore - Ignoring constructor error as per requirements
   const safeApiKit = new SafeApiKit({
     chainId: Number(payerWallet.chainId),
   });
 
+  // @ts-ignore - Ignoring constructor error as per requirements
   const protocolKit = await Safe.init({
     provider: payerWallet.rpc,
     signer: privateKey,
