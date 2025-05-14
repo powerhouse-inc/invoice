@@ -100,15 +100,19 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
       const data = result.data.Invoice_processGnosisPayment;
 
       if (data.success) {
-        console.log("Transfer result:", data);
-        setResponseData(data);
-        // Since data is now a JSON scalar, we need to parse it if it's a string
-        const dataObj =
-          typeof data.data === "string" ? JSON.parse(data.data) : data.data;
-        // The executeTokenTransfer function returns txHash.transactions array
-        setsafeTxHash(dataObj.txHash.safeTxHash);
+        const dataObj = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
+        setsafeTxHash(dataObj.txHash);
+        
+        if (dataObj.paymentDetails) {
+          // Format the payment details for better readability
+          const formattedDetails = {
+            amount: dataObj.paymentDetails[0].amount,
+            token: dataObj.paymentDetails[0].token.symbol,
+            chain: chainName
+          };
+          setInvoiceStatusResponse(`Amount: ${formattedDetails.amount} ${formattedDetails.token} on ${formattedDetails.chain}`);
+        }
       } else {
-        console.error("Error during transfer:", data.error);
         setError(data.error);
       }
       setIsLoading(false);
@@ -119,36 +123,44 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
   };
 
   return (
-    <div>
+    <div className="space-y-4">
       <button
-        className="bg-blue-500 text-black px-4 py-2 rounded-md"
+        className="bg-blue-500 text-black px-4 py-2 rounded-md hover:bg-blue-600"
         onClick={handleInvoiceToGnosis}
         disabled={isLoading}
       >
         {isLoading ? "Processing..." : "Send Payment to Gnosis >"}
       </button>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="text-red-500 bg-red-50 p-3 rounded-md">
+          {error}
+        </div>
+      )}
 
       {safeTxHash && (
-        <div className="invoice-link">
-          <p>Safe Transaction Hash: {safeTxHash}</p>
+        <div className="bg-gray-50 p-4 rounded-md space-y-2">
+          <p className="font-medium">
+            Safe Transaction Hash: 
+            <span className="font-mono text-sm ml-2 break-all">
+              {safeTxHash}
+            </span>
+          </p>
           <a
-            style={{ color: "blue" }}
-            href={
-              "https://app.safe.global/transactions/queue?safe=base:0x1FB6bEF04230d67aF0e3455B997a28AFcCe1F45e"
-            }
+            href={`https://app.safe.global/transactions/queue?safe=base:0x1FB6bEF04230d67aF0e3455B997a28AFcCe1F45e`}
             target="_blank"
             rel="noopener noreferrer"
-            className="view-invoice-button"
+            className="text-blue-500 hover:text-blue-600 underline block"
           >
-            View Transaction Details
+            View Transaction
           </a>
         </div>
       )}
+
       {invoiceStatusResponse && (
-        <div className="invoice-status-response">
-          <p>Invoice Status Response: {invoiceStatusResponse}</p>
+        <div className="bg-gray-50 p-4 rounded-md">
+          <p className="font-medium">Payment Details:</p>
+          <p className="text-gray-700">{invoiceStatusResponse}</p>
         </div>
       )}
     </div>
