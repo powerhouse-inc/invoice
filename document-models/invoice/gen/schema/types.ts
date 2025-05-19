@@ -331,7 +331,17 @@ export type Ref = {
   value: Scalars["String"]["output"];
 };
 
-export type Status = "ACCEPTED" | "DRAFT" | "ISSUED" | "PAID" | "REJECTED";
+export type Status =
+  | "ACCEPTED"
+  | "AWAITINGPAYMENT"
+  | "CANCELLED"
+  | "DRAFT"
+  | "ISSUED"
+  | "PAYMENTISSUE"
+  | "PAYMENTRECEIVED"
+  | "PAYMENTSCHEDULED"
+  | "PAYMENTSENT"
+  | "REJECTED";
 
 export type Token = {
   chainId: Maybe<Scalars["String"]["output"]>;
