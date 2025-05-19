@@ -12,10 +12,10 @@ import PDFUploader from "./ingestPDF.js";
 import RequestFinance from "./requestFinance.js";
 import InvoiceToGnosis from "./invoiceToGnosis.js";
 import { toast, ToastContainer } from "@powerhousedao/design-system";
-import { G, PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
+import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import { InvoicePDF } from "./InvoicePDF.js";
 import { createRoot } from "react-dom/client";
-import { downloadUBL, exportToUBL } from "./exportUBL.js";
+import { downloadUBL } from "./exportUBL.js";
 import { CurrencyForm, currencyList } from "./components/currencyForm.js";
 import { InputField } from "./components/inputField.js";
 import {
@@ -24,6 +24,7 @@ import {
   ValidationResult,
 } from "./validation/validationManager.js";
 import { DatePicker } from "./components/datePicker.js";
+import { SelectField } from "./components/selectField.js";
 
 // Helper function to format numbers with appropriate decimal places
 function formatNumber(value: number): string {
@@ -51,7 +52,6 @@ function isFiatCurrency(currency: string): boolean {
 export type IProps = EditorProps<InvoiceDocument>;
 
 export default function Editor(props: IProps) {
-
   const { document: doc, dispatch } = props;
   const state = doc.state.global;
 
@@ -133,30 +133,17 @@ export default function Editor(props: IProps) {
     }, 0.0);
   }, [state.lineItems]);
 
-  const getStatusStyle = (status: Status) => {
-    const baseStyle = "px-4 py-2 rounded-full font-semibold text-sm";
-    switch (status) {
-      case "DRAFT":
-        return `${baseStyle} bg-gray-200 text-gray-800`;
-      case "ISSUED":
-        return `${baseStyle} bg-blue-100 text-blue-800`;
-      case "ACCEPTED":
-        return `${baseStyle} bg-green-100 text-green-800`;
-      case "REJECTED":
-        return `${baseStyle} bg-red-100 text-red-800 border border-red-300`;
-      case "PAID":
-        return `${baseStyle} bg-purple-100 text-purple-800 border border-purple-300`;
-      default:
-        return baseStyle;
-    }
-  };
-
   const STATUS_OPTIONS: Status[] = [
     "DRAFT",
     "ISSUED",
+    "CANCELLED",
     "ACCEPTED",
     "REJECTED",
-    "PAID",
+    "AWAITINGPAYMENT",
+    "PAYMENTSCHEDULED",
+    "PAYMENTSENT",
+    "PAYMENTISSUE",
+    "PAYMENTRECEIVED",
   ];
 
   const handleFileUpload = async (
@@ -639,17 +626,11 @@ export default function Editor(props: IProps) {
         </div>
 
         {/* Status on the right */}
-        <select
-          className={getStatusStyle(state.status)}
-          onChange={(e) => handleStatusChange(e.target.value as Status)}
+        <SelectField
+          options={STATUS_OPTIONS}
           value={state.status}
-        >
-          {STATUS_OPTIONS.map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => handleStatusChange(value as Status)}
+        />
       </div>
 
       {/* Main Content Grid */}
