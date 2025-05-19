@@ -668,7 +668,6 @@ export default function Editor(props: IProps) {
                   dispatch(
                     actions.editInvoice({
                       dateIssued: newDate,
-                      dateDelivered: newDate,
                     })
                   );
                 }}
@@ -690,7 +689,7 @@ export default function Editor(props: IProps) {
                     );
                   }
                 }}
-                value={state.dateDelivered || state.dateIssued}
+                value={state.dateDelivered || ""}
               />
             </div>
           </div>
