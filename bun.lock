@@ -23,6 +23,7 @@
         "google-auth-library": "^9.15.1",
         "graphql": "^16.10.0",
         "graphql-tag": "^2.12.6",
+        "world-countries": "^5.1.0",
         "zod": "^3.24.2",
       },
       "devDependencies": {
