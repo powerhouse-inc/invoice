@@ -298,11 +298,11 @@ export default function Editor(props: IProps) {
 
   // Add validation check when status changes
   const handleStatusChange = (newStatus: Status) => {
-    if (newStatus === "ACCEPTED" || newStatus === "ISSUED") {
+    if (newStatus === "PAYMENTSCHEDULED" || newStatus === "ISSUED") {
       const context: ValidationContext = {
         currency: state.currency,
         currentStatus: state.status,
-        targetStatus: newStatus === "ACCEPTED" ? "ISSUED" : "ISSUED",
+        targetStatus: newStatus === "PAYMENTSCHEDULED" ? "ISSUED" : "ISSUED",
       };
 
       // Collect all validation errors
@@ -444,7 +444,7 @@ export default function Editor(props: IProps) {
       }
 
       if (
-        newStatus === "ACCEPTED" &&
+        newStatus === "PAYMENTSCHEDULED" &&
         !isFiatCurrency(state.currency) &&
         state.issuer.paymentRouting?.wallet?.chainName === ""
       ) {
@@ -471,7 +471,7 @@ export default function Editor(props: IProps) {
 
   const handleCurrencyChange = (currency: string) => {
     if (
-      (prevStatus.current === "ACCEPTED" || prevStatus.current === "DRAFT") &&
+      (prevStatus.current === "PAYMENTSCHEDULED" || prevStatus.current === "DRAFT") &&
       !isFiatCurrency(currency) &&
       state.issuer.paymentRouting?.wallet?.chainName === ""
     ) {
@@ -763,7 +763,7 @@ export default function Editor(props: IProps) {
       </div>
 
       {/* Finance Request Section */}
-      {state.status === "ACCEPTED" && (
+      {state.status === "PAYMENTSCHEDULED" && (
         <div className="mt-8">
           {!isFiatCurrency(state.currency) ? (
             <InvoiceToGnosis docState={state} />

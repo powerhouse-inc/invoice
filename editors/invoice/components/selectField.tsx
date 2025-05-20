@@ -179,6 +179,10 @@ export const SelectField = (props: SelectFieldProps) => {
       label: "Report Issue",
       value: "REPORT_ISSUE",
     },
+    {
+      label: "Mark as paid",
+      value: "MARK_AS_PAID",
+    },
   ];
 
   const awaitingPaymentActions = [
@@ -296,6 +300,7 @@ export const SelectField = (props: SelectFieldProps) => {
       } else if (status === "PAYMENTSENT") {
         if (value === "PAYMENT_RETURNED") onChange("AWAITINGPAYMENT");
         else if (value === "REPORT_ISSUE") onChange("PAYMENTISSUE");
+        else if (value === "MARK_AS_PAID") onChange("PAYMENTRECEIVED");
       } else if (status === "AWAITINGPAYMENT") {
         if (value === "PAY_NOW") onChange("PAYMENTSCHEDULED");
         else if (value === "MARK_AS_PAID") onChange("PAYMENTRECEIVED");
