@@ -1,6 +1,7 @@
 import { Select } from "@powerhousedao/document-engineering/ui";
 import { Status } from "document-models/invoice/index.js";
 import { Icon } from "@powerhousedao/design-system";
+import { ArrowBigRight, FileCheck  } from "lucide-react";
 import { useState } from "react";
 
 interface SelectFieldProps {
@@ -27,15 +28,15 @@ function warningIcon() {
 }
 
 function clockIcon() {
-  return <Icon name="ClockFill" color="#475264" />;
+  return <FileCheck style={{ width: 24, height: 24, fill: "#475264", color: 'white', padding: 0, margin: 0, borderColor: '#475264' }} />;
 }
 
 function checkCircleIcon(color: string) {
-  return <Icon name="CheckCircleFill" color={color} />;
+  return <FileCheck style={{ width: 24, height: 24, fill: color, color: 'white' }} />;
 }
 
 function arrowRightIcon(color: string) {
-  return <Icon name="BaseArrowRight" color={color} />;
+  return <ArrowBigRight style={{width: 22, height: 22, fill: color, color: color}} />;
 }
 
 const STATUS_OPTIONS_MAP = [
