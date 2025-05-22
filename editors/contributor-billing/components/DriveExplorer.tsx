@@ -21,6 +21,7 @@ import {
   type DriveEditorContext,
   useDriveContext,
 } from "@powerhousedao/reactor-browser";
+import { InvoiceTable } from "./InvoiceTable/InvoiceTable.js";
 
 interface DriveExplorerProps {
   driveId: string;
@@ -144,14 +145,14 @@ export function DriveExplorer({
   return (
     <div className="flex h-full">
       {/* Sidebar */}
-      <div className="w-64 border-r border-gray-200 p-4 overflow-y-auto">
+      {/* <div className="w-64 border-r border-gray-200 p-4 overflow-y-auto">
         <h2 className="text-lg font-semibold mb-4">Folders</h2>
         <FolderTree
           folders={folders}
           selectedNodeId={selectedNodeId}
           onSelectNode={handleNodeSelect}
         />
-      </div>
+      </div> */}
 
       {/* Main Content */}
       <div className="flex-1 p-4 overflow-y-auto">
@@ -168,7 +169,7 @@ export function DriveExplorer({
           />
         ) : (
           <>
-            <h2 className="text-lg font-semibold mb-4">Contents</h2>
+            {/* <h2 className="text-lg font-semibold mb-4">Contents</h2> */}
 
             {/* Folders Section */}
             <FolderItemsGrid
@@ -210,6 +211,7 @@ export function DriveExplorer({
             />
           </>
         )}
+      <InvoiceTable />
       </div>
 
       {/* Create Document Modal */}

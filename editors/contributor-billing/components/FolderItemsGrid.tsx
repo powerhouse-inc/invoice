@@ -47,10 +47,10 @@ export function FolderItemsGrid({
   return (
     <div className="mb-6">
       <div className="flex items-center gap-4 mb-2">
-        <h3 className="text-sm font-medium text-gray-500">Folders</h3>
+        {/* <h3 className="text-sm font-medium text-gray-500">Folders</h3> */}
 
         {/* New Folder Input */}
-        <form onSubmit={handleSubmit} className="w-48">
+        {/* <form onSubmit={handleSubmit} className="w-48">
           <div className="relative">
             <input
               type="text"
@@ -66,7 +66,7 @@ export function FolderItemsGrid({
               +
             </button>
           </div>
-        </form>
+        </form> */}
       </div>
 
       {folders.length > 0 && (
