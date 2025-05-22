@@ -13,6 +13,8 @@ import { FolderItemsGrid } from "./FolderItemsGrid.js";
 import { FolderTree } from "./FolderTree.js";
 import { useTransformedNodes } from "../hooks/useTransformedNodes.js";
 import { useSelectedFolderChildren } from "../hooks/useSelectedFolderChildren.js";
+import { useDispatchMap } from "../hooks/useDispatchMap.js";
+import { DocumentDispatch } from "./DocumentDispatch.js";
 import { EditorContainer } from "./EditorContainer.js";
 import type { EditorContext, DocumentModelModule } from "document-model";
 import { CreateDocumentModal } from "@powerhousedao/design-system";
@@ -20,6 +22,7 @@ import { CreateDocument } from "./CreateDocument.js";
 import {
   type DriveEditorContext,
   useDriveContext,
+  type User,
 } from "@powerhousedao/reactor-browser";
 import { InvoiceTable } from "./InvoiceTable/InvoiceTable.js";
 import { actions, Status } from "../../../document-models/invoice/index.js";
@@ -56,20 +59,30 @@ export function DriveExplorer({
 
   const { useDocumentEditorProps } = context;
 
-  // Get dispatch for the active document
-  const { dispatch: activeDispatch } = useDocumentEditorProps({
-    documentId: activeDocumentId || "",
-    documentType: "powerhouse/invoice",
-    driveId,
-    documentModelModule: documentModels[1],
-  });
+  // Use our custom hook to manage the dispatch map
+  const { dispatchMap, handleDispatchReady } = useDispatchMap(nodes, driveId, documentModels[1], context);
 
-  const handleBatchAction = (action: string) => {
+  const handleBatchAction = useCallback((action: string) => {
     Object.entries(selected).forEach(([id, checked]) => {
-      console.log("dispatch", activeDispatch);
-      console.log("Processing action", action, "for document", id);
+      console.log(action)
+      if(checked) {
+        if (action === 'approve' && dispatchMap[id]) {
+          dispatchMap[id](actions.editStatus({
+            status: "AWAITINGPAYMENT",
+        }));
+      } else if (action === 'reject' && dispatchMap[id]) {
+        dispatchMap[id](actions.editStatus({
+            status: "REJECTED",
+          }));
+        }
+      }
+      else if(action === 'pay' && dispatchMap[id]) {
+        dispatchMap[id](actions.editStatus({
+          status: "PAYMENTRECEIVED",
+        }));
+      }
     });
-  };
+  }, [selected, dispatchMap]);
 
   // Transform nodes using the custom hook
   const transformedNodes = useTransformedNodes(nodes, driveId);
@@ -171,6 +184,18 @@ export function DriveExplorer({
 
   return (
     <div className="flex h-full">
+      {/* Hidden DocumentDispatch components for each node */}
+      {nodes.map(node => (
+        <DocumentDispatch
+          key={node.id}
+          documentId={node.id}
+          driveId={driveId}
+          documentModelModule={documentModels[1]}
+          context={context}
+          onDispatchReady={(dispatch) => handleDispatchReady(node.id, dispatch)}
+        />
+      ))}
+
       {/* Sidebar */}
       {/* <div className="w-64 border-r border-gray-200 p-4 overflow-y-auto">
         <h2 className="text-lg font-semibold mb-4">Folders</h2>
@@ -240,7 +265,7 @@ export function DriveExplorer({
               setActiveDocumentId={setActiveDocumentId}
               files={files}
               state={state}
-              getDispatch={() => activeDispatch}
+              getDispatch={() => dispatchMap[activeDocumentId || ""]}
               selected={selected}
               setSelected={setSelected}
               onBatchAction={handleBatchAction}
