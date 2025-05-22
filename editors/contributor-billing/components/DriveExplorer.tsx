@@ -180,7 +180,6 @@ export function DriveExplorer({
     ? context.getEditor(activeDocument.documentType)
     : null;
 
-  console.log("selected", selected);
 
   return (
     <div className="flex h-full">
