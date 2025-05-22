@@ -505,7 +505,7 @@ const updateDocumentStatus = async (invoiceNo: string): Promise<void> => {
       if (reactorInvoiceNo === invoiceNo) {
         console.log(`Changing status of Invoice No: ${invoiceNo} to PAID`)
         await reactor.addAction('powerhouse', document.id, actions.editStatus({
-          status: "PAID",
+          status: "PAYMENTRECEIVED",
         }))
         return Promise.resolve()
       }
