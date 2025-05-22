@@ -5,7 +5,10 @@ export const RowActionMenu = ({
   options: { label: string; value: string }[];
   onAction: (action: string) => void;
 }) => (
-  <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
+  <div
+    className="absolute right-0 mt-2 w-[200px] rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
+    onClick={e => e.stopPropagation()}
+  >
     <div className="py-1">
       {options.map(opt => (
         <button

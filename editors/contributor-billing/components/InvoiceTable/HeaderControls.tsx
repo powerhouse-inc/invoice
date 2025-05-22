@@ -8,7 +8,7 @@ export const HeaderControls = ({
   onStatusChange,
   onSearchChange,
   onExport,
-  onBatchAction
+  onBatchAction,
 }: {
   contributorOptions?: { label: string; value: string }[];
   statusOptions?: { label: string; value: string }[];
@@ -18,59 +18,59 @@ export const HeaderControls = ({
   onExport?: () => void;
   onBatchAction?: (action: string) => void;
 }) => {
-  const [batchOpen, setBatchOpen] = useState(false);
-  const batchRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown on outside click
-  // (Add useEffect for click outside if needed)
+  const batchOptions = [
+    { label: "$ Pay Selected", value: "pay" },
+    { label: "Approve Selected", value: "approve" },
+    { label: "Reject Selected", value: "reject" },
+  ];
 
   return (
-    <div className="flex flex-row gap-2 items-center mb-4">
-      <Select
-        options={contributorOptions}
-        onChange={onContributorChange}
-        placeholder="Contributor"
-      />
-      <Select
-        options={statusOptions}
-        onChange={onStatusChange}
-        placeholder="Status"
-      />
-      <input
-        type="text"
-        className="border rounded px-2 py-1 text-sm"
-        placeholder="Search"
-        onChange={e => onSearchChange?.(e.target.value)}
-      />
-      <button
-        className="bg-white border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-100"
-        onClick={onExport}
-      >
-        Export to CSV
-      </button>
-      <div className="relative" ref={batchRef}>
-        <button
-          className="bg-white border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-100"
-          onClick={() => setBatchOpen(v => !v)}
-        >
-          Batch Action
-        </button>
-        {batchOpen && (
-          <div className="absolute right-0 mt-1 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
-            <div className="py-1">
-              <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" onClick={() => { onBatchAction?.("pay"); setBatchOpen(false); }}>
-                $ Pay Selected
-              </button>
-              <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" onClick={() => { onBatchAction?.("approve"); setBatchOpen(false); }}>
-                Approve Selected
-              </button>
-              <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-600" onClick={() => { onBatchAction?.("reject"); setBatchOpen(false); }}>
-                Rejected Selected
-              </button>
-            </div>
-          </div>
-        )}
+    <div className="flex flex-col gap-4 mb-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-bold">Powerhouse OH Admin Drive</h3>
+        <div className="flex gap-2 items-center">
+          <button
+            className="bg-white border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-100"
+            onClick={onExport}
+          >
+            Export to CSV
+          </button>
+          <Select
+            style={{
+              width: "180px",
+              height: "30px",
+            }}
+            options={batchOptions}
+            onChange={(value) => onBatchAction?.(value as string)}
+            placeholder="Batch Action"
+            selectionIcon="checkmark"
+          />
+        </div>
+      </div>
+      <div className="flex gap-2 items-center">
+        {/* <Select
+          options={contributorOptions}
+          onChange={onContributorChange}
+          placeholder="Contributor"
+        /> */}
+        <Select
+          style={{
+            width: "200px",
+            height: "30px",
+          }}
+          options={statusOptions}
+          onChange={onStatusChange}
+          placeholder="Status"
+          selectionIcon="checkmark"
+          multiple={true}
+        />
+        <input
+          type="text"
+          className="border rounded px-2 py-1 text-sm"
+          placeholder="Search"
+          onChange={(e) => onSearchChange?.(e.target.value)}
+        />
       </div>
     </div>
   );
-}; 
+};

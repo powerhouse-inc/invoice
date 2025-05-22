@@ -10,13 +10,21 @@ import {
 } from "document-drive";
 import { WagmiContext } from "@powerhousedao/design-system";
 import { DriveExplorer } from "./components/DriveExplorer.js";
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { generateId } from "document-model";
 
 export type IProps = DriveEditorProps<DocumentDriveDocument>;
 
 export function BaseEditor(props: IProps) {
   const { dispatch, context } = props;
+
+  // Use state for nodes
+  const [nodes, setNodes] = useState(props.document.state.global.nodes);
+
+  // Keep nodes in sync with props (in case of external updates)
+  useEffect(() => {
+    setNodes(props.document.state.global.nodes);
+  }, [props.document.state.global.nodes]);
 
   const onAddFolder = useCallback(
     (name: string, parentFolder?: string) => {
@@ -25,30 +33,31 @@ export function BaseEditor(props: IProps) {
           id: generateId(),
           name,
           parentFolder,
-        }),
+        })
       );
     },
-    [dispatch],
+    [dispatch]
   );
 
   const onDeleteNode = useCallback(
     (nodeId: string) => {
       dispatch(deleteNode({ id: nodeId }));
+      setNodes([...props.document.state.global.nodes]);
     },
-    [dispatch],
+    [dispatch, props.document.state.global.nodes]
   );
 
   const renameNode = useCallback(
     (nodeId: string, name: string) => {
       dispatch(updateNode({ id: nodeId, name }));
     },
-    [dispatch],
+    [dispatch]
   );
 
   const onCopyNode = useCallback(
     (nodeId: string, targetName: string, parentId?: string) => {
       const generateIdWrapper = (prevId: string) => generateId();
-      
+
       const copyNodesInput = generateNodesCopy(
         {
           srcId: nodeId,
@@ -56,7 +65,7 @@ export function BaseEditor(props: IProps) {
           targetName,
         },
         generateIdWrapper,
-        props.document.state.global.nodes,
+        props.document.state.global.nodes
       );
 
       const copyNodesAction = copyNodesInput.map((input) => {
@@ -67,14 +76,15 @@ export function BaseEditor(props: IProps) {
         dispatch(copyNodeAction);
       }
     },
-    [dispatch, props.document.state.global.nodes],
+    [dispatch, props.document.state.global.nodes]
   );
 
   return (
     <div className="new-drive-explorer" style={{ height: "100%" }}>
       <DriveExplorer
+        key={nodes.length}
         driveId={props.document.state.global.id}
-        nodes={props.document.state.global.nodes}
+        nodes={nodes}
         onAddFolder={onAddFolder}
         onDeleteNode={onDeleteNode}
         renameNode={renameNode}

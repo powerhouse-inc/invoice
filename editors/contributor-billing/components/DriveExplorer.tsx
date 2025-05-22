@@ -6,7 +6,7 @@ import {
   type UiFolderNode,
   type UiNode,
 } from "@powerhousedao/design-system";
-import { useCallback, useState, useRef, useEffect } from "react";
+import { useCallback, useState, useRef, useEffect, useMemo } from "react";
 import type { FileNode, Node } from "document-drive";
 import { FileItemsGrid } from "./FileItemsGrid.js";
 import { FolderItemsGrid } from "./FolderItemsGrid.js";
@@ -22,6 +22,7 @@ import {
   useDriveContext,
 } from "@powerhousedao/reactor-browser";
 import { InvoiceTable } from "./InvoiceTable/InvoiceTable.js";
+import { actions, Status } from "../../../document-models/invoice/index.js";
 
 interface DriveExplorerProps {
   driveId: string;
@@ -47,8 +48,52 @@ export function DriveExplorer({
     string | undefined
   >();
   const [openModal, setOpenModal] = useState(false);
+  const [selected, setSelected] = useState<{ [id: string]: boolean }>({});
   const selectedDocumentModel = useRef<DocumentModelModule | null>(null);
-  const { addDocument, documentModels } = useDriveContext();
+  const { addDocument, documentModels, useDriveDocumentStates } =
+    useDriveContext();
+  const [state, fetchDocuments] = useDriveDocumentStates({ driveId });
+
+  const { useDocumentEditorProps } = context;
+
+  // Get dispatch for the active document
+  const { dispatch: activeDispatch } = useDocumentEditorProps({
+    documentId: activeDocumentId || "",
+    documentType: "powerhouse/invoice",
+    driveId,
+    documentModelModule: documentModels[1],
+  });
+
+  const handleBatchAction = (action: string) => {
+    Object.entries(selected).forEach(([id, checked]) => {
+      console.log("dispatch", activeDispatch);
+      console.log("Processing action", action, "for document", id);
+    });
+  };
+
+  // Transform nodes using the custom hook
+  const transformedNodes = useTransformedNodes(nodes, driveId);
+
+  // Separate folders and files
+  const folders = transformedNodes.filter(
+    (node): node is UiFolderNode => node.kind === "FOLDER"
+  );
+  const files = transformedNodes.filter(
+    (node): node is UiFileNode => node.kind === "FILE"
+  );
+
+  // Get the active document info from nodes
+  const activeDocument = activeDocumentId
+    ? files.find((file) => file.id === activeDocumentId)
+    : undefined;
+
+  const documentModelModule = activeDocument
+    ? context.getDocumentModelModule(activeDocument.documentType)
+    : null;
+
+  useEffect(() => {
+    fetchDocuments(driveId).catch(console.error);
+  }, [activeDocumentId]);
 
   // Dummy functions to satisfy component types
   const dummyDuplicateNode = useCallback((node: BaseUiNode) => {
@@ -59,14 +104,14 @@ export function DriveExplorer({
     async (file: File, parentNode: BaseUiNode | null) => {
       console.log("Add file:", file, parentNode);
     },
-    [],
+    []
   );
 
   const dummyMoveNode = useCallback(
     async (uiNode: BaseUiNode, targetNode: BaseUiNode) => {
       console.log("Move node:", uiNode, targetNode);
     },
-    [],
+    []
   );
 
   const handleNodeSelect = useCallback((node: BaseUiFolderNode) => {
@@ -92,13 +137,13 @@ export function DriveExplorer({
       const node = await addDocument(
         driveId,
         fileName,
-        documentModel.documentModel.id,
+        documentModel.documentModel.id
       );
 
       selectedDocumentModel.current = null;
       setActiveDocumentId(node.id);
     },
-    [addDocument, driveId],
+    [addDocument, driveId]
   );
 
   const onSelectDocumentModel = useCallback(
@@ -106,41 +151,23 @@ export function DriveExplorer({
       selectedDocumentModel.current = documentModel;
       setOpenModal(true);
     },
-    [],
+    []
   );
 
   const filteredDocumentModels = documentModels;
-
-  // Transform nodes using the custom hook
-  const transformedNodes = useTransformedNodes(nodes, driveId);
-
-  // Separate folders and files
-  const folders = transformedNodes.filter(
-    (node): node is UiFolderNode => node.kind === "FOLDER",
-  );
-  const files = transformedNodes.filter(
-    (node): node is UiFileNode => node.kind === "FILE",
-  );
 
   // Get children of selected folder using the custom hook
   const selectedFolderChildren = useSelectedFolderChildren(
     selectedNodeId,
     folders,
-    files,
+    files
   );
-
-  // Get the active document info from nodes
-  const activeDocument = activeDocumentId
-    ? files.find((file) => file.id === activeDocumentId)
-    : undefined;
-
-  const documentModelModule = activeDocument
-    ? context.getDocumentModelModule(activeDocument.documentType)
-    : null;
 
   const editorModule = activeDocument
     ? context.getEditor(activeDocument.documentType)
     : null;
+
+  console.log("selected", selected);
 
   return (
     <div className="flex h-full">
@@ -180,7 +207,7 @@ export function DriveExplorer({
                 onCopyNode(
                   uiNode.id,
                   "Copy of " + uiNode.name,
-                  uiNode.parentFolder,
+                  uiNode.parentFolder
                 )
               }
               onDeleteNode={onDeleteNode}
@@ -209,9 +236,17 @@ export function DriveExplorer({
               createDocument={onSelectDocumentModel}
               documentModels={filteredDocumentModels}
             />
+            <InvoiceTable
+              setActiveDocumentId={setActiveDocumentId}
+              files={files}
+              state={state}
+              getDispatch={() => activeDispatch}
+              selected={selected}
+              setSelected={setSelected}
+              onBatchAction={handleBatchAction}
+            />
           </>
         )}
-      <InvoiceTable />
       </div>
 
       {/* Create Document Modal */}

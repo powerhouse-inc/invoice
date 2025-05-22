@@ -1,23 +1,24 @@
 import { useState, useRef } from "react";
 import { RowActionMenu } from "./RowActionMenu.js";
+import { UiFileNode } from "@powerhousedao/design-system";
 
 export const InvoiceTableRow = ({
   row,
   isSelected,
   onSelect,
   menuOptions,
-  onMenuAction
+  onMenuAction,
+  setActiveDocumentId
 }: {
   row: any;
   isSelected: boolean;
   onSelect: (checked: boolean) => void;
   menuOptions: { label: string; value: string }[];
   onMenuAction: (action: string) => void;
+  setActiveDocumentId: (id: string) => void;
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLTableCellElement>(null);
-
-  // Add click outside logic if needed
 
   return (
     <tr className="hover:bg-gray-50">
@@ -36,18 +37,31 @@ export const InvoiceTableRow = ({
       <td className="px-2 py-2">{row.currency}</td>
       <td className="px-2 py-2">{row.amount}</td>
       <td className="px-2 py-2 text-right relative" ref={menuRef}>
-        <button
-          className="px-2 py-1 hover:bg-gray-200 rounded"
-          onClick={() => setMenuOpen(v => !v)}
-        >
-          &#x2026;
-        </button>
-        {menuOpen && (
-          <RowActionMenu
-            options={menuOptions}
-            onAction={action => { onMenuAction(action); setMenuOpen(false); }}
-          />
-        )}
+        <div className="relative inline-block">
+          <button
+            className="px-2 py-1 hover:bg-gray-200 rounded"
+            onClick={() => setMenuOpen(v => !v)}
+          >
+            &#x2026;
+          </button>
+          {menuOpen && (
+            <>
+              {/* Overlay to catch outside clicks */}
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setMenuOpen(false)}
+              />
+              <RowActionMenu
+                options={menuOptions}
+                onAction={action => {
+                  onMenuAction(action);
+                  setMenuOpen(false);
+                  setActiveDocumentId(row.id);
+                }}
+              />
+            </>
+          )}
+        </div>
       </td>
     </tr>
   );
