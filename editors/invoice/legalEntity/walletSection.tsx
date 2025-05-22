@@ -1,9 +1,9 @@
 import { ComponentProps, useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { EditLegalEntityWalletInput } from "./legalEntity.js";
-import { TextInput, FieldLabel } from "./common.js";
 import { InputField } from "../components/inputField.js";
-import { validateField, ValidationContext, ValidationResult } from "../validation/validationManager.js";
+import { ValidationResult } from "../validation/validationManager.js";
+import { Select } from "@powerhousedao/document-engineering";
 
 export type LegalEntityWalletSectionProps = Omit<
   ComponentProps<"div">,
@@ -20,7 +20,15 @@ export type LegalEntityWalletSectionProps = Omit<
 export const LegalEntityWalletSection = (
   props: LegalEntityWalletSectionProps
 ) => {
-  const { value, onChange, disabled, currency, status, walletvalidation, ...divProps } = props;
+  const {
+    value,
+    onChange,
+    disabled,
+    currency,
+    status,
+    walletvalidation,
+    ...divProps
+  } = props;
   const [localState, setLocalState] = useState(value);
 
   useEffect(() => {
@@ -29,96 +37,59 @@ export const LegalEntityWalletSection = (
 
   const handleInputChange = (
     field: keyof EditLegalEntityWalletInput,
-    event: React.ChangeEvent<HTMLTextAreaElement>,
+    event: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
-    setLocalState({
-      ...localState,
+    setLocalState(prev => ({
+      ...prev,
       [field]: event.target.value,
-    });
+    }));
   };
 
   const handleBlur = (
     field: keyof EditLegalEntityWalletInput,
-    event: React.FocusEvent<HTMLTextAreaElement>,
+    event: React.FocusEvent<HTMLTextAreaElement>
   ) => {
     const newValue = event.target.value;
     onChange({
+      // ...localState,
       [field]: newValue,
-    } as Partial<EditLegalEntityWalletInput>);
+    });
   };
 
   const CHAIN_PRESETS = [
-    {
-      chainName: "Base",
-      chainId: "8453",
-    },
-    {
-      chainName: "Ethereum",
-      chainId: "1",
-    },
-    {
-      chainName: "Arbitrum One",
-      chainId: "42161",
-    },
-    // {
-    //   chainName: "Gnosis",
-    //   chainId: "100",
-    // },
+    { chainName: "Base", chainId: "8453" },
+    { chainName: "Ethereum", chainId: "1" },
+    { chainName: "Arbitrum One", chainId: "42161" },
+    // { chainName: "Gnosis", chainId: "100" },
   ];
 
-  const renderPresets = () => {
-    const activePreset = CHAIN_PRESETS.find(
-      (p) => p.chainName == localState.chainName
-    );
+  // Map CHAIN_PRESETS to Select options
+  const chainOptions = CHAIN_PRESETS.map((preset) => ({
+    label: preset.chainName,
+    value: preset.chainId,
+  }));
 
-    const handleSelectPreset = (e: { target: { value: string } }) => {
-      const preset = CHAIN_PRESETS.find(
-        (p) => p.chainName == e.target.value && p.chainId !== "0"
-      );
-      if (preset) {
-        setLocalState({
-          chainId: preset.chainId,
-          chainName: preset.chainName,
-        });
-        onChange({
-          chainId: preset.chainId,
-          chainName: preset.chainName,
-        });
-      }
-    };
+  // Find the selected option by chainId
+  const selectedChain = chainOptions.find(
+    (opt) => opt.value === localState.chainId
+  )?.value;
 
-    return (
-      <div className={"px-4 py-2"}>
-        <select
-          className={
-            "px-4 py-2 rounded-full font-semibold text-sm bg-gray-200 text-gray-800"
-          }
-          onChange={handleSelectPreset}
-        >
-          {activePreset ? (
-            <option key={activePreset.chainId} value={activePreset.chainName}>
-              {activePreset.chainName}
-            </option>
-          ) : (
-            <option key={0} value={0}>
-              Select Chain
-            </option>
-          )}
-          {CHAIN_PRESETS.filter((p) => p.chainId !== activePreset?.chainId).map(
-            (preset) => (
-              <option key={preset.chainId} value={preset.chainName}>
-                {preset.chainName}
-              </option>
-            )
-          )}
-        </select>
-        {/* {localState.chainName !== "Base" && (
-          <div className="space-y-4" style={{ color: "red" }}>
-            Unsupported Chain
-          </div>
-        )} */}
-      </div>
-    );
+
+  const handleChainChange = (value: string | string[]) => {
+    const chainId = Array.isArray(value) ? value[0] : value;
+    const preset = CHAIN_PRESETS.find((p) => p.chainId === chainId);
+    if (preset) {
+      setLocalState(prev => ({
+        ...prev,
+        chainId: preset.chainId,
+        chainName: preset.chainName,
+      }));
+      onChange({
+        ...localState,
+        chainId: preset.chainId,
+        chainName: preset.chainName,
+      });
+    }
   };
 
   return (
@@ -133,10 +104,14 @@ export const LegalEntityWalletSection = (
         <h3 className="mb-4 text-lg font-semibold text-black-200">
           Wallet Information
         </h3>
-
-        {renderPresets()}
+        <Select
+          style={{ width: "100%" }}
+          options={chainOptions}
+          value={selectedChain || ""}
+          onChange={handleChainChange}
+          placeholder="Select Chain"
+        />
       </div>
-
       <div className="space-y-6">
         <div className="space-y-4">
           <InputField
