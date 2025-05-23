@@ -7,7 +7,8 @@ import {
   type UiNode,
 } from "@powerhousedao/design-system";
 import { useCallback, useState, useRef, useEffect, useMemo } from "react";
-import type { FileNode, Node } from "document-drive";
+import { twMerge } from "tailwind-merge";
+import { addFile, copyNode, DocumentDriveAction, moveNode, type DocumentDriveDocument, type FileNode, type Node } from "document-drive";
 import { FileItemsGrid } from "./FileItemsGrid.js";
 import { FolderItemsGrid } from "./FolderItemsGrid.js";
 import { FolderTree } from "./FolderTree.js";
@@ -16,16 +17,20 @@ import { useSelectedFolderChildren } from "../hooks/useSelectedFolderChildren.js
 import { useDispatchMap } from "../hooks/useDispatchMap.js";
 import { DocumentDispatch } from "./DocumentDispatch.js";
 import { EditorContainer } from "./EditorContainer.js";
-import type { EditorContext, DocumentModelModule } from "document-model";
+import type { EditorContext, DocumentModelModule, EditorDispatch } from "document-model";
 import { CreateDocumentModal } from "@powerhousedao/design-system";
 import { CreateDocument } from "./CreateDocument.js";
 import {
   type DriveEditorContext,
+  UiDriveNode,
+  useDriveActions,
+  useDriveActionsWithUiNodes,
   useDriveContext,
   type User,
 } from "@powerhousedao/reactor-browser";
 import { InvoiceTable } from "./InvoiceTable/InvoiceTable.js";
 import { actions, Status } from "../../../document-models/invoice/index.js";
+import { useDrop } from "../hooks/useDrop.js";
 
 interface DriveExplorerProps {
   driveId: string;
@@ -35,6 +40,8 @@ interface DriveExplorerProps {
   renameNode: (nodeId: string, name: string) => void;
   onCopyNode: (nodeId: string, targetName: string, parentId?: string) => void;
   context: DriveEditorContext;
+  document: DocumentDriveDocument;
+  dispatch: EditorDispatch<DocumentDriveAction>
 }
 
 export function DriveExplorer({
@@ -45,6 +52,8 @@ export function DriveExplorer({
   onAddFolder,
   onCopyNode,
   context,
+  document,
+  dispatch
 }: DriveExplorerProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
   const [activeDocumentId, setActiveDocumentId] = useState<
@@ -53,7 +62,7 @@ export function DriveExplorer({
   const [openModal, setOpenModal] = useState(false);
   const [selected, setSelected] = useState<{ [id: string]: boolean }>({});
   const selectedDocumentModel = useRef<DocumentModelModule | null>(null);
-  const { addDocument, documentModels, useDriveDocumentStates } =
+  const { addDocument, documentModels, useDriveDocumentStates, selectedNode} =
     useDriveContext();
   const [state, fetchDocuments] = useDriveDocumentStates({ driveId });
 
@@ -159,6 +168,14 @@ export function DriveExplorer({
     [addDocument, driveId]
   );
 
+  const { addFile, copyNode, moveNode } = useDriveActionsWithUiNodes(document, dispatch);
+  const { isDropTarget, dropProps } = useDrop({
+    uiNode: selectedNode?.kind === "FOLDER" ? selectedNode as UiFolderNode : null,
+    onAddFile: addFile,
+    onCopyNode: copyNode,
+    onMoveNode: moveNode,
+  });
+
   const onSelectDocumentModel = useCallback(
     (documentModel: DocumentModelModule) => {
       selectedDocumentModel.current = documentModel;
@@ -216,60 +233,55 @@ export function DriveExplorer({
             onClose={handleEditorClose}
             title={activeDocument.name}
             documentModelModule={documentModelModule}
-            editorModule={editorModule}
-          />
+            editorModule={editorModule} />
         ) : (
-          <>
-            {/* <h2 className="text-lg font-semibold mb-4">Contents</h2> */}
+          <div {...dropProps}
+              className={twMerge(
+                'rounded-md border-2 border-transparent ',
+                isDropTarget && 'border-dashed border-blue-100'
+              )}>
+              {/* <h2 className="text-lg font-semibold mb-4">Contents</h2> */}
 
-            {/* Folders Section */}
-            <FolderItemsGrid
-              folders={selectedFolderChildren.folders}
-              onSelectNode={handleNodeSelect}
-              onRenameNode={renameNode}
-              onDuplicateNode={(uiNode) =>
-                onCopyNode(
+              {/* Folders Section */}
+              <FolderItemsGrid
+                folders={selectedFolderChildren.folders}
+                onSelectNode={handleNodeSelect}
+                onRenameNode={renameNode}
+                onDuplicateNode={(uiNode) => onCopyNode(
                   uiNode.id,
                   "Copy of " + uiNode.name,
                   uiNode.parentFolder
-                )
-              }
-              onDeleteNode={onDeleteNode}
-              onAddFile={dummyAddFile}
-              onCopyNode={async (uiNode, targetNode) =>
-                onCopyNode(uiNode.id, "Copy of " + uiNode.name, targetNode.id)
-              }
-              onMoveNode={dummyMoveNode}
-              isAllowedToCreateDocuments={true}
-              onAddFolder={onAddFolder}
-              parentFolderId={selectedNodeId}
-            />
+                )}
+                onDeleteNode={onDeleteNode}
+                onAddFile={dummyAddFile}
+                onCopyNode={async (uiNode, targetNode) => onCopyNode(uiNode.id, "Copy of " + uiNode.name, targetNode.id)}
+                onMoveNode={dummyMoveNode}
+                isAllowedToCreateDocuments={true}
+                onAddFolder={onAddFolder}
+                parentFolderId={selectedNodeId} />
 
-            {/* Files Section */}
-            <FileItemsGrid
-              files={selectedFolderChildren.files}
-              onSelectNode={handleFileSelect}
-              onRenameNode={renameNode}
-              onDuplicateNode={dummyDuplicateNode}
-              onDeleteNode={onDeleteNode}
-              isAllowedToCreateDocuments={true}
-            />
+              {/* Files Section */}
+              <FileItemsGrid
+                files={selectedFolderChildren.files}
+                onSelectNode={handleFileSelect}
+                onRenameNode={renameNode}
+                onDuplicateNode={dummyDuplicateNode}
+                onDeleteNode={onDeleteNode}
+                isAllowedToCreateDocuments={true} />
 
-            {/* Create Document Section */}
-            <CreateDocument
-              createDocument={onSelectDocumentModel}
-              documentModels={filteredDocumentModels}
-            />
-            <InvoiceTable
-              setActiveDocumentId={setActiveDocumentId}
-              files={files}
-              state={state}
-              getDispatch={() => dispatchMap[activeDocumentId || ""]}
-              selected={selected}
-              setSelected={setSelected}
-              onBatchAction={handleBatchAction}
-            />
-          </>
+              {/* Create Document Section */}
+              <CreateDocument
+                createDocument={onSelectDocumentModel}
+                documentModels={filteredDocumentModels} />
+              <InvoiceTable
+                setActiveDocumentId={setActiveDocumentId}
+                files={files}
+                state={state}
+                getDispatch={() => dispatchMap[activeDocumentId || ""]}
+                selected={selected}
+                setSelected={setSelected}
+                onBatchAction={handleBatchAction} />
+            </div>
         )}
       </div>
 

@@ -90,6 +90,8 @@ export function BaseEditor(props: IProps) {
         renameNode={renameNode}
         onCopyNode={onCopyNode}
         context={context}
+        document={props.document}
+        dispatch={dispatch}
       />
     </div>
   );
