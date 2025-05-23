@@ -1,0 +1,9 @@
+Narration,Date,Description,AccountCode,TaxRate,Amount,TrackingName1,TrackingOption1,TrackingName2,TrackingOption2
+"Matrix Consultants, invoice 1","2025-05-19","Accounts Payable","802","Tax Exempt (0%)","-1.00","","","",""
+"Matrix Consultants, invoice 1","2025-05-19","Contributions for Invoicing","","Tax Exempt (0%)","1.00","","","",""
+"London Accounting, invoice 34","2025-05-19","Accounts Payable","802","Tax Exempt (0%)","-51850.00","","","",""
+"London Accounting, invoice 34","2025-05-19","Accounting Services","","Tax Exempt (0%)","50000.00","","","",""
+"London Accounting, invoice 34","2025-05-19","Flight Tickets","","Tax Exempt (0%)","1350.00","","","",""
+"London Accounting, invoice 34","2025-05-19","Food","","Tax Exempt (0%)","500.00","","","",""
+"Pauls Pies, invoice 23","2025-05-19","Accounts Payable","802","Tax Exempt (0%)","-50.00","","","",""
+"Pauls Pies, invoice 23","2025-05-19","Contributions for Invoicing","","Tax Exempt (0%)","50.00","","","",""
