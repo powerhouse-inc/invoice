@@ -1,8 +1,7 @@
 import { Subgraph } from "@powerhousedao/reactor-api";
-
 import { schema } from "./schema.js";
-import { getResolvers, handleWebhook, cleanupOldPendingTransactions } from "./resolvers.js";
-
+import { getResolvers } from "./resolvers.js";
+import { handleWebhook, cleanupOldPendingTransactions, setReactor } from "./customResolvers.js";
 import express from "express";
 import cors from "cors";
 
@@ -14,6 +13,9 @@ export class InvoiceSubgraph extends Subgraph {
   additionalContextFields = {};
   async onSetup() {
     try {
+      // Set the reactor instance for custom resolvers
+      setReactor(this.reactor);
+
       if (this.graphqlManager && this.graphqlManager['app']) {
         console.log('Registering webhook handler at /webhook');
 
