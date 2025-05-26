@@ -5,20 +5,21 @@
  */
 
 import type { InvoiceItemsOperations } from "../../gen/items/operations.js";
-import type { InvoiceLineItem, InvoiceState } from "../../gen/types.js";
+import type { InvoiceLineItem, InvoiceState, InvoiceLineItemTag } from "../../gen/types.js";
 
 export const reducer: InvoiceItemsOperations = {
   addLineItemOperation(state, action, dispatch) {
     try {
-      const item = {
+      const item: InvoiceLineItem = {
         ...action.input,
+        lineItemTag: (action.input.lineItemTag ?? []) as InvoiceLineItemTag[],
       };
 
       if (state.lineItems.find((x) => x.id === item.id))
         throw new Error("Duplicate input.id");
 
-      validatePrices(item);
-      state.lineItems.push(item);
+      validatePrices(item as InvoiceLineItem);
+      state.lineItems.push(item as InvoiceLineItem);
       updateTotals(state);
     } catch (e) {
       console.error(e);
@@ -33,6 +34,11 @@ export const reducer: InvoiceItemsOperations = {
       const sanitizedInput = Object.fromEntries(
         Object.entries(action.input).filter(([, value]) => value !== null),
       ) as Partial<InvoiceLineItem>;
+
+      // Ensure lineItemTag is always an array if provided
+      if ('lineItemTag' in action.input) {
+        sanitizedInput.lineItemTag = (action.input.lineItemTag ?? []) as any;
+      }
 
       const nextItem: InvoiceLineItem = {
         ...stateItem,

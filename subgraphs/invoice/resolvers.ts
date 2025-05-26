@@ -4,15 +4,13 @@
 import { type Subgraph } from "@powerhousedao/reactor-api";
 import { addFile } from "document-drive";
 import { actions } from "../../document-models/invoice/index.js";
-import { generateId } from "document-model";
+import { generateId, hashKey } from "document-model";
 import { Invoice_processGnosisPayment, Invoice_createRequestFinancePayment, Invoice_uploadInvoicePdfChunk } from "./customResolvers.js";
 
 const DEFAULT_DRIVE_ID = "powerhouse";
 
-let reactor: any;
-
 export const getResolvers = (subgraph: Subgraph): Record<string, any> => {
-  reactor = subgraph.reactor;
+  const reactor = subgraph.reactor;
 
   return {
     Query: {
@@ -35,7 +33,7 @@ export const getResolvers = (subgraph: Subgraph): Record<string, any> => {
             const driveId: string = args.driveId || DEFAULT_DRIVE_ID;
             const docsIds = await reactor.getDocuments(driveId);
             const docs = await Promise.all(
-              docsIds.map(async (docId: any) => {
+              docsIds.map(async (docId) => {
                 const doc = await reactor.getDocument(driveId, docId);
                 return {
                   id: docId,
@@ -70,12 +68,12 @@ export const getResolvers = (subgraph: Subgraph): Record<string, any> => {
               {
                 branch: "main",
                 scope: "global",
-                syncId: generateId(),
+                syncId: hashKey(),
               },
               {
                 branch: "main",
                 scope: "local",
-                syncId: generateId(),
+                syncId: hashKey(),
               },
             ],
           }),

@@ -700,6 +700,7 @@ function mapDocumentAiToInvoice(
                         if (!isNaN(parsedQuantity) && !isNaN(parsedUnitPrice)) {
                             invoiceData.lineItems = invoiceData.lineItems || [];
                             invoiceData.lineItems.push({
+                                lineItemTag: [],
                                 description,
                                 quantity: parsedQuantity,
                                 unitPriceTaxExcl: parsedUnitPrice,

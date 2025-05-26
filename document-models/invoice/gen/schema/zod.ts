@@ -21,6 +21,8 @@ import type {
   InvoiceAccountType,
   InvoiceAccountTypeInput,
   InvoiceLineItem,
+  InvoiceLineItemTag,
+  InvoiceLineItemTagInput,
   InvoiceState,
   InvoiceWallet,
   LegalEntity,
@@ -79,6 +81,9 @@ export function AddLineItemInputSchema(): z.ZodObject<
     currency: z.string(),
     description: z.string(),
     id: z.string(),
+    lineItemTag: z
+      .array(z.lazy(() => InvoiceLineItemTagInputSchema()))
+      .nullish(),
     quantity: z.number(),
     taxPercent: z.number(),
     totalPriceTaxExcl: z.number(),
@@ -231,6 +236,9 @@ export function EditLineItemInputSchema(): z.ZodObject<
     currency: z.string().nullish(),
     description: z.string().nullish(),
     id: z.string(),
+    lineItemTag: z
+      .array(z.lazy(() => InvoiceLineItemTagInputSchema()))
+      .nullish(),
     quantity: z.number().nullish(),
     taxPercent: z.number().nullish(),
     totalPriceTaxExcl: z.number().nullish(),
@@ -345,12 +353,34 @@ export function InvoiceLineItemSchema(): z.ZodObject<
     currency: z.string(),
     description: z.string(),
     id: z.string(),
+    lineItemTag: z.array(InvoiceLineItemTagSchema()),
     quantity: z.number(),
     taxPercent: z.number(),
     totalPriceTaxExcl: z.number(),
     totalPriceTaxIncl: z.number(),
     unitPriceTaxExcl: z.number(),
     unitPriceTaxIncl: z.number(),
+  });
+}
+
+export function InvoiceLineItemTagSchema(): z.ZodObject<
+  Properties<InvoiceLineItemTag>
+> {
+  return z.object({
+    __typename: z.literal("InvoiceLineItemTag").optional(),
+    dimension: z.string(),
+    label: z.string().nullable(),
+    value: z.string(),
+  });
+}
+
+export function InvoiceLineItemTagInputSchema(): z.ZodObject<
+  Properties<InvoiceLineItemTagInput>
+> {
+  return z.object({
+    dimension: z.string(),
+    label: z.string().nullish(),
+    value: z.string(),
   });
 }
 

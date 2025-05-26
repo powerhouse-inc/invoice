@@ -103,6 +103,13 @@ export const schema: DocumentNode = gql`
     unitPriceTaxIncl: Float!
     totalPriceTaxExcl: Float!
     totalPriceTaxIncl: Float!
+    lineItemTag: [InvoiceLineItemTag!]!
+  }
+
+  type InvoiceLineItemTag {
+    dimension: String!
+    value: String!
+    label: String
   }
 
   union LegalEntityId = LegalEntityTaxId | LegalEntityCorporateRegistrationId
@@ -140,6 +147,12 @@ export const schema: DocumentNode = gql`
     SAVINGS
     TRUST
     WALLET
+  }
+
+  input InvoiceLineItemTagInput {
+    dimension: String!
+    value: String!
+    label: String
   }
 
   """
@@ -230,51 +243,7 @@ export const schema: DocumentNode = gql`
       docId: PHID
       input: Invoice_DeleteLineItemInput
     ): Int
-    Invoice_uploadInvoicePdfChunk(
-      chunk: String!
-      chunkIndex: Int!
-      totalChunks: Int!
-      fileName: String!
-      sessionId: String!
-    ): UploadInvoicePdfChunkResult!
-    Invoice_createRequestFinancePayment(
-      paymentData: JSON!
-    ): CreateRequestFinancePaymentResult!
-    Invoice_processGnosisPayment(
-      payerWallet: JSON!
-      paymentDetails: JSON!
-      invoiceNo: String!
-    ): ProcessGnosisPaymentResult
   }
-
-  """
-  Result type for PDF chunk upload
-  """
-  type UploadInvoicePdfChunkResult {
-    success: Boolean!
-    data: JSON
-    error: String
-  }
-
-  """
-  Result type for request finance payment request
-  """
-  type CreateRequestFinancePaymentResult {
-    success: Boolean!
-    data: JSON
-    error: String
-  }
-
-  """
-  Result type for process gnosis payment
-  """
-  type ProcessGnosisPaymentResult {
-    success: Boolean!
-    data: JSON
-    error: String
-  }
-
-  scalar JSON
 
   """
   Module: General
@@ -353,6 +322,7 @@ export const schema: DocumentNode = gql`
     chainId: String
     address: String
   }
+
   input Invoice_EditPayerInput {
     id: String
     name: String
@@ -416,6 +386,7 @@ export const schema: DocumentNode = gql`
     unitPriceTaxIncl: Float!
     totalPriceTaxExcl: Float!
     totalPriceTaxIncl: Float!
+    lineItemTag: [InvoiceLineItemTagInput!]
   }
   input Invoice_EditLineItemInput {
     id: OID!
@@ -427,20 +398,9 @@ export const schema: DocumentNode = gql`
     unitPriceTaxIncl: Float
     totalPriceTaxExcl: Float
     totalPriceTaxIncl: Float
+    lineItemTag: [InvoiceLineItemTagInput!]
   }
   input Invoice_DeleteLineItemInput {
     id: OID!
-  }
-  
-  input Invoice_UploadInvoicePdfChunkInput {
-    chunk: String!
-    chunkIndex: Int!
-    totalChunks: Int!
-    fileName: String!
-    sessionId: String!
-  }
-
-  input Invoice_CreateRequestFinancePaymentInput {
-    paymentData: JSON!
   }
 `;

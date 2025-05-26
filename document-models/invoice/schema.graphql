@@ -112,6 +112,13 @@ type InvoiceLineItem {
   unitPriceTaxIncl: Float!
   totalPriceTaxExcl: Float!
   totalPriceTaxIncl: Float!
+  lineItemTag: [InvoiceLineItemTag!]!
+}
+
+type InvoiceLineItemTag {
+  dimension: String!
+  value: String!
+  label: String
 }
 
 union LegalEntityId = LegalEntityTaxId | LegalEntityCorporateRegistrationId
@@ -150,6 +157,12 @@ enum InvoiceAccountTypeInput {
   TRUST
   WALLET
 }
+
+input InvoiceLineItemTagInput {
+  dimension: String!
+  value: String!
+  label: String
+} 
 
 
 
@@ -301,6 +314,7 @@ input AddLineItemInput {
     unitPriceTaxIncl: Float!
     totalPriceTaxExcl: Float!
     totalPriceTaxIncl: Float!
+    lineItemTag: [InvoiceLineItemTagInput!]
 }
 
 input EditLineItemInput {
@@ -313,6 +327,7 @@ input EditLineItemInput {
     unitPriceTaxIncl: Float
     totalPriceTaxExcl: Float
     totalPriceTaxIncl: Float
+    lineItemTag: [InvoiceLineItemTagInput!]
 }
 
 input DeleteLineItemInput {

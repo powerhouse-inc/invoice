@@ -59,6 +59,7 @@ export type AddLineItemInput = {
   currency: Scalars["String"]["input"];
   description: Scalars["String"]["input"];
   id: Scalars["OID"]["input"];
+  lineItemTag?: InputMaybe<Array<InvoiceLineItemTagInput>>;
   quantity: Scalars["Float"]["input"];
   taxPercent: Scalars["Float"]["input"];
   totalPriceTaxExcl: Scalars["Float"]["input"];
@@ -174,6 +175,7 @@ export type EditLineItemInput = {
   currency?: InputMaybe<Scalars["String"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
   id: Scalars["OID"]["input"];
+  lineItemTag?: InputMaybe<Array<InvoiceLineItemTagInput>>;
   quantity?: InputMaybe<Scalars["Float"]["input"]>;
   taxPercent?: InputMaybe<Scalars["Float"]["input"]>;
   totalPriceTaxExcl?: InputMaybe<Scalars["Float"]["input"]>;
@@ -270,12 +272,25 @@ export type InvoiceLineItem = {
   currency: Scalars["String"]["output"];
   description: Scalars["String"]["output"];
   id: Scalars["OID"]["output"];
+  lineItemTag: Array<InvoiceLineItemTag>;
   quantity: Scalars["Float"]["output"];
   taxPercent: Scalars["Float"]["output"];
   totalPriceTaxExcl: Scalars["Float"]["output"];
   totalPriceTaxIncl: Scalars["Float"]["output"];
   unitPriceTaxExcl: Scalars["Float"]["output"];
   unitPriceTaxIncl: Scalars["Float"]["output"];
+};
+
+export type InvoiceLineItemTag = {
+  dimension: Scalars["String"]["output"];
+  label: Maybe<Scalars["String"]["output"]>;
+  value: Scalars["String"]["output"];
+};
+
+export type InvoiceLineItemTagInput = {
+  dimension: Scalars["String"]["input"];
+  label?: InputMaybe<Scalars["String"]["input"]>;
+  value: Scalars["String"]["input"];
 };
 
 export type InvoiceState = {
