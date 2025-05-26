@@ -1,4 +1,4 @@
-import { Form, CurrencyCodeField } from "@powerhousedao/design-system/scalars";
+import { Form, CurrencyCodeField } from "@powerhousedao/document-engineering/scalars";
 import { ValidationResult } from "../validation/validationManager.js";
 
 interface CurrencyFormProps {
@@ -7,10 +7,12 @@ interface CurrencyFormProps {
   validation?: ValidationResult | null;
 }
 
-const currencyList = [
-  { ticker: "USD", crypto: false },
+export const currencyList = [
   { ticker: "USDS", crypto: true },
+  { ticker: "DAI", crypto: true },
+  { ticker: "USD", crypto: false },
   { ticker: "EUR", crypto: false },
+  { ticker: "DKK", crypto: false },
   { ticker: "GBP", crypto: false },
   { ticker: "JPY", crypto: false },
   { ticker: "CNY", crypto: false },

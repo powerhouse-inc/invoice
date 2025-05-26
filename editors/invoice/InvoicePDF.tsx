@@ -1,6 +1,14 @@
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  Image,
+} from "@react-pdf/renderer";
 import { InvoiceState } from "../../document-models/invoice/index.js";
-import countries  from "world-countries";
+import powerhouseLogo from "./assets/powerhouseLogo.png";
+import countries from "world-countries";
 
 type Country = {
   name: {
@@ -10,7 +18,7 @@ type Country = {
   };
   cca2: string;
 };
-const countriesArray = (countries as unknown) as Country[];
+const countriesArray = countries as unknown as Country[];
 
 function getCountryName(countryCode: string) {
   const country = countriesArray.find((c) => c.cca2 === countryCode);
@@ -19,10 +27,21 @@ function getCountryName(countryCode: string) {
 
 // Create styles
 const styles = StyleSheet.create({
+  defaultText: {
+    fontFamily: "Helvetica", // Built-in font as fallback
+  },
+  pageBackground: {
+    backgroundColor: "#f8fafc",
+  },
   page: {
     flexDirection: "column",
     backgroundColor: "#FFFFFF",
-    padding: 20,
+    padding: 15,
+    margin: 15,
+    height: "92%",
+    borderRadius: 15,
+    borderColor: "#fcfbfb",
+    borderWidth: 0.5,
   },
   header: {
     marginBottom: 20,
@@ -33,19 +52,23 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 12,
     fontWeight: "bold",
+    fontFamily: "Helvetica",
   },
   invoiceNumber: {
     fontSize: 12,
-    marginLeft: 4,
+    marginLeft: 0,
   },
   section: {
     margin: 10,
     padding: 10,
   },
   sectionTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 5,
+    fontSize: 14,
+    marginRight: 4,
+    fontFamily: "Helvetica",
+    color: "#9ea0a2",
+    fontWeight: "normal",
   },
   row: {
     flexDirection: "row",
@@ -62,61 +85,115 @@ const styles = StyleSheet.create({
   },
   gridContainer: {
     flexDirection: "row",
-    gap: 5,
+    marginHorizontal: 5,
     marginTop: 20,
   },
   gridColumn: {
-    flex: 1,
+    flex: 2,
   },
   table: {
     marginTop: 20,
   },
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: "#F3F4F6", // bg-gray-100
+    backgroundColor: "#fff",
     padding: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB", // border-gray-200
+    borderBottomColor: "#E5E7EB",
     fontSize: 10,
+    textTransform: "uppercase",
+    color: "#9ea0a2",
+    fontWeight: "normal",
+    letterSpacing: 1,
   },
   tableRow: {
     flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomWidth: 0,
     padding: 8,
     fontSize: 10,
+    alignItems: "flex-start",
+  },
+  itemName: {
+    fontWeight: "bold",
+    fontSize: 12,
+    color: "#374151",
+    marginBottom: 2,
+  },
+  itemDescription: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "normal",
   },
   tableCol40: {
     width: "40%",
+    paddingRight: 8,
   },
   tableCol15: {
     width: "15%",
+    textAlign: "right",
   },
   totals: {
     marginTop: 20,
-    marginRight: 20,
+    marginRight: 0,
     alignItems: "flex-end",
+    width: "100%",
   },
   totalRow: {
     flexDirection: "row",
     marginBottom: 8,
     justifyContent: "flex-end",
+    width: "100%",
   },
   totalLabel: {
     marginRight: 8,
-    color: "#4B5563",
-    fontSize: 14,
+    color: "#6B7280",
+    fontSize: 16,
+    fontWeight: "normal",
+    width: 120,
+    textAlign: "right",
   },
   totalValue: {
     minWidth: 100,
     textAlign: "right",
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: "normal",
+    color: "#374151",
+  },
+  totalRowBold: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+    paddingTop: 8,
+    marginTop: 8,
+    width: "100%",
+  },
+  totalLabelBold: {
+    marginRight: 8,
+    color: "#000",
+    fontSize: 18,
+    fontWeight: "bold",
+    width: 120,
+    textAlign: "right",
+  },
+  totalValueBold: {
+    minWidth: 100,
+    textAlign: "right",
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#000",
   },
   status: {
     fontSize: 10,
     fontWeight: "bold",
     color: "#1F2937",
     marginLeft: 4,
+  },
+  totalAmount: {
+    fontSize: 25,
+    paddingTop: 7,
+    fontWeight: "bold",
+    color: "#black",
   },
   paymentSection: {
     marginTop: 20,
@@ -131,6 +208,51 @@ const styles = StyleSheet.create({
   paymentRow: {
     flexDirection: "row",
     marginBottom: 4,
+  },
+  logo: {
+    width: 170,
+    marginTop: -15,
+    marginLeft: -15,
+  },
+  statusLabel: {
+    fontSize: 14,
+    marginTop: -13,
+    fontFamily: "Helvetica",
+    fontWeight: "normal",
+    color: "#9ea0a2",
+    marginRight: 4,
+  },
+  invoiceLabel: {
+    fontSize: 14,
+    marginRight: 4,
+    marginBottom: 4,
+    fontFamily: "Helvetica",
+    color: "#9ea0a2",
+    fontWeight: "normal",
+  },
+  companyInfo: {
+    fontSize: 12,
+    color: "#4B5563",
+    marginBottom: 4,
+  },
+  companyName: {
+    fontSize: 12,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  termsTitle: {
+    fontSize: 10,
+    color: "#6B7280",
+    fontWeight: "bold",
+    marginTop: 0,
+    marginBottom: 4,
+    fontFamily: "Helvetica",
+  },
+  termsText: {
+    fontSize: 10,
+    color: "#374151",
+    fontWeight: "normal",
+    fontFamily: "Helvetica",
   },
 });
 
@@ -160,7 +282,10 @@ function formatNumber(value: number): string {
 
   // If no decimals or only trailing zeros after 2 decimal places, show 2 decimal places
   if (!hasDecimals || value.toFixed(5).endsWith("000")) {
-    return value.toFixed(2);
+    return Number(value.toFixed(2)).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   }
 
   // Otherwise, show actual decimal places up to 5
@@ -169,7 +294,10 @@ function formatNumber(value: number): string {
 
   // Determine how many decimal places to show (up to 5)
   const decimalPlaces = Math.min(Math.max(2, decimalPart.length), 5);
-  return value.toFixed(decimalPlaces);
+  return Number(value).toLocaleString("en-US", {
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces,
+  });
 }
 
 interface InvoicePDFProps {
@@ -183,99 +311,195 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
 }) => {
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
-            <Text style={[styles.title, { marginBottom: 0 }]}>Invoice</Text>
-            <Text style={styles.invoiceNumber}>{invoice.invoiceNo}</Text>
-          </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
-            <Text style={[styles.title, { marginBottom: 0, fontSize: 10 }]}>
-              Status:
-            </Text>
-            <Text style={styles.status}>{invoice.status}</Text>
-          </View>
-        </View>
-
-        <View style={styles.gridContainer}>
-          <InvoiceSection
-            title="Issuer"
-            data={{
-              ...invoice.issuer,
-              dateDelivered: invoice.dateDelivered,
-              dateIssued: invoice.dateIssued,
+      <Page size="A4" style={styles.pageBackground}>
+        <View style={styles.page}>
+          {/* Top Row: Logo (left) and Invoice of (right) */}
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
             }}
-          />
-          <InvoiceSection
-            title="Payer"
-            data={{
-              ...invoice.payer,
-              dateDue: invoice.dateDue,
-              dateIssued: invoice.dateIssued,
+          >
+            <View style={{ flexDirection: "column", alignItems: "flex-start" }}>
+              <Image style={styles.logo} src={powerhouseLogo} />
+              <View>
+                <Text style={styles.invoiceLabel}>Invoice number</Text>
+                <Text style={styles.invoiceNumber}>{invoice.invoiceNo}</Text>
+              </View>
+            </View>
+            <View style={{ alignItems: "flex-end" }}>
+              <Text style={styles.invoiceLabel}>
+                Invoice of ({invoice.currency})
+              </Text>
+              <Text
+                style={[
+                  styles.invoiceNumber,
+                  { fontSize: 24, fontWeight: "bold" },
+                ]}
+              >
+                {formatNumber(invoice.totalPriceTaxIncl)}
+              </Text>
+            </View>
+          </View>
+
+          {/* Issuer and Payer Information */}
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginTop: 40,
             }}
-          />
-        </View>
-
-        {/* Payment Information */}
-        <View style={styles.paymentSection}>
-          <Text style={styles.paymentTitle}>Payment Information</Text>
-          <InvoiceField label="Currency" value={invoice.currency} />
-          {fiatMode ? (
-            <PaymentSectionFiat
-              paymentRouting={invoice.issuer.paymentRouting}
-            />
-          ) : (
-            <PaymentSectionCrypto
-              paymentRouting={invoice.issuer.paymentRouting}
-            />
-          )}
-        </View>
-
-        {/* Line Items */}
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={styles.tableCol40}>Description</Text>
-            <Text style={styles.tableCol15}>Quantity</Text>
-            <Text style={styles.tableCol15}>Unit Price</Text>
-            <Text style={styles.tableCol15}>Tax</Text>
-            <Text style={styles.tableCol15}>Total</Text>
-          </View>
-          {invoice.lineItems.map((item, index) => (
-            <InvoiceLineItem
-              key={index}
-              item={item}
-              currency={invoice.currency}
-            />
-          ))}
-        </View>
-
-        {/* Totals */}
-        <View style={styles.totals}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Subtotal:</Text>
-            <Text style={styles.totalValue}>
-              {formatCurrency(
-                invoice.lineItems.reduce(
-                  (sum, item) => sum + item.quantity * item.unitPriceTaxExcl,
-                  0,
-                ),
-                invoice.currency,
+          >
+            {/* Issuer */}
+            <View style={{ width: "45%" }}>
+              <Text style={styles.sectionTitle}>Issuer</Text>
+              <Text style={styles.companyName}>{invoice.issuer.name}</Text>
+              <Text style={styles.companyInfo}>
+                {invoice.issuer.address?.streetAddress || ""}
+              </Text>
+              {invoice.issuer.address?.extendedAddress && (
+                <Text style={styles.companyInfo}>
+                  {invoice.issuer.address?.extendedAddress || ""}
+                </Text>
               )}
-            </Text>
-          </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total (incl. tax):</Text>
-            <Text style={styles.totalValue}>
-              {formatCurrency(
-                invoice.lineItems.reduce(
-                  (sum, item) => sum + item.quantity * item.unitPriceTaxIncl,
-                  0,
-                ),
-                invoice.currency,
+              <Text style={styles.companyInfo}>
+                {invoice.issuer.address?.city || ""},{" "}
+                {getCountryName(invoice.issuer.address?.country || "") || ""} -{" "}
+                {invoice.issuer.address?.postalCode || "00000"}
+              </Text>
+              {invoice.issuer.contactInfo?.email && (
+                <Text style={styles.companyInfo}>
+                  {invoice.issuer.contactInfo.email}
+                </Text>
               )}
-            </Text>
+            </View>
+
+            {/* Payer */}
+            <View style={{ width: "45%" }}>
+              <Text style={styles.sectionTitle}>Payer</Text>
+              <Text style={styles.companyName}>{invoice.payer.name}</Text>
+              <Text style={styles.companyInfo}>
+                {invoice.payer.address?.streetAddress || ""}
+              </Text>
+              {invoice.payer.address?.extendedAddress && (
+                <Text style={styles.companyInfo}>
+                  {invoice.payer.address?.extendedAddress || ""}
+                </Text>
+              )}
+              <Text style={styles.companyInfo}>
+                {invoice.payer.address?.city || ""},{" "}
+                {getCountryName(invoice.payer.address?.country || "") || ""} -{" "}
+                {invoice.payer.address?.postalCode || "00000"}
+              </Text>
+              {invoice.payer.contactInfo?.email && (
+                <Text style={styles.companyInfo}>
+                  {invoice.payer.contactInfo.email}
+                </Text>
+              )}
+            </View>
+
+            {/* Invoice details (right) */}
+            <View style={{ width: "30%", alignItems: "flex-end", textAlign: "right" }}>
+              <View style={{ marginBottom: 18, width: "100%" }}>
+                <Text style={{ color: "#9ea0a2", fontSize: 14, textAlign: "right", fontFamily: "Helvetica", fontWeight: "normal" }}>Invoice date</Text>
+                <Text style={{ fontWeight: 4, fontSize: 14, textAlign: "right", color: "#000", fontFamily: "Helvetica" }}>
+                  {formatDate(invoice.dateIssued)}
+                </Text>
+              </View>
+              <View style={{ marginBottom: 18, width: "100%" }}>
+                <Text style={{ color: "#9ea0a2", fontSize: 14, textAlign: "right", fontFamily: "Helvetica", fontWeight: "normal" }}>Due date</Text>
+                <Text style={{ fontWeight: 4, fontSize: 14, textAlign: "right", color: "#000", fontFamily: "Helvetica" }}>
+                  {formatDate(invoice.dateDue)}
+                </Text>
+              </View>
+              {fiatMode && (
+                <View style={{ marginBottom: 18, width: "100%" }}>
+                  <Text style={{ color: "#9ea0a2", fontSize: 14, textAlign: "right", fontFamily: "Helvetica", fontWeight: "normal" }}>Account Type:</Text>
+                  <Text style={{ fontWeight: 4, fontSize: 14, textAlign: "right", color: "#000", fontFamily: "Helvetica" }}>
+                    {invoice.issuer.paymentRouting?.bank?.accountType || "CHECKING"}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
+
+          {/* Payment Information */}
+          <View style={styles.paymentSection}>
+            <Text style={styles.sectionTitle}>Payment Information</Text>
+            {fiatMode ? (
+              <PaymentSectionFiat
+                paymentRouting={invoice.issuer.paymentRouting}
+              />
+            ) : (
+              <PaymentSectionCrypto
+                paymentRouting={invoice.issuer.paymentRouting}
+              />
+            )}
+          </View>
+
+          {/* Line Items */}
+          <View style={styles.table}>
+            <View style={styles.tableHeader}>
+              <Text style={styles.tableCol40}>Description</Text>
+              <Text style={styles.tableCol15}>Quantity</Text>
+              <Text style={styles.tableCol15}>Unit Price</Text>
+              <Text style={styles.tableCol15}>Tax</Text>
+              <Text style={styles.tableCol15}>Total</Text>
+            </View>
+            {invoice.lineItems.map((item, index) => (
+              <InvoiceLineItem
+                key={index}
+                item={item}
+                currency={invoice.currency}
+              />
+            ))}
+          </View>
+
+          {/* Totals */}
+          <View style={styles.totals}>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Subtotal</Text>
+              <Text style={styles.totalValue}>
+                {formatCurrency(
+                  invoice.lineItems.reduce(
+                    (sum, item) => sum + item.quantity * item.unitPriceTaxExcl,
+                    0
+                  ),
+                  invoice.currency
+                )}
+              </Text>
+            </View>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Tax</Text>
+              <Text style={styles.totalValue}>
+                {formatCurrency(
+                  invoice.lineItems.reduce(
+                    (sum, item) => sum + item.quantity * (item.unitPriceTaxIncl - item.unitPriceTaxExcl),
+                    0
+                  ),
+                  invoice.currency
+                )}
+              </Text>
+            </View>
+            <View style={styles.totalRowBold}>
+              <Text style={styles.totalLabelBold}>Total</Text>
+              <Text style={styles.totalValueBold}>
+                {formatCurrency(
+                  invoice.lineItems.reduce(
+                    (sum, item) => sum + item.quantity * item.unitPriceTaxIncl,
+                    0
+                  ),
+                  invoice.currency
+                )}
+              </Text>
+            </View>
+          </View>
+        </View>
+        {/* Terms & Conditions */}
+        <View style={{ marginLeft: 40 }}>
+          <Text style={styles.termsTitle}>Terms & Conditions</Text>
+          <Text style={styles.termsText}>Please pay within 30 days of receiving this invoice.</Text>
         </View>
       </Page>
     </Document>
@@ -292,7 +516,10 @@ const InvoiceSection: React.FC<{ title: string; data: any }> = ({
     {title === "Issuer" && (
       <>
         <InvoiceField label="Issue Date" value={formatDate(data.dateIssued)} />
-        <InvoiceField label="Delivery Date" value={formatDate(data.dateDelivered)} />
+        <InvoiceField
+          label="Delivery Date"
+          value={formatDate(data.dateDelivered)}
+        />
       </>
     )}
     {title === "Payer" && (
@@ -305,90 +532,59 @@ const InvoiceSection: React.FC<{ title: string; data: any }> = ({
     />
     <InvoiceField label="Address" value={data.address?.streetAddress || ""} />
     <InvoiceField label="City" value={data.address?.city || ""} />
-    <InvoiceField label="Country" value={getCountryName(data.address?.country || "") || ""} />
+    <InvoiceField
+      label="Country"
+      value={getCountryName(data.address?.country || "") || ""}
+    />
     <InvoiceField label="Email" value={data.contactInfo?.email || ""} />
   </View>
 );
 
-// New component for individual fields
+{
+  /* New component for individual fields */
+}
 const InvoiceField: React.FC<{ label: string; value: string }> = ({
   label,
   value,
 }) =>
   value && (
     <View style={styles.row}>
-      <Text style={styles.label}>{label}:</Text>
+      {/* <Text style={styles.label}>{label}:</Text> */}
       <Text style={styles.value}>{value}</Text>
     </View>
   );
 
-// New component for fiat payment section
+{
+  /* New component for fiat payment section */
+}
 const PaymentSectionFiat: React.FC<{ paymentRouting: any }> = ({
   paymentRouting,
 }) => (
   <View style={[styles.gridContainer, { marginTop: 0 }]}>
     <View style={styles.gridColumn}>
-      <InvoiceField label="Bank Name" value={paymentRouting.bank?.name || ""} />
-      <InvoiceField
-        label="Address"
-        value={paymentRouting.bank?.address?.streetAddress || ""}
-      />
-      <InvoiceField
-        label="City"
-        value={paymentRouting.bank?.address?.city || ""}
-      />
-      <InvoiceField
-        label="Country"
-        value={getCountryName(paymentRouting.bank?.address?.country || "") || ""}
-      />
-      <InvoiceField
-        label="Extended Address"
-        value={paymentRouting.bank?.address?.extendedAddress || ""}
-      />
-      <InvoiceField
-        label="Postal Code"
-        value={paymentRouting.bank?.address?.postalCode || ""}
-      />
-      <InvoiceField
-        label="State/Province"
-        value={paymentRouting.bank?.address?.stateProvince || ""}
-      />
+      <Text style={styles.companyName}>{paymentRouting.bank?.name || ""}</Text>
+      <Text style={styles.companyInfo}>{paymentRouting.bank?.address?.streetAddress || ""}</Text>
+      {paymentRouting.bank?.address?.extendedAddress && (
+        <Text style={styles.companyInfo}>{paymentRouting.bank?.address?.extendedAddress}</Text>
+      )}
+      <Text style={styles.companyInfo}>
+        {paymentRouting.bank?.address?.city || ""}, {getCountryName(paymentRouting.bank?.address?.country || "") || ""} - {paymentRouting.bank?.address?.postalCode || ""}
+      </Text>
     </View>
     <View style={styles.gridColumn}>
-      <InvoiceField
-        label="Account Type"
-        value={paymentRouting.bank?.accountType || ""}
-      />
-      <InvoiceField
-        label="Account Nr"
-        value={paymentRouting.bank?.accountNum || ""}
-      />
-      <InvoiceField
-        label="Beneficiary"
-        value={paymentRouting.bank?.beneficiary || ""}
-      />
-      <InvoiceField
-        label={
-          paymentRouting.bank?.BIC
-            ? "BIC:"
-            : paymentRouting.bank?.SWIFT
-              ? "SWIFT:"
-              : paymentRouting.bank?.ABA
-                ? "ABA:"
-                : "Routing:"
-        }
-        value={
-          paymentRouting.bank?.BIC ||
-          paymentRouting.bank?.SWIFT ||
-          paymentRouting.bank?.ABA ||
-          ""
-        }
-      />
+      <Text style={styles.companyName}>{paymentRouting.bank?.beneficiary || ""}</Text>
+      <Text style={styles.companyInfo}>{paymentRouting.bank?.accountNum || ""}</Text>
+      <Text style={styles.companyInfo}>{paymentRouting.bank?.accountType || ""}</Text>
+      <Text style={styles.companyInfo}>
+        {paymentRouting.bank?.BIC || paymentRouting.bank?.SWIFT || paymentRouting.bank?.ABA || ""}
+      </Text>
     </View>
   </View>
 );
 
-// New component for crypto payment section
+{
+  /* New component for crypto payment section */
+}
 const PaymentSectionCrypto: React.FC<{ paymentRouting: any }> = ({
   paymentRouting,
 }) => (
@@ -406,22 +602,23 @@ const PaymentSectionCrypto: React.FC<{ paymentRouting: any }> = ({
   </View>
 );
 
-// New component for line items
+{
+  /* New component for line items */
+}
 const InvoiceLineItem: React.FC<{ item: any; currency: string }> = ({
   item,
   currency,
 }) => (
   <View style={styles.tableRow}>
-    <Text style={styles.tableCol40}>{item.description}</Text>
+    <View style={styles.tableCol40}>
+      <Text style={styles.itemName}>{item.description}</Text>
+      {item.longDescription && (
+        <Text style={styles.itemDescription}>{item.longDescription}</Text>
+      )}
+    </View>
     <Text style={styles.tableCol15}>{item.quantity}</Text>
-    <Text style={styles.tableCol15}>
-      {formatCurrency(item.unitPriceTaxExcl, currency)}
-    </Text>
-    <Text style={styles.tableCol15}>
-      {formatCurrency(item.unitPriceTaxIncl - item.unitPriceTaxExcl, currency)}
-    </Text>
-    <Text style={styles.tableCol15}>
-      {formatCurrency(item.quantity * item.unitPriceTaxIncl, currency)}
-    </Text>
+    <Text style={styles.tableCol15}>{formatCurrency(item.unitPriceTaxExcl, currency)}</Text>
+    <Text style={styles.tableCol15}>{formatCurrency(item.unitPriceTaxIncl - item.unitPriceTaxExcl, currency)}</Text>
+    <Text style={styles.tableCol15}>{formatCurrency(item.quantity * item.unitPriceTaxIncl, currency)}</Text>
   </View>
 );

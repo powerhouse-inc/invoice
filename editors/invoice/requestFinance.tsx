@@ -1,4 +1,11 @@
 import React, { useState } from "react";
+
+let GRAPHQL_URL = 'http://localhost:4001/graphql/invoice'
+
+if (window.document.baseURI !== 'http://localhost:3000/') {
+  GRAPHQL_URL = 'https://switchboard.powerhouse.xyz/graphql/invoice'
+}
+
 interface RequestFinanceProps {
   docState: any; // Replace 'any' with the appropriate type if available
 }
@@ -16,7 +23,7 @@ const RequestFinance: React.FC<RequestFinanceProps> = ({ docState }) => {
   const createDirectPayment = async (paymentData: any) => {
     try {
       // GraphQL mutation request
-      const response = await fetch("https://switchboard.powerhouse.xyz/graphql/invoice", {
+      const response = await fetch(GRAPHQL_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

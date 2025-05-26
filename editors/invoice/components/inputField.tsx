@@ -1,4 +1,4 @@
-import { Form, StringField } from "@powerhousedao/design-system/scalars";
+import { Form, StringField } from "@powerhousedao/document-engineering/scalars";
 import { ValidationResult } from "../validation/validationManager.js";
 import { twMerge } from "tailwind-merge";
 

@@ -1,5 +1,11 @@
 import React, { useState } from "react";
 
+let GRAPHQL_URL = "http://localhost:4001/graphql/invoice";
+
+if (window.document.baseURI !== "http://localhost:3000/") {
+  GRAPHQL_URL = "https://switchboard.powerhouse.xyz/graphql/invoice";
+}
+
 interface InvoiceToGnosisProps {
   docState: any; // Replace 'any' with the appropriate type if available
 }
@@ -11,10 +17,26 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
   const [invoiceStatusResponse, setInvoiceStatusResponse] = useState<any>(null);
   const [safeTxHash, setsafeTxHash] = useState<string | null>(null);
 
+  const currency = docState.currency;
+  const chainName = docState.issuer.paymentRouting.wallet.chainName;
+
   const TOKEN_ADDRESSES = {
     BASE: {
       USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
       USDS: "0x820C137fa70C8691f0e44Dc420a5e53c168921Dc",
+      DAI: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
+      // Add more tokens as needed
+    },
+    ETHEREUM: {
+      USDC: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      USDS: "0xdC035D45d973E3EC169d2276DDab16f1e407384F",
+      DAI: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+      // Add more tokens as needed
+    },
+    "ARBITRUM ONE": {
+      USDC: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+      USDS: "0x6491c05A82219b8D1479057361ff1654749b876b",
+      DAI: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
       // Add more tokens as needed
     },
     // Add more networks as needed
@@ -22,14 +44,25 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
 
   // Separate payerWallet configuration
   const payerWallet = {
-    rpc: "https://base.llamarpc.com",
-    chainName: "Base",
-    chainId: "8453",
-    address: "0x1FB6bEF04230d67aF0e3455B997a28AFcCe1F45e", // Safe address
+    BASE: {
+      rpc: "https://base.llamarpc.com",
+      chainName: "Base",
+      chainId: "8453",
+      address: "0x1FB6bEF04230d67aF0e3455B997a28AFcCe1F45e", // Safe address
+    },
+    ETHEREUM: {
+      rpc: "https://eth.llamarpc.com",
+      chainName: "Ethereum",
+      chainId: "1",
+      address: "0x1FB6bEF04230d67aF0e3455B997a28AFcCe1F45e", // Safe address
+    },
+    "ARBITRUM ONE": {
+      rpc: "https://arb1.arbitrum.io/rpc",
+      chainName: "Arbitrum One",
+      chainId: "42161",
+      address: "0x1FB6bEF04230d67aF0e3455B997a28AFcCe1F45e", // Safe address
+    },
   };
-
-  const currency = docState.currency;
-  const chainName = docState.issuer.paymentRouting.wallet.chainName;
 
   // Extract payment details from current-state.json
   const paymentDetails = {
@@ -67,7 +100,7 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
     setError(null);
 
     try {
-      const response = await fetch("https://switchboard.powerhouse.xyz/graphql/invoice", {
+      const response = await fetch(GRAPHQL_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -83,7 +116,8 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
             }
           `,
           variables: {
-            payerWallet: payerWallet,
+            payerWallet:
+              payerWallet[chainName.toUpperCase() as keyof typeof payerWallet],
             paymentDetails: paymentDetails,
             invoiceNo: docState.invoiceNo,
           },
@@ -94,15 +128,22 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
       const data = result.data.Invoice_processGnosisPayment;
 
       if (data.success) {
-        console.log("Transfer result:", data);
-        setResponseData(data);
-        // Since data is now a JSON scalar, we need to parse it if it's a string
         const dataObj =
           typeof data.data === "string" ? JSON.parse(data.data) : data.data;
-        // The executeTokenTransfer function returns txHash.transactions array
-        setsafeTxHash(dataObj.txHash.safeTxHash);
+        setsafeTxHash(dataObj.txHash);
+
+        if (dataObj.paymentDetails) {
+          // Format the payment details for better readability
+          const formattedDetails = {
+            amount: dataObj.paymentDetails[0].amount,
+            token: dataObj.paymentDetails[0].token.symbol,
+            chain: chainName,
+          };
+          setInvoiceStatusResponse(
+            `Amount: ${formattedDetails.amount} ${formattedDetails.token} on ${formattedDetails.chain}`
+          );
+        }
       } else {
-        console.error("Error during transfer:", data.error);
         setError(data.error);
       }
       setIsLoading(false);
@@ -112,37 +153,49 @@ const InvoiceToGnosis: React.FC<InvoiceToGnosisProps> = ({ docState }) => {
     }
   };
 
-  return (
-    <div>
-      <button
-        className="bg-blue-500 text-black px-4 py-2 rounded-md"
-        onClick={handleInvoiceToGnosis}
-        disabled={isLoading}
-      >
-        {isLoading ? "Processing..." : "Send Payment to Gnosis >"}
-      </button>
+  if (!currency || !chainName || currency === "" || chainName === "") {
+    return null;
+  }
 
-      {error && <div className="error-message">{error}</div>}
+  return (
+    <div className="space-y-4">
+      {currency && chainName && currency !== "" && chainName !== "" && (
+        <button
+          className="bg-blue-500 text-black px-4 py-2 rounded-md hover:bg-blue-600"
+          onClick={handleInvoiceToGnosis}
+          disabled={isLoading}
+        >
+          {isLoading ? "Processing..." : "Send Payment to Gnosis >"}
+        </button>
+      )}
+
+      {error && (
+        <div className="text-red-500 bg-red-50 p-3 rounded-md">{error}</div>
+      )}
 
       {safeTxHash && (
-        <div className="invoice-link">
-          <p>Safe Transaction Hash: {safeTxHash}</p>
+        <div className="bg-gray-50 p-4 rounded-md space-y-2">
+          <p className="font-medium">
+            Safe Transaction Hash:
+            <span className="font-mono text-sm ml-2 break-all">
+              {safeTxHash}
+            </span>
+          </p>
           <a
-            style={{ color: "blue" }}
-            href={
-              "https://app.safe.global/transactions/queue?safe=base:0x1FB6bEF04230d67aF0e3455B997a28AFcCe1F45e"
-            }
+            href={`https://app.safe.global/transactions/queue?safe=base:0x1FB6bEF04230d67aF0e3455B997a28AFcCe1F45e`}
             target="_blank"
             rel="noopener noreferrer"
-            className="view-invoice-button"
+            className="text-blue-500 hover:text-blue-600 underline block"
           >
-            View Transaction Details
+            View Transaction
           </a>
         </div>
       )}
+
       {invoiceStatusResponse && (
-        <div className="invoice-status-response">
-          <p>Invoice Status Response: {invoiceStatusResponse}</p>
+        <div className="bg-gray-50 p-4 rounded-md">
+          <p className="font-medium">Payment Details:</p>
+          <p className="text-gray-700">{invoiceStatusResponse}</p>
         </div>
       )}
     </div>
