@@ -4,6 +4,13 @@ import { toast } from "@powerhousedao/design-system";
 import { uploadPdfChunked } from "./uploadPdfChunked.js";
 import { getCountryCodeFromName } from "./utils/utils.js";
 
+let GRAPHQL_URL = 'http://localhost:4001/graphql/invoice'
+
+if (window.document.baseURI !== 'http://localhost:3000/') {
+  GRAPHQL_URL = 'https://switchboard-staging.powerhouse.xyz/graphql/invoice'
+}
+
+
 export async function loadPDFFile({
   file,
   dispatch,
@@ -59,7 +66,7 @@ export default function PDFUploader({
         try {
           const result = await uploadPdfChunked(
             base64Data,
-            "https://switchboard-staging.powerhouse.xyz/graphql/invoice",
+            GRAPHQL_URL,
             50 * 1024,
             (progress) => setUploadProgress(progress),
           );

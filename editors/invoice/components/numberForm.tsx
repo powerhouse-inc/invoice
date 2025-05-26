@@ -1,4 +1,4 @@
-import { Form, NumberField } from "@powerhousedao/design-system/scalars";
+import { Form, NumberField } from "@powerhousedao/document-engineering/scalars";
 
 interface NumberFormProps {
   number: number | string;

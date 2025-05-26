@@ -67,7 +67,7 @@ export const ethereumAddressRule: ValidationRule = {
         };
     },
     appliesTo: {
-        currencies: ['USDS'],  // Only apply for USDS currency
+        currencies: ['USDS', 'DAI'],  // Only apply for crypto currencies
         statusTransitions: {
             from: ['DRAFT'],
             to: ['ISSUED']

@@ -7,7 +7,7 @@ import { actions } from "../../document-models/invoice/index.js";
 import { generateId } from "document-model";
 import { uploadPdfAndGetJson } from "../../scripts/invoice/pdfToDocumentAi.js";
 import { requestDirectPayment } from "../../scripts/invoice/requestFinance.js";
-import { executeTokenTransfer } from "../../scripts/invoice/gnosisTransactionBuilder.js";
+import { executeTransferProposal } from "../../scripts/invoice/gnosisTransactionBuilder.js";
 import * as crypto from "crypto";
 
 const DEFAULT_DRIVE_ID = "powerhouse";
@@ -411,8 +411,8 @@ export const getResolvers = (subgraph: Subgraph): Record<string, any> => {
             paymentDetails
           });
 
-          // Import and call the executeTokenTransfer function
-          const result = await executeTokenTransfer(payerWallet, paymentDetails);
+          // Import and call the executeTransferProposal function
+          const result = await executeTransferProposal(payerWallet, paymentDetails);
 
           console.log("Token transfer result:", result);
 
@@ -505,7 +505,7 @@ const updateDocumentStatus = async (invoiceNo: string): Promise<void> => {
       if (reactorInvoiceNo === invoiceNo) {
         console.log(`Changing status of Invoice No: ${invoiceNo} to PAID`)
         await reactor.addAction('powerhouse', document.id, actions.editStatus({
-          status: "PAID",
+          status: "PAYMENTRECEIVED",
         }))
         return Promise.resolve()
       }

@@ -118,9 +118,14 @@ export const schema: DocumentNode = gql`
   enum Status {
     DRAFT
     ISSUED
+    CANCELLED
     ACCEPTED
     REJECTED
-    PAID
+    AWAITINGPAYMENT
+    PAYMENTSCHEDULED
+    PAYMENTSENT
+    PAYMENTISSUE
+    PAYMENTRECEIVED
   }
 
   enum InvoiceAccountType {

@@ -91,12 +91,12 @@ export const LegalEntityBankSection = forwardRef(
           HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
         >
       ) {
-        setLocalState({
-          ...localState,
+        setLocalState((prevState: ReturnType<typeof flattenBankInput>) => ({
+          ...prevState,
           [field]: event.target.value,
-        });
+        }));
       },
-      [localState]
+      []
     );
 
     const handleBlur = useCallback(
@@ -158,7 +158,7 @@ export const LegalEntityBankSection = forwardRef(
           <div className="space-y-4">
             <div className="space-y-2">
               <InputField
-                input={localState.accountNum ?? ""}
+                // input={localState.accountNum ?? ""}
                 value={localState.accountNum ?? ""}
                 label="Account Number"
                 placeholder="Account Number"
@@ -182,10 +182,10 @@ export const LegalEntityBankSection = forwardRef(
                 </div>
                 <div className="space-y-2">
                   <InputField
-                    input={
-                      (localState.ABA || localState.BIC || localState.SWIFT) ??
-                      ""
-                    }
+                    // input={
+                    //   (localState.ABA || localState.BIC || localState.SWIFT) ??
+                    //   ""
+                    // }
                     value={
                       (localState.ABA || localState.BIC || localState.SWIFT) ??
                       ""
@@ -204,7 +204,7 @@ export const LegalEntityBankSection = forwardRef(
 
           <div className="space-y-4">
             <InputField
-              input={localState.beneficiary ?? ""}
+              // input={localState.beneficiary ?? ""}
               value={localState.beneficiary ?? ""}
               label="Beneficiary Information"
               placeholder="Beneficiary Name"
@@ -216,7 +216,7 @@ export const LegalEntityBankSection = forwardRef(
 
           <div className="space-y-4">
             <InputField
-              input={localState.name ?? ""}
+              // input={localState.name ?? ""}
               value={localState.name ?? ""}
               label="Bank Details"
               placeholder="Bank Name"
@@ -230,7 +230,7 @@ export const LegalEntityBankSection = forwardRef(
           <div className="space-y-4">
             <div className="space-y-4 rounded-lg">
               <InputField
-                input={localState.streetAddress ?? ""}
+                // input={localState.streetAddress ?? ""}
                 value={localState.streetAddress ?? ""}
                 label="Bank Address"
                 placeholder="Street Address"
@@ -239,7 +239,7 @@ export const LegalEntityBankSection = forwardRef(
                 className="h-10 w-full text-md mb-2"
               />
               <InputField
-                input={localState.extendedAddress ?? ""}
+                // input={localState.extendedAddress ?? ""}
                 value={localState.extendedAddress ?? ""}
                 placeholder="Extended Address"
                 onBlur={createBlurHandler("extendedAddress")}
@@ -248,7 +248,7 @@ export const LegalEntityBankSection = forwardRef(
               />
               <div className="grid grid-cols-2 gap-2">
                 <InputField
-                  input={localState.city ?? ""}
+                  // input={localState.city ?? ""}
                   value={localState.city ?? ""}
                   label="City"
                   placeholder="City"
@@ -257,7 +257,7 @@ export const LegalEntityBankSection = forwardRef(
                   className="h-10 w-full text-md mb-2"
                 />
                 <InputField
-                  input={localState.stateProvince ?? ""}
+                  // input={localState.stateProvince ?? ""}
                   value={localState.stateProvince ?? ""}
                   label="State/Province"
                   placeholder="State/Province"
@@ -268,7 +268,7 @@ export const LegalEntityBankSection = forwardRef(
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <InputField
-                  input={localState.postalCode ?? ""}
+                  // input={localState.postalCode ?? ""}
                   value={localState.postalCode ?? ""}
                   label="Postal Code"
                   placeholder="Postal Code"
@@ -290,7 +290,7 @@ export const LegalEntityBankSection = forwardRef(
 
           <div className="space-y-2">
             <InputField
-              input={localState.memo ?? ""}
+              // input={localState.memo ?? ""}
               value={localState.memo ?? ""}
               label="Memo"
               placeholder="Memo"
@@ -324,7 +324,7 @@ export const LegalEntityBankSection = forwardRef(
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <InputField
-                      input={localState.accountNumIntermediary ?? ""}
+                      // input={localState.accountNumIntermediary ?? ""}
                       value={localState.accountNumIntermediary ?? ""}
                       label="Account Number"
                       placeholder="Intermediary Account Number"
@@ -349,12 +349,12 @@ export const LegalEntityBankSection = forwardRef(
                       </div>
                       <div className="space-y-2">
                         <InputField
-                          input={
-                            (localState.ABAIntermediary ||
-                              localState.BICIntermediary ||
-                              localState.SWIFTIntermediary) ??
-                            ""
-                          }
+                          // input={
+                          //   (localState.ABAIntermediary ||
+                          //     localState.BICIntermediary ||
+                          //     localState.SWIFTIntermediary) ??
+                          //   ""
+                          // }
                           value={
                             (localState.ABAIntermediary ||
                               localState.BICIntermediary ||
@@ -376,7 +376,7 @@ export const LegalEntityBankSection = forwardRef(
 
                 <div className="space-y-4">
                   <InputField
-                    input={localState.beneficiaryIntermediary ?? ""}
+                    // input={localState.beneficiaryIntermediary ?? ""}
                     value={localState.beneficiaryIntermediary ?? ""}
                     label="Beneficiary Information"
                     placeholder="Intermediary Beneficiary Name"
@@ -390,7 +390,7 @@ export const LegalEntityBankSection = forwardRef(
 
                 <div className="space-y-4">
                   <InputField
-                    input={localState.nameIntermediary ?? ""}
+                    // input={localState.nameIntermediary ?? ""}
                     value={localState.nameIntermediary ?? ""}
                     label="Bank Details"
                     placeholder="Intermediary Bank Name"
@@ -403,7 +403,7 @@ export const LegalEntityBankSection = forwardRef(
                 <div className="space-y-4">
                   <div className="space-y-4 rounded-lg">
                     <InputField
-                      input={localState.streetAddressIntermediary ?? ""}
+                      // input={localState.streetAddressIntermediary ?? ""}
                       value={localState.streetAddressIntermediary ?? ""}
                       label="Bank Address"
                       placeholder="Street Address"
@@ -414,7 +414,7 @@ export const LegalEntityBankSection = forwardRef(
                       className="h-10 w-full text-md mb-2"
                     />
                     <InputField
-                      input={localState.extendedAddressIntermediary ?? ""}
+                      // input={localState.extendedAddressIntermediary ?? ""}
                       value={localState.extendedAddressIntermediary ?? ""}
                       placeholder="Extended Address"
                       onBlur={createBlurHandler("extendedAddressIntermediary")}
@@ -425,7 +425,7 @@ export const LegalEntityBankSection = forwardRef(
                     />
                     <div className="grid grid-cols-2 gap-2">
                       <InputField
-                        input={localState.cityIntermediary ?? ""}
+                        // input={localState.cityIntermediary ?? ""}
                         value={localState.cityIntermediary ?? ""}
                         label="City"
                         placeholder="City"
@@ -434,7 +434,7 @@ export const LegalEntityBankSection = forwardRef(
                         className="h-10 w-full text-md mb-2"
                       />
                       <InputField
-                        input={localState.stateProvinceIntermediary ?? ""}
+                        // input={localState.stateProvinceIntermediary ?? ""}
                         value={localState.stateProvinceIntermediary ?? ""}
                         label="State/Province"
                         placeholder="State/Province"
@@ -447,7 +447,7 @@ export const LegalEntityBankSection = forwardRef(
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <InputField
-                        input={localState.postalCodeIntermediary ?? ""}
+                        // input={localState.postalCodeIntermediary ?? ""}
                         value={localState.postalCodeIntermediary ?? ""}
                         label="Postal Code"
                         placeholder="Postal Code"
@@ -472,7 +472,7 @@ export const LegalEntityBankSection = forwardRef(
 
                 <div className="space-y-2">
                   <InputField
-                    input={localState.memoIntermediary ?? ""}
+                    // input={localState.memoIntermediary ?? ""}
                     value={localState.memoIntermediary ?? ""}
                     label="Memo"
                     placeholder="Memo"

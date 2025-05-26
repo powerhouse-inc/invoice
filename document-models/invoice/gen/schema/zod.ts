@@ -61,9 +61,14 @@ export const InvoiceAccountTypeInputSchema = z.enum([
 
 export const StatusSchema = z.enum([
   "ACCEPTED",
+  "AWAITINGPAYMENT",
+  "CANCELLED",
   "DRAFT",
   "ISSUED",
-  "PAID",
+  "PAYMENTISSUE",
+  "PAYMENTRECEIVED",
+  "PAYMENTSCHEDULED",
+  "PAYMENTSENT",
   "REJECTED",
 ]);
 

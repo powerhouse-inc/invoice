@@ -5,9 +5,16 @@
  * @param chunkSize Size of each chunk in bytes (default: 500KB)
  * @param onProgress Callback for upload progress
  */
+
+let GRAPHQL_URL = 'http://localhost:4001/graphql/invoice'
+
+if (window.document.baseURI !== 'http://localhost:3000/') {
+  GRAPHQL_URL = 'https://switchboard-staging.powerhouse.xyz/graphql/invoice'
+}
+
 export async function uploadPdfChunked(
   pdfData: string,
-  endpoint: string = "https://switchboard-staging.powerhouse.xyz/graphql/invoice",
+  endpoint: string = GRAPHQL_URL,
   chunkSize: number = 500 * 1024, // 500KB chunks
   onProgress?: (progress: number) => void,
 ): Promise<any> {

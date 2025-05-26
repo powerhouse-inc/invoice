@@ -127,9 +127,14 @@ type LegalEntityCorporateRegistrationId {
 enum Status {
   DRAFT
   ISSUED
+  CANCELLED
   ACCEPTED
   REJECTED
-  PAID
+  AWAITINGPAYMENT
+  PAYMENTSCHEDULED
+  PAYMENTSENT
+  PAYMENTISSUE
+  PAYMENTRECEIVED
 }
 
 enum InvoiceAccountType {
@@ -229,6 +234,8 @@ input EditIssuerWalletInput {
     chainId: String
     address: String
 }
+
+
 
 input EditPayerInput {
     id: String
