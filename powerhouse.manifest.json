@@ -19,7 +19,13 @@
             "documentTypes": ["powerhouse/invoice"]
         }
     ],
-    "apps": [],
+    "apps": [
+        {
+            "id": "contributor-billing",
+            "name": "Contributor Billing",
+            "driveEditor": "contributor-billing"
+        }
+    ],
     "subgraphs": [],
     "importScripts": []
 }

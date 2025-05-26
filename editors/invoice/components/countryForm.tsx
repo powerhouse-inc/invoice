@@ -1,4 +1,4 @@
-import { Form, CountryCodeField } from "@powerhousedao/design-system/scalars";
+import { Form, CountryCodeField } from "@powerhousedao/document-engineering/scalars";
 import { getCountryCodeFromName } from "../utils/utils.js";
 import { twMerge } from "tailwind-merge";
 import { ValidationResult } from "../validation/validationManager.js";

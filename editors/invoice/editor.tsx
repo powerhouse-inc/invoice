@@ -15,8 +15,8 @@ import { toast, ToastContainer } from "@powerhousedao/design-system";
 import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import { InvoicePDF } from "./InvoicePDF.js";
 import { createRoot } from "react-dom/client";
-import { downloadUBL, exportToUBL } from "./exportUBL.js";
-import { CurrencyForm } from "./components/currencyForm.js";
+import { downloadUBL } from "./exportUBL.js";
+import { CurrencyForm, currencyList } from "./components/currencyForm.js";
 import { InputField } from "./components/inputField.js";
 import {
   validateField,
@@ -24,6 +24,7 @@ import {
   ValidationResult,
 } from "./validation/validationManager.js";
 import { DatePicker } from "./components/datePicker.js";
+import { SelectField } from "./components/selectField.js";
 
 // Helper function to format numbers with appropriate decimal places
 function formatNumber(value: number): string {
@@ -44,16 +45,17 @@ function formatNumber(value: number): string {
   return value.toFixed(decimalPlaces);
 }
 
+function isFiatCurrency(currency: string): boolean {
+  return currencyList.find((c) => c.ticker === currency)?.crypto === false;
+}
+
 export type IProps = EditorProps<InvoiceDocument>;
 
 export default function Editor(props: IProps) {
-  // generate a random id
-  // const id = documentModelUtils.hashKey();
-
   const { document: doc, dispatch } = props;
   const state = doc.state.global;
 
-  const [fiatMode, setFiatMode] = useState(state.currency != "USDS");
+  const [fiatMode, setFiatMode] = useState(isFiatCurrency(state.currency));
   const [uploadDropdownOpen, setUploadDropdownOpen] = useState(false);
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
   const [invoiceNoInput, setInvoiceNoInput] = useState(state.invoiceNo || "");
@@ -90,9 +92,10 @@ export default function Editor(props: IProps) {
   const [lineItemValidation, setLineItemValidation] =
     useState<ValidationResult | null>(null);
 
-  // Add this useEffect to watch for currency changes
+  const prevStatus = useRef(state.status);
+
   useEffect(() => {
-    setFiatMode(state.currency !== "USDS");
+    setFiatMode(isFiatCurrency(state.currency));
   }, [state.currency, state]);
 
   // Add click outside listener to close dropdowns
@@ -130,30 +133,17 @@ export default function Editor(props: IProps) {
     }, 0.0);
   }, [state.lineItems]);
 
-  const getStatusStyle = (status: Status) => {
-    const baseStyle = "px-4 py-2 rounded-full font-semibold text-sm";
-    switch (status) {
-      case "DRAFT":
-        return `${baseStyle} bg-gray-200 text-gray-800`;
-      case "ISSUED":
-        return `${baseStyle} bg-blue-100 text-blue-800`;
-      case "ACCEPTED":
-        return `${baseStyle} bg-green-100 text-green-800`;
-      case "REJECTED":
-        return `${baseStyle} bg-red-100 text-red-800 border border-red-300`;
-      case "PAID":
-        return `${baseStyle} bg-purple-100 text-purple-800 border border-purple-300`;
-      default:
-        return baseStyle;
-    }
-  };
-
   const STATUS_OPTIONS: Status[] = [
     "DRAFT",
     "ISSUED",
+    "CANCELLED",
     "ACCEPTED",
     "REJECTED",
-    "PAID",
+    "AWAITINGPAYMENT",
+    "PAYMENTSCHEDULED",
+    "PAYMENTSENT",
+    "PAYMENTISSUE",
+    "PAYMENTRECEIVED",
   ];
 
   const handleFileUpload = async (
@@ -308,11 +298,11 @@ export default function Editor(props: IProps) {
 
   // Add validation check when status changes
   const handleStatusChange = (newStatus: Status) => {
-    if (newStatus === "ISSUED") {
+    if (newStatus === "PAYMENTSCHEDULED" || newStatus === "ISSUED") {
       const context: ValidationContext = {
         currency: state.currency,
         currentStatus: state.status,
-        targetStatus: newStatus,
+        targetStatus: newStatus === "PAYMENTSCHEDULED" ? "ISSUED" : "ISSUED",
       };
 
       // Collect all validation errors
@@ -329,8 +319,8 @@ export default function Editor(props: IProps) {
         validationErrors.push(invoiceValidation);
       }
 
-      // Validate wallet address if currency is USDS
-      if (state.currency === "USDS") {
+      // Validate wallet address if currency is crypto
+      if (!isFiatCurrency(state.currency)) {
         const walletValidation = validateField(
           "address",
           state.issuer.paymentRouting?.wallet?.address ?? "",
@@ -453,6 +443,18 @@ export default function Editor(props: IProps) {
         validationErrors.push(lineItemValidation);
       }
 
+      if (
+        newStatus === "PAYMENTSCHEDULED" &&
+        !isFiatCurrency(state.currency) &&
+        state.issuer.paymentRouting?.wallet?.chainName === ""
+      ) {
+        validationErrors.push({
+          message: "Select currency and chain before accepting invoice",
+          severity: "warning",
+          isValid: false,
+        });
+      }
+
       // If there are any validation errors, show them and return
       if (validationErrors.length > 0) {
         validationErrors.forEach((error) => {
@@ -467,9 +469,18 @@ export default function Editor(props: IProps) {
     dispatch(actions.editStatus({ status: newStatus }));
   };
 
-  const handleIssuerChange = (input: any) => {
-    console.log("edit issuer input", input);
-    dispatch(actions.editIssuer(input));
+  const handleCurrencyChange = (currency: string) => {
+    if (
+      (prevStatus.current === "PAYMENTSCHEDULED" || prevStatus.current === "DRAFT") &&
+      !isFiatCurrency(currency) &&
+      state.issuer.paymentRouting?.wallet?.chainName === ""
+    ) {
+      dispatch(actions.editStatus({ status: "DRAFT" }));
+      toast("Select currency and chain before accepting invoice", {
+        type: "warning",
+      });
+    }
+    dispatch(actions.editInvoice({ currency }));
   };
 
   return (
@@ -608,24 +619,18 @@ export default function Editor(props: IProps) {
           <CurrencyForm
             currency={state.currency}
             handleInputChange={(e) => {
-              dispatch(actions.editInvoice({ currency: e.target.value }));
+              handleCurrencyChange(e.target.value);
             }}
             validation={currencyValidation}
           />
         </div>
 
         {/* Status on the right */}
-        <select
-          className={getStatusStyle(state.status)}
-          onChange={(e) => handleStatusChange(e.target.value as Status)}
+        <SelectField
+          options={STATUS_OPTIONS}
           value={state.status}
-        >
-          {STATUS_OPTIONS.map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => handleStatusChange(value as Status)}
+        />
       </div>
 
       {/* Main Content Grid */}
@@ -644,7 +649,6 @@ export default function Editor(props: IProps) {
                   dispatch(
                     actions.editInvoice({
                       dateIssued: newDate,
-                      dateDelivered: newDate,
                     })
                   );
                 }}
@@ -666,7 +670,7 @@ export default function Editor(props: IProps) {
                     );
                   }
                 }}
-                value={state.dateDelivered || state.dateIssued}
+                value={state.dateDelivered || ""}
               />
             </div>
           </div>
@@ -759,9 +763,9 @@ export default function Editor(props: IProps) {
       </div>
 
       {/* Finance Request Section */}
-      {state.status === "ACCEPTED" && (
+      {state.status === "PAYMENTSCHEDULED" && (
         <div className="mt-8">
-          {state.currency === "USDS" ? (
+          {!isFiatCurrency(state.currency) ? (
             <InvoiceToGnosis docState={state} />
           ) : (
             <RequestFinance docState={state} />
@@ -780,7 +784,6 @@ export default function Editor(props: IProps) {
           </PDFViewer>
         </div>
       </div> */}
-
     </div>
   );
 }
