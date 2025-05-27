@@ -248,7 +248,51 @@ export const schema: DocumentNode = gql`
       docId: PHID
       input: Invoice_SetLineItemTagInput
     ): Int
+    Invoice_uploadInvoicePdfChunk(
+      chunk: String!
+      chunkIndex: Int!
+      totalChunks: Int!
+      fileName: String!
+      sessionId: String!
+    ): UploadInvoicePdfChunkResult!
+    Invoice_createRequestFinancePayment(
+      paymentData: JSON!
+    ): CreateRequestFinancePaymentResult!
+    Invoice_processGnosisPayment(
+      payerWallet: JSON!
+      paymentDetails: JSON!
+      invoiceNo: String!
+    ): ProcessGnosisPaymentResult
   }
+
+  """
+  Result type for PDF chunk upload
+  """
+  type UploadInvoicePdfChunkResult {
+    success: Boolean!
+    data: JSON
+    error: String
+  }
+
+  """
+  Result type for request finance payment request
+  """
+  type CreateRequestFinancePaymentResult {
+    success: Boolean!
+    data: JSON
+    error: String
+  }
+
+  """
+  Result type for process gnosis payment
+  """
+  type ProcessGnosisPaymentResult {
+    success: Boolean!
+    data: JSON
+    error: String
+  }
+
+  scalar JSON
 
   """
   Module: General
