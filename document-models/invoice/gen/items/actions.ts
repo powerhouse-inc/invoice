@@ -3,6 +3,7 @@ import type {
   AddLineItemInput,
   EditLineItemInput,
   DeleteLineItemInput,
+  SetLineItemTagInput,
 } from "../types.js";
 
 export type AddLineItemAction = BaseAction<
@@ -20,8 +21,14 @@ export type DeleteLineItemAction = BaseAction<
   DeleteLineItemInput,
   "global"
 >;
+export type SetLineItemTagAction = BaseAction<
+  "SET_LINE_ITEM_TAG",
+  SetLineItemTagInput,
+  "global"
+>;
 
 export type InvoiceItemsAction =
   | AddLineItemAction
   | EditLineItemAction
-  | DeleteLineItemAction;
+  | DeleteLineItemAction
+  | SetLineItemTagAction;

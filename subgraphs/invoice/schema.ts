@@ -18,6 +18,7 @@ export const schema: DocumentNode = gql`
     lineItems: [InvoiceLineItem!]!
     totalPriceTaxExcl: Float!
     totalPriceTaxIncl: Float!
+    paymentAccount: String
   }
 
   type Ref {
@@ -149,12 +150,6 @@ export const schema: DocumentNode = gql`
     WALLET
   }
 
-  input InvoiceLineItemTagInput {
-    dimension: String!
-    value: String!
-    label: String
-  }
-
   """
   Queries: Invoice
   """
@@ -197,6 +192,11 @@ export const schema: DocumentNode = gql`
       driveId: String
       docId: PHID
       input: Invoice_DeleteRefInput
+    ): Int
+    Invoice_setPaymentAccount(
+      driveId: String
+      docId: PHID
+      input: Invoice_SetPaymentAccountInput
     ): Int
     Invoice_editIssuer(
       driveId: String
@@ -243,6 +243,11 @@ export const schema: DocumentNode = gql`
       docId: PHID
       input: Invoice_DeleteLineItemInput
     ): Int
+    Invoice_setLineItemTag(
+      driveId: String
+      docId: PHID
+      input: Invoice_SetLineItemTagInput
+    ): Int
   }
 
   """
@@ -268,6 +273,9 @@ export const schema: DocumentNode = gql`
   }
   input Invoice_DeleteRefInput {
     id: OID!
+  }
+  input Invoice_SetPaymentAccountInput {
+    paymentAccount: String!
   }
 
   """
@@ -386,7 +394,6 @@ export const schema: DocumentNode = gql`
     unitPriceTaxIncl: Float!
     totalPriceTaxExcl: Float!
     totalPriceTaxIncl: Float!
-    lineItemTag: [InvoiceLineItemTagInput!]
   }
   input Invoice_EditLineItemInput {
     id: OID!
@@ -398,9 +405,14 @@ export const schema: DocumentNode = gql`
     unitPriceTaxIncl: Float
     totalPriceTaxExcl: Float
     totalPriceTaxIncl: Float
-    lineItemTag: [InvoiceLineItemTagInput!]
   }
   input Invoice_DeleteLineItemInput {
     id: OID!
+  }
+  input Invoice_SetLineItemTagInput {
+    id: OID!
+    dimension: String!
+    value: String!
+    label: String
   }
 `;

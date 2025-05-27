@@ -48,6 +48,15 @@ const stateReducer: StateReducer<InvoiceDocument> = (
       GeneralReducer.deleteRefOperation(state[action.scope], action, dispatch);
       break;
 
+    case "SET_PAYMENT_ACCOUNT":
+      z.SetPaymentAccountInputSchema().parse(action.input);
+      GeneralReducer.setPaymentAccountOperation(
+        state[action.scope],
+        action,
+        dispatch,
+      );
+      break;
+
     case "EDIT_ISSUER":
       z.EditIssuerInputSchema().parse(action.input);
       PartiesReducer.editIssuerOperation(state[action.scope], action, dispatch);
@@ -107,6 +116,15 @@ const stateReducer: StateReducer<InvoiceDocument> = (
     case "DELETE_LINE_ITEM":
       z.DeleteLineItemInputSchema().parse(action.input);
       ItemsReducer.deleteLineItemOperation(
+        state[action.scope],
+        action,
+        dispatch,
+      );
+      break;
+
+    case "SET_LINE_ITEM_TAG":
+      z.SetLineItemTagInputSchema().parse(action.input);
+      ItemsReducer.setLineItemTagOperation(
         state[action.scope],
         action,
         dispatch,

@@ -59,7 +59,6 @@ export type AddLineItemInput = {
   currency: Scalars["String"]["input"];
   description: Scalars["String"]["input"];
   id: Scalars["OID"]["input"];
-  lineItemTag?: InputMaybe<Array<InvoiceLineItemTagInput>>;
   quantity: Scalars["Float"]["input"];
   taxPercent: Scalars["Float"]["input"];
   totalPriceTaxExcl: Scalars["Float"]["input"];
@@ -175,7 +174,6 @@ export type EditLineItemInput = {
   currency?: InputMaybe<Scalars["String"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
   id: Scalars["OID"]["input"];
-  lineItemTag?: InputMaybe<Array<InvoiceLineItemTagInput>>;
   quantity?: InputMaybe<Scalars["Float"]["input"]>;
   taxPercent?: InputMaybe<Scalars["Float"]["input"]>;
   totalPriceTaxExcl?: InputMaybe<Scalars["Float"]["input"]>;
@@ -287,12 +285,6 @@ export type InvoiceLineItemTag = {
   value: Scalars["String"]["output"];
 };
 
-export type InvoiceLineItemTagInput = {
-  dimension: Scalars["String"]["input"];
-  label?: InputMaybe<Scalars["String"]["input"]>;
-  value: Scalars["String"]["input"];
-};
-
 export type InvoiceState = {
   currency: Scalars["String"]["output"];
   dateDelivered: Maybe<Scalars["String"]["output"]>;
@@ -302,6 +294,7 @@ export type InvoiceState = {
   issuer: LegalEntity;
   lineItems: Array<InvoiceLineItem>;
   payer: LegalEntity;
+  paymentAccount: Maybe<Scalars["String"]["output"]>;
   refs: Array<Ref>;
   status: Status | `${Status}`;
   totalPriceTaxExcl: Scalars["Float"]["output"];
@@ -344,6 +337,17 @@ export type PaymentRouting = {
 export type Ref = {
   id: Scalars["OID"]["output"];
   value: Scalars["String"]["output"];
+};
+
+export type SetLineItemTagInput = {
+  dimension: Scalars["String"]["input"];
+  id: Scalars["OID"]["input"];
+  label?: InputMaybe<Scalars["String"]["input"]>;
+  value: Scalars["String"]["input"];
+};
+
+export type SetPaymentAccountInput = {
+  paymentAccount: Scalars["String"]["input"];
 };
 
 export type Status =

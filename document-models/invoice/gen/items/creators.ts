@@ -4,11 +4,13 @@ import {
   type AddLineItemInput,
   type EditLineItemInput,
   type DeleteLineItemInput,
+  type SetLineItemTagInput,
 } from "../types.js";
 import {
   type AddLineItemAction,
   type EditLineItemAction,
   type DeleteLineItemAction,
+  type SetLineItemTagAction,
 } from "./actions.js";
 
 export const addLineItem = (input: AddLineItemInput) =>
@@ -35,5 +37,14 @@ export const deleteLineItem = (input: DeleteLineItemInput) =>
     { ...input },
     undefined,
     z.DeleteLineItemInputSchema,
+    "global",
+  );
+
+export const setLineItemTag = (input: SetLineItemTagInput) =>
+  createAction<SetLineItemTagAction>(
+    "SET_LINE_ITEM_TAG",
+    { ...input },
+    undefined,
+    z.SetLineItemTagInputSchema,
     "global",
   );

@@ -152,6 +152,20 @@ export const getResolvers = (subgraph: Subgraph): Record<string, any> => {
         return doc.revision.global + 1;
       },
 
+      Invoice_setPaymentAccount: async (_: any, args: any) => {
+        const driveId: string = args.driveId || DEFAULT_DRIVE_ID;
+        const docId: string = args.docId || "";
+        const doc = await reactor.getDocument(driveId, docId);
+
+        await reactor.addAction(
+          driveId,
+          docId,
+          actions.setPaymentAccount({ ...args.input }),
+        );
+
+        return doc.revision.global + 1;
+      },
+
       Invoice_editIssuer: async (_: any, args: any) => {
         const driveId: string = args.driveId || DEFAULT_DRIVE_ID;
         const docId: string = args.docId || "";
@@ -273,6 +287,20 @@ export const getResolvers = (subgraph: Subgraph): Record<string, any> => {
           driveId,
           docId,
           actions.deleteLineItem({ ...args.input }),
+        );
+
+        return doc.revision.global + 1;
+      },
+
+      Invoice_setLineItemTag: async (_: any, args: any) => {
+        const driveId: string = args.driveId || DEFAULT_DRIVE_ID;
+        const docId: string = args.docId || "";
+        const doc = await reactor.getDocument(driveId, docId);
+
+        await reactor.addAction(
+          driveId,
+          docId,
+          actions.setLineItemTag({ ...args.input }),
         );
 
         return doc.revision.global + 1;

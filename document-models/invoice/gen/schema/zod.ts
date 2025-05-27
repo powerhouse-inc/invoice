@@ -22,7 +22,6 @@ import type {
   InvoiceAccountTypeInput,
   InvoiceLineItem,
   InvoiceLineItemTag,
-  InvoiceLineItemTagInput,
   InvoiceState,
   InvoiceWallet,
   LegalEntity,
@@ -30,6 +29,8 @@ import type {
   LegalEntityTaxId,
   PaymentRouting,
   Ref,
+  SetLineItemTagInput,
+  SetPaymentAccountInput,
   Status,
   Token,
 } from "./types.js";
@@ -81,9 +82,6 @@ export function AddLineItemInputSchema(): z.ZodObject<
     currency: z.string(),
     description: z.string(),
     id: z.string(),
-    lineItemTag: z
-      .array(z.lazy(() => InvoiceLineItemTagInputSchema()))
-      .nullish(),
     quantity: z.number(),
     taxPercent: z.number(),
     totalPriceTaxExcl: z.number(),
@@ -236,9 +234,6 @@ export function EditLineItemInputSchema(): z.ZodObject<
     currency: z.string().nullish(),
     description: z.string().nullish(),
     id: z.string(),
-    lineItemTag: z
-      .array(z.lazy(() => InvoiceLineItemTagInputSchema()))
-      .nullish(),
     quantity: z.number().nullish(),
     taxPercent: z.number().nullish(),
     totalPriceTaxExcl: z.number().nullish(),
@@ -374,16 +369,6 @@ export function InvoiceLineItemTagSchema(): z.ZodObject<
   });
 }
 
-export function InvoiceLineItemTagInputSchema(): z.ZodObject<
-  Properties<InvoiceLineItemTagInput>
-> {
-  return z.object({
-    dimension: z.string(),
-    label: z.string().nullish(),
-    value: z.string(),
-  });
-}
-
 export function InvoiceStateSchema(): z.ZodObject<Properties<InvoiceState>> {
   return z.object({
     __typename: z.literal("InvoiceState").optional(),
@@ -395,6 +380,7 @@ export function InvoiceStateSchema(): z.ZodObject<Properties<InvoiceState>> {
     issuer: LegalEntitySchema(),
     lineItems: z.array(InvoiceLineItemSchema()),
     payer: LegalEntitySchema(),
+    paymentAccount: z.string().nullable(),
     refs: z.array(RefSchema()),
     status: StatusSchema,
     totalPriceTaxExcl: z.number(),
@@ -464,6 +450,25 @@ export function RefSchema(): z.ZodObject<Properties<Ref>> {
     __typename: z.literal("Ref").optional(),
     id: z.string(),
     value: z.string(),
+  });
+}
+
+export function SetLineItemTagInputSchema(): z.ZodObject<
+  Properties<SetLineItemTagInput>
+> {
+  return z.object({
+    dimension: z.string(),
+    id: z.string(),
+    label: z.string().nullish(),
+    value: z.string(),
+  });
+}
+
+export function SetPaymentAccountInputSchema(): z.ZodObject<
+  Properties<SetPaymentAccountInput>
+> {
+  return z.object({
+    paymentAccount: z.string(),
   });
 }
 

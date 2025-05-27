@@ -3,10 +3,16 @@ import {
   type AddLineItemInput,
   type EditLineItemInput,
   type DeleteLineItemInput,
+  type SetLineItemTagInput,
   type InvoiceState,
   type InvoiceLocalState,
 } from "../types.js";
-import { addLineItem, editLineItem, deleteLineItem } from "./creators.js";
+import {
+  addLineItem,
+  editLineItem,
+  deleteLineItem,
+  setLineItemTag,
+} from "./creators.js";
 import { type InvoiceAction } from "../actions.js";
 
 export default class Invoice_Items extends BaseDocumentClass<
@@ -24,5 +30,9 @@ export default class Invoice_Items extends BaseDocumentClass<
 
   public deleteLineItem(input: DeleteLineItemInput) {
     return this.dispatch(deleteLineItem(input));
+  }
+
+  public setLineItemTag(input: SetLineItemTagInput) {
+    return this.dispatch(setLineItemTag(input));
   }
 }

@@ -15,7 +15,7 @@ import {
 } from "../../gen/schema/index.js";
 import { reducer } from "../../gen/reducer.js";
 import * as creators from "../../gen/general/creators.js";
-import type { InvoiceDocument } from "../../gen/types.js";
+import type { InvoiceDocument, SetPaymentAccountInput } from "../../gen/types.js";
 
 describe("General Operations", () => {
   let document: InvoiceDocument;
@@ -86,6 +86,19 @@ describe("General Operations", () => {
 
     expect(updatedDocument.operations.global).toHaveLength(1);
     expect(updatedDocument.operations.global[0].type).toBe("DELETE_REF");
+    expect(updatedDocument.operations.global[0].input).toStrictEqual(input);
+    expect(updatedDocument.operations.global[0].index).toEqual(0);
+  });
+  it("should handle setPaymentAccount operation", () => {
+    // generate a random id
+    // const id = documentModelUtils.hashKey();
+
+    const input: SetPaymentAccountInput = generateMock(z.SetPaymentAccountInputSchema());
+
+    const updatedDocument = reducer(document, creators.setPaymentAccount(input));
+
+    expect(updatedDocument.operations.global).toHaveLength(1);
+    expect(updatedDocument.operations.global[0].type).toBe("SET_PAYMENT_ACCOUNT");
     expect(updatedDocument.operations.global[0].input).toStrictEqual(input);
     expect(updatedDocument.operations.global[0].index).toEqual(0);
   });

@@ -27,6 +27,7 @@ type InvoiceState {
   lineItems: [InvoiceLineItem!]!
   totalPriceTaxExcl: Float!
   totalPriceTaxIncl: Float!
+  paymentAccount: String
 }
 
 type Ref {
@@ -158,11 +159,6 @@ enum InvoiceAccountTypeInput {
   WALLET
 }
 
-input InvoiceLineItemTagInput {
-  dimension: String!
-  value: String!
-  label: String
-} 
 
 
 
@@ -192,6 +188,10 @@ input EditRefInput {
 
 input DeleteRefInput {
   id: OID!
+}
+
+input SetPaymentAccountInput {
+   paymentAccount: String!
 }
 
 # parties
@@ -314,7 +314,6 @@ input AddLineItemInput {
     unitPriceTaxIncl: Float!
     totalPriceTaxExcl: Float!
     totalPriceTaxIncl: Float!
-    lineItemTag: [InvoiceLineItemTagInput!]
 }
 
 input EditLineItemInput {
@@ -327,9 +326,15 @@ input EditLineItemInput {
     unitPriceTaxIncl: Float
     totalPriceTaxExcl: Float
     totalPriceTaxIncl: Float
-    lineItemTag: [InvoiceLineItemTagInput!]
 }
 
 input DeleteLineItemInput {
   id: OID!
+}
+
+input SetLineItemTagInput {
+  id: OID!
+  dimension: String!
+  value: String!
+  label: String
 }

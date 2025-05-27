@@ -17,7 +17,7 @@ export const documentModel: DocumentModelState = {
       state: {
         global: {
           schema:
-            "type InvoiceState {\n  invoiceNo: String!\n  dateIssued: String!\n  dateDue: String!\n  dateDelivered: String\n  status: Status!\n  refs: [Ref!]!\n  issuer: LegalEntity!\n  payer: LegalEntity!\n  currency: String!\n  lineItems: [InvoiceLineItem!]!\n  totalPriceTaxExcl: Float!\n  totalPriceTaxIncl: Float!\n}\n\ntype Ref {\n  id: OID!\n  value: String!\n}\n\ntype Token {\n  evmAddress: String\n  symbol: String\n  chainName: String\n  chainId: String\n  rpc: String\n}\n\ntype LegalEntity {\n  id: LegalEntityId\n  name: String\n  address: Address\n  contactInfo: ContactInfo\n  country: String\n  paymentRouting: PaymentRouting\n}\n\ntype Address {\n  streetAddress: String\n  extendedAddress: String\n  city: String\n  postalCode: String\n  country: String\n  stateProvince: String\n}\n\ntype ContactInfo {\n  tel: String\n  email: String\n}\n\ntype PaymentRouting {\n  bank: Bank\n  wallet: InvoiceWallet\n}\n\ntype Bank {\n  name: String!\n  address: Address!\n  ABA: String\n  BIC: String\n  SWIFT: String\n  accountNum: String!\n  accountType: InvoiceAccountType\n  beneficiary: String\n  intermediaryBank: IntermediaryBank\n  memo: String\n}\n\ntype IntermediaryBank {\n  name: String!\n  address: Address!\n  ABA: String\n  BIC: String\n  SWIFT: String\n  accountNum: String!\n  accountType: InvoiceAccountType\n  beneficiary: String\n  memo: String\n}\n\ntype InvoiceWallet {\n  rpc: String\n  chainName: String\n  chainId: String\n  address: String\n}\n\ntype InvoiceLineItem {\n  id: OID!\n  description: String!\n  taxPercent: Float!\n  quantity: Float!\n  currency: String!\n  unitPriceTaxExcl: Float!\n  unitPriceTaxIncl: Float!\n  totalPriceTaxExcl: Float!\n  totalPriceTaxIncl: Float!\n  lineItemTag: [InvoiceLineItemTag!]!\n}\n\ntype InvoiceLineItemTag {\n  dimension: String!\n  value: String!\n  label: String\n}\n\nunion LegalEntityId = LegalEntityTaxId | LegalEntityCorporateRegistrationId\n\ntype LegalEntityTaxId {\n  taxId: String!\n}\n\ntype LegalEntityCorporateRegistrationId {\n  corpRegId: String!\n}\n\nenum Status {\n  DRAFT\n  ISSUED\n  CANCELLED\n  ACCEPTED\n  REJECTED\n  AWAITINGPAYMENT\n  PAYMENTSCHEDULED\n  PAYMENTSENT\n  PAYMENTISSUE\n  PAYMENTRECEIVED\n}\n\nenum InvoiceAccountType {\n  CHECKING\n  SAVINGS\n  TRUST\n  WALLET\n}\n\nenum InvoiceAccountTypeInput {\n  CHECKING\n  SAVINGS\n  TRUST\n  WALLET\n}\n\ninput InvoiceLineItemTagInput {\n  dimension: String!\n  value: String!\n  label: String\n} ",
+            "type InvoiceState {\n  invoiceNo: String!\n  dateIssued: String!\n  dateDue: String!\n  dateDelivered: String\n  status: Status!\n  refs: [Ref!]!\n  issuer: LegalEntity!\n  payer: LegalEntity!\n  currency: String!\n  lineItems: [InvoiceLineItem!]!\n  totalPriceTaxExcl: Float!\n  totalPriceTaxIncl: Float!\n  paymentAccount: String\n}\n\ntype Ref {\n  id: OID!\n  value: String!\n}\n\ntype Token {\n  evmAddress: String\n  symbol: String\n  chainName: String\n  chainId: String\n  rpc: String\n}\n\ntype LegalEntity {\n  id: LegalEntityId\n  name: String\n  address: Address\n  contactInfo: ContactInfo\n  country: String\n  paymentRouting: PaymentRouting\n}\n\ntype Address {\n  streetAddress: String\n  extendedAddress: String\n  city: String\n  postalCode: String\n  country: String\n  stateProvince: String\n}\n\ntype ContactInfo {\n  tel: String\n  email: String\n}\n\ntype PaymentRouting {\n  bank: Bank\n  wallet: InvoiceWallet\n}\n\ntype Bank {\n  name: String!\n  address: Address!\n  ABA: String\n  BIC: String\n  SWIFT: String\n  accountNum: String!\n  accountType: InvoiceAccountType\n  beneficiary: String\n  intermediaryBank: IntermediaryBank\n  memo: String\n}\n\ntype IntermediaryBank {\n  name: String!\n  address: Address!\n  ABA: String\n  BIC: String\n  SWIFT: String\n  accountNum: String!\n  accountType: InvoiceAccountType\n  beneficiary: String\n  memo: String\n}\n\ntype InvoiceWallet {\n  rpc: String\n  chainName: String\n  chainId: String\n  address: String\n}\n\ntype InvoiceLineItem {\n  id: OID!\n  description: String!\n  taxPercent: Float!\n  quantity: Float!\n  currency: String!\n  unitPriceTaxExcl: Float!\n  unitPriceTaxIncl: Float!\n  totalPriceTaxExcl: Float!\n  totalPriceTaxIncl: Float!\n  lineItemTag: [InvoiceLineItemTag!]!\n}\n\ntype InvoiceLineItemTag {\n  dimension: String!\n  value: String!\n  label: String\n}\n\nunion LegalEntityId = LegalEntityTaxId | LegalEntityCorporateRegistrationId\n\ntype LegalEntityTaxId {\n  taxId: String!\n}\n\ntype LegalEntityCorporateRegistrationId {\n  corpRegId: String!\n}\n\nenum Status {\n  DRAFT\n  ISSUED\n  CANCELLED\n  ACCEPTED\n  REJECTED\n  AWAITINGPAYMENT\n  PAYMENTSCHEDULED\n  PAYMENTSENT\n  PAYMENTISSUE\n  PAYMENTRECEIVED\n}\n\nenum InvoiceAccountType {\n  CHECKING\n  SAVINGS\n  TRUST\n  WALLET\n}\n\nenum InvoiceAccountTypeInput {\n  CHECKING\n  SAVINGS\n  TRUST\n  WALLET\n}\n",
           initialValue:
             '"{\\n  \\"invoiceNo\\": \\"\\",\\n  \\"dateIssued\\": \\"\\",\\n  \\"dateDue\\": \\"\\",\\n  \\"dateDelivered\\": \\"\\",\\n  \\"status\\": \\"DRAFT\\",\\n  \\"refs\\": [],\\n  \\"issuer\\": {\\n    \\"id\\": null,\\n    \\"name\\": \\"\\",\\n    \\"address\\": {\\n      \\"streetAddress\\": \\"\\",\\n      \\"extendedAddress\\": \\"\\",\\n      \\"city\\": \\"\\",\\n      \\"postalCode\\": \\"\\",\\n      \\"country\\": \\"\\",\\n      \\"stateProvince\\": \\"\\"\\n    },\\n    \\"contactInfo\\": {\\n      \\"tel\\": \\"\\",\\n      \\"email\\": \\"\\"\\n    },\\n    \\"country\\": \\"\\",\\n    \\"paymentRouting\\": {\\n      \\"bank\\": {\\n        \\"name\\": \\"\\",\\n        \\"address\\": {\\n          \\"streetAddress\\": \\"\\",\\n          \\"extendedAddress\\": \\"\\",\\n          \\"city\\": \\"\\",\\n          \\"postalCode\\": \\"\\",\\n          \\"country\\": \\"\\",\\n          \\"stateProvince\\": \\"\\"\\n        },\\n        \\"ABA\\": \\"\\",\\n        \\"BIC\\": \\"\\",\\n        \\"SWIFT\\": \\"\\",\\n        \\"accountNum\\": \\"\\",\\n        \\"accountType\\": \\"CHECKING\\",\\n        \\"beneficiary\\": \\"\\",\\n        \\"intermediaryBank\\": {\\n          \\"name\\": \\"\\",\\n          \\"address\\": {\\n            \\"streetAddress\\": \\"\\",\\n            \\"extendedAddress\\": \\"\\",\\n            \\"city\\": \\"\\",\\n            \\"postalCode\\": \\"\\",\\n            \\"country\\": \\"\\",\\n            \\"stateProvince\\": \\"\\"\\n          },\\n          \\"ABA\\": \\"\\",\\n          \\"BIC\\": \\"\\",\\n          \\"SWIFT\\": \\"\\",\\n          \\"accountNum\\": \\"\\",\\n          \\"accountType\\": \\"CHECKING\\",\\n          \\"beneficiary\\": \\"\\",\\n          \\"memo\\": \\"\\"\\n        },\\n        \\"memo\\": \\"\\"\\n      },\\n      \\"wallet\\": {\\n        \\"rpc\\": \\"\\",\\n        \\"chainName\\": \\"\\",\\n        \\"chainId\\": \\"\\",\\n        \\"address\\": \\"\\"\\n      }\\n    }\\n  },\\n  \\"payer\\": {\\n    \\"id\\": null,\\n    \\"name\\": \\"\\",\\n    \\"address\\": {\\n      \\"streetAddress\\": \\"\\",\\n      \\"extendedAddress\\": \\"\\",\\n      \\"city\\": \\"\\",\\n      \\"postalCode\\": \\"\\",\\n      \\"country\\": \\"\\",\\n      \\"stateProvince\\": \\"\\"\\n    },\\n    \\"contactInfo\\": {\\n      \\"tel\\": \\"\\",\\n      \\"email\\": \\"\\"\\n    },\\n    \\"country\\": \\"\\",\\n    \\"paymentRouting\\": {\\n      \\"bank\\": {\\n        \\"name\\": \\"\\",\\n        \\"address\\": {\\n          \\"streetAddress\\": \\"\\",\\n          \\"extendedAddress\\": \\"\\",\\n          \\"city\\": \\"\\",\\n          \\"postalCode\\": \\"\\",\\n          \\"country\\": \\"\\",\\n          \\"stateProvince\\": \\"\\"\\n        },\\n        \\"ABA\\": \\"\\",\\n        \\"BIC\\": \\"\\",\\n        \\"SWIFT\\": \\"\\",\\n        \\"accountNum\\": \\"\\",\\n        \\"accountType\\": \\"CHECKING\\",\\n        \\"beneficiary\\": \\"\\",\\n        \\"intermediaryBank\\": {\\n          \\"name\\": \\"\\",\\n          \\"address\\": {\\n            \\"streetAddress\\": \\"\\",\\n            \\"extendedAddress\\": \\"\\",\\n            \\"city\\": \\"\\",\\n            \\"postalCode\\": \\"\\",\\n            \\"country\\": \\"\\",\\n            \\"stateProvince\\": \\"\\"\\n          },\\n          \\"ABA\\": \\"\\",\\n          \\"BIC\\": \\"\\",\\n          \\"SWIFT\\": \\"\\",\\n          \\"accountNum\\": \\"\\",\\n          \\"accountType\\": \\"CHECKING\\",\\n          \\"beneficiary\\": \\"\\",\\n          \\"memo\\": \\"\\"\\n        },\\n        \\"memo\\": \\"\\"\\n      },\\n      \\"wallet\\": {\\n        \\"rpc\\": \\"\\",\\n        \\"chainName\\": \\"\\",\\n        \\"chainId\\": \\"\\",\\n        \\"address\\": \\"\\"\\n      }\\n    }\\n  },\\n  \\"currency\\": \\"\\",\\n  \\"lineItems\\": [],\\n  \\"totalPriceTaxExcl\\": 0,\\n  \\"totalPriceTaxIncl\\": 0\\n}"',
           examples: [],
@@ -86,6 +86,18 @@ export const documentModel: DocumentModelState = {
               name: "DELETE_REF",
               description: "",
               schema: "input DeleteRefInput {\n  id: OID!\n}",
+              template: "",
+              reducer: "",
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "da3a0e75-d6d6-4dd8-b4e0-73a09ce3aa64",
+              name: "SET_PAYMENT_ACCOUNT",
+              description: "",
+              schema:
+                "input SetPaymentAccountInput {\n   paymentAccount: String!\n}",
               template: "",
               reducer: "",
               errors: [],
@@ -183,7 +195,7 @@ export const documentModel: DocumentModelState = {
               name: "ADD_LINE_ITEM",
               description: "",
               schema:
-                "input AddLineItemInput {\n    id: OID!\n    description: String!\n    taxPercent: Float!\n    quantity: Float!\n    currency: String! # Default can be USD\n    unitPriceTaxExcl: Float!\n    unitPriceTaxIncl: Float!\n    totalPriceTaxExcl: Float!\n    totalPriceTaxIncl: Float!\n    lineItemTag: [InvoiceLineItemTagInput!]\n}",
+                "input AddLineItemInput {\n    id: OID!\n    description: String!\n    taxPercent: Float!\n    quantity: Float!\n    currency: String! # Default can be USD\n    unitPriceTaxExcl: Float!\n    unitPriceTaxIncl: Float!\n    totalPriceTaxExcl: Float!\n    totalPriceTaxIncl: Float!\n}",
               template: "",
               reducer: "",
               errors: [],
@@ -195,7 +207,7 @@ export const documentModel: DocumentModelState = {
               name: "EDIT_LINE_ITEM",
               description: "",
               schema:
-                "input EditLineItemInput {\n    id: OID!\n    description: String\n    taxPercent: Float\n    quantity: Float\n    currency: String\n    unitPriceTaxExcl: Float\n    unitPriceTaxIncl: Float\n    totalPriceTaxExcl: Float\n    totalPriceTaxIncl: Float\n    lineItemTag: [InvoiceLineItemTagInput!]\n}",
+                "input EditLineItemInput {\n    id: OID!\n    description: String\n    taxPercent: Float\n    quantity: Float\n    currency: String\n    unitPriceTaxExcl: Float\n    unitPriceTaxIncl: Float\n    totalPriceTaxExcl: Float\n    totalPriceTaxIncl: Float\n}",
               template: "",
               reducer: "",
               errors: [],
@@ -207,6 +219,18 @@ export const documentModel: DocumentModelState = {
               name: "DELETE_LINE_ITEM",
               description: "",
               schema: "input DeleteLineItemInput {\n  id: OID!\n}",
+              template: "",
+              reducer: "",
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "eb020c14-9c7c-4858-8469-fd25059d532f",
+              name: "SET_LINE_ITEM_TAG",
+              description: "",
+              schema:
+                "input SetLineItemTagInput {\n  id: OID!\n  dimension: String!\n  value: String!\n  label: String\n}",
               template: "",
               reducer: "",
               errors: [],

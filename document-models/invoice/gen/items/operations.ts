@@ -3,6 +3,7 @@ import {
   type AddLineItemAction,
   type EditLineItemAction,
   type DeleteLineItemAction,
+  type SetLineItemTagAction,
 } from "./actions.js";
 import { type InvoiceState } from "../types.js";
 
@@ -20,6 +21,11 @@ export interface InvoiceItemsOperations {
   deleteLineItemOperation: (
     state: InvoiceState,
     action: DeleteLineItemAction,
+    dispatch?: SignalDispatch,
+  ) => void;
+  setLineItemTagOperation: (
+    state: InvoiceState,
+    action: SetLineItemTagAction,
     dispatch?: SignalDispatch,
   ) => void;
 }

@@ -61,4 +61,12 @@ export const reducer: InvoiceGeneralOperations = {
       console.error(e);
     }
   },
+  setPaymentAccountOperation(state, action, dispatch) {
+    try {
+      if (!action.input.paymentAccount) throw new Error("No input.paymentAccount");
+      state.paymentAccount = action.input.paymentAccount;
+    } catch (e) {
+      console.error(e);
+    }
+  },
 };
