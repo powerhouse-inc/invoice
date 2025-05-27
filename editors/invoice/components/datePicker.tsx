@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 interface DatePickerProps {
   name: string;
-  input?: string;
   value: string;
   label?: string;
   placeholder?: string;
@@ -12,16 +11,11 @@ interface DatePickerProps {
 }
 
 export const DatePicker = (props: DatePickerProps) => {
-  const [formValue, setFormValue] = useState(props.value);
-
-  useEffect(() => {
-    setFormValue(props.value);
-  }, [props.value]);
-
   return (
     <Form
+      key={props.value}
       defaultValues={{
-        input: formValue,
+        input: props.value,
       }}
       onSubmit={() => {}}
       resetOnSuccessfulSubmit={false}
@@ -29,7 +23,7 @@ export const DatePicker = (props: DatePickerProps) => {
     >
       <DatePickerField
         name={props.name}
-        value={formValue}
+        value={props.value}
         label={props.label}
         placeholder={props.placeholder}
         onChange={props.onChange}

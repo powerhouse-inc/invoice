@@ -483,6 +483,8 @@ export default function Editor(props: IProps) {
     dispatch(actions.editInvoice({ currency }));
   };
 
+  console.log({issued: state.dateIssued, dueDate: state.dateDue});
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <ToastContainer
