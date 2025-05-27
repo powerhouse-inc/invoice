@@ -6,6 +6,7 @@ interface NumberFormProps {
   min?: number;
   max?: number;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
 }
 
 export const NumberForm = ({
@@ -14,6 +15,7 @@ export const NumberForm = ({
   min,
   max,
   handleInputChange,
+  placeholder,
 }: NumberFormProps) => {
   return (
     <Form
@@ -30,6 +32,7 @@ export const NumberForm = ({
         min={min}
         max={max}
         value={Number(number)}
+        placeholder={placeholder}
       />
     </Form>
   );

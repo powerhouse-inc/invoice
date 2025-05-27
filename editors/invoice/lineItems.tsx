@@ -7,6 +7,12 @@ import { forwardRef, useState, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { CurrencyForm } from "./components/currencyForm.js";
 import { NumberForm } from "./components/numberForm.js";
+import { InputField } from "./components/inputField.js";
+
+// Helper function to get precision based on currency
+function getCurrencyPrecision(currency: string): number {
+  return currency === "USDS" || currency === "DAI" ? 6 : 2;
+}
 
 // Helper function to format numbers with appropriate decimal places
 function formatNumber(value: number): string {
@@ -18,7 +24,7 @@ function formatNumber(value: number): string {
     return value.toFixed(2);
   }
 
-  // Otherwise, show actual decimal places up to 5
+  // Otherwise, show atual decimal places up to 5
   const stringValue = value.toString();
   const decimalPart = stringValue.split(".")[1] || "";
 
@@ -132,8 +138,10 @@ const EditableLineItem = forwardRef(function EditableLineItem(
           setEditedItem((prev) => ({ ...prev, [field]: value }));
         }
       } else if (field === "unitPriceTaxExcl") {
-        // For unit price, allow up to 5 decimal places
-        if (/^-?\d*\.?\d{0,5}$/.test(value)) {
+        // For unit price, allow up to dynamic decimal places based on currency
+        const maxDecimals = getCurrencyPrecision(currency);
+        const regex = new RegExp(`^-?\\d*\\.?\\d{0,${maxDecimals}}$`);
+        if (regex.test(value)) {
           setEditedItem((prev) => ({ ...prev, [field]: value }));
         }
       } else {
@@ -184,12 +192,13 @@ const EditableLineItem = forwardRef(function EditableLineItem(
   return (
     <tr ref={ref} className="hover:bg-gray-50">
       <td className="border border-gray-200 p-3">
-        <input
-          className="w-full rounded border p-1"
-          onChange={handleInputChange("description")}
-          placeholder="Description"
-          type="text"
+        <InputField 
+          onBlur={() => {}}
+          handleInputChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+            setEditedItem((prev) => ({ ...prev, description: e.target.value }));
+          }}
           value={editedItem.description ?? ""}
+          placeholder="Description"
         />
       </td>
       <td className="border border-gray-200 p-3">
@@ -197,13 +206,15 @@ const EditableLineItem = forwardRef(function EditableLineItem(
           number={editedItem.quantity ?? ""}
           precision={0}
           handleInputChange={handleInputChange("quantity")}
+          placeholder="Quantity"
         />
       </td>
       <td className="border border-gray-200 p-3">
         <NumberForm
           number={editedItem.unitPriceTaxExcl ?? ""}
-          precision={5}
+          precision={getCurrencyPrecision(currency)}
           handleInputChange={handleInputChange("unitPriceTaxExcl")}
+          placeholder="Unit Price (excl. tax)"
         />
       </td>
       <td className="border border-gray-200 p-3">
@@ -213,6 +224,7 @@ const EditableLineItem = forwardRef(function EditableLineItem(
           min={0}
           max={100}
           handleInputChange={handleInputChange("taxPercent")}
+          placeholder="Tax %"
         />
       </td>
       <td className="border border-gray-200 p-3 text-right font-medium">
