@@ -198,7 +198,7 @@ export const LegalEntityBankSection = forwardRef(
                   placeholder="Account Number"
                   onBlur={createBlurHandler("accountNum")}
                   onChange={createInputHandler("accountNum")}
-                  className="h-10 w-full text-md mb-2"
+                  className="h-10 w-full text-md mb-2 border-border"
                   warnings={toInputWarnings(
                     // Prefer the first failing validation between IBAN and generic account number
                     (() => {
@@ -229,7 +229,7 @@ export const LegalEntityBankSection = forwardRef(
                     Account Type
                   </label>
                   <Select
-                    className="h-10 w-full text-md mb-2 text-foreground"
+                    className="h-10 w-full text-md mb-2 text-foreground border-border"
                     options={ACCOUNT_TYPES.map((type) => ({
                       label: type,
                       value: type,
@@ -259,7 +259,7 @@ export const LegalEntityBankSection = forwardRef(
                       placeholder="SWIFT/BIC"
                       onBlur={createBlurHandler("BIC")}
                       onChange={createInputHandler("BIC")}
-                      className="h-10 w-full text-md mb-2"
+                      className="h-10 w-full text-md mb-2 border-border"
                       warnings={toInputWarnings(bicvalidation)}
                       onKeyDown={focusNextOnEnter}
                     />
@@ -271,7 +271,7 @@ export const LegalEntityBankSection = forwardRef(
                         placeholder="Routing Number (ABA/ACH)"
                         onBlur={createBlurHandler("ABA")}
                         onChange={createInputHandler("ABA")}
-                        className="h-10 w-full text-md mb-2"
+                        className="h-10 w-full text-md mb-2 border-border"
                         warnings={toInputWarnings(
                           usdIbanPayment ? null : routingNumbervalidation,
                         )}
@@ -283,7 +283,7 @@ export const LegalEntityBankSection = forwardRef(
                         placeholder="SWIFT/BIC"
                         onBlur={createBlurHandler("SWIFT")}
                         onChange={createInputHandler("SWIFT")}
-                        className="h-10 w-full text-md mb-2"
+                        className="h-10 w-full text-md mb-2 border-border"
                         warnings={toInputWarnings(bicvalidation)}
                         onKeyDown={focusNextOnEnter}
                       />
@@ -302,7 +302,7 @@ export const LegalEntityBankSection = forwardRef(
               placeholder="Beneficiary Name"
               onBlur={createBlurHandler("beneficiary")}
               onChange={createInputHandler("beneficiary")}
-              className="h-10 w-full text-md mb-2"
+              className="h-10 w-full text-md mb-2 border-border"
               onKeyDown={focusNextOnEnter}
             />
           </div>
@@ -315,7 +315,7 @@ export const LegalEntityBankSection = forwardRef(
               placeholder="Bank Name"
               onBlur={createBlurHandler("name")}
               onChange={createInputHandler("name")}
-              className="h-10 w-full text-md mb-2"
+              className="h-10 w-full text-md mb-2 border-border"
               warnings={toInputWarnings(banknamevalidation)}
               onKeyDown={focusNextOnEnter}
             />
@@ -330,7 +330,7 @@ export const LegalEntityBankSection = forwardRef(
                 placeholder="Street Address"
                 onBlur={createBlurHandler("streetAddress")}
                 onChange={createInputHandler("streetAddress")}
-                className="h-10 w-full text-md mb-2"
+                className="h-10 w-full text-md mb-2 border-border"
                 onKeyDown={focusNextOnEnter}
               />
               <TextInput
@@ -339,7 +339,7 @@ export const LegalEntityBankSection = forwardRef(
                 placeholder="Extended Address"
                 onBlur={createBlurHandler("extendedAddress")}
                 onChange={createInputHandler("extendedAddress")}
-                className="h-10 w-full text-md mb-2"
+                className="h-10 w-full text-md mb-2 border-border"
                 onKeyDown={focusNextOnEnter}
               />
               <div className="grid grid-cols-2 gap-2">
@@ -350,7 +350,7 @@ export const LegalEntityBankSection = forwardRef(
                   placeholder="City"
                   onBlur={createBlurHandler("city")}
                   onChange={createInputHandler("city")}
-                  className="h-10 w-full text-md mb-2"
+                  className="h-10 w-full text-md mb-2 border-border"
                   onKeyDown={focusNextOnEnter}
                 />
                 <div className="space-y-2">
@@ -360,7 +360,7 @@ export const LegalEntityBankSection = forwardRef(
                         State/Province
                       </label>
                       <Select
-                        className="h-10 w-full text-md mb-2 text-foreground"
+                        className="h-10 w-full text-md mb-2 text-foreground border-border"
                         options={STATE_PROVINCE_OPTIONS}
                         value={localState.stateProvince ?? ""}
                         onChange={(value) => {
@@ -379,7 +379,7 @@ export const LegalEntityBankSection = forwardRef(
                       placeholder="State/Province"
                       onBlur={createBlurHandler("stateProvince")}
                       onChange={createInputHandler("stateProvince")}
-                      className="h-10 w-full text-md mb-2"
+                      className="h-10 w-full text-md mb-2 border-border"
                       onKeyDown={focusNextOnEnter}
                     />
                   )}
@@ -393,7 +393,7 @@ export const LegalEntityBankSection = forwardRef(
                   placeholder="Postal Code"
                   onBlur={createBlurHandler("postalCode")}
                   onChange={createInputHandler("postalCode")}
-                  className="h-10 w-full text-md mb-2"
+                  className="h-10 w-full text-md mb-2 border-border"
                   onKeyDown={focusNextOnEnter}
                 />
                 <CountryForm
@@ -401,7 +401,7 @@ export const LegalEntityBankSection = forwardRef(
                   country={localState.country ?? ""}
                   handleInputChange={createInputHandler("country")}
                   handleBlur={createBlurHandler("country")}
-                  className="h-10 w-full text-md mb-2"
+                  className="h-10 w-full text-md mb-2 border-border"
                   validation={countryvalidation}
                 />
               </div>
@@ -416,7 +416,7 @@ export const LegalEntityBankSection = forwardRef(
               placeholder="Memo"
               onBlur={createBlurHandler("memo")}
               onChange={createInputHandler("memo")}
-              className="h-10 w-full text-md mb-2"
+              className="h-10 w-full text-md mb-2 border-border"
               onKeyDown={focusNextOnEnter}
             />
           </div>
@@ -453,7 +453,7 @@ export const LegalEntityBankSection = forwardRef(
                       onChange={createInputHandler(
                         "accountNumIntermediary",
                       )}
-                      className="h-10 w-full text-md mb-2"
+                      className="h-10 w-full text-md mb-2 border-border"
                       onKeyDown={focusNextOnEnter}
                     />
                   </div>
@@ -465,7 +465,7 @@ export const LegalEntityBankSection = forwardRef(
                           Account Type
                         </label>
                         <Select
-                          className="h-10 w-full text-md mb-2 text-foreground"
+                          className="h-10 w-full text-md mb-2 text-foreground border-border"
                           options={ACCOUNT_TYPES.map((type) => ({
                             label: type,
                             value: type,
@@ -502,7 +502,7 @@ export const LegalEntityBankSection = forwardRef(
                             onChange={createInputHandler(
                               "BICIntermediary",
                             )}
-                            className="h-10 w-full text-md mb-2"
+                            className="h-10 w-full text-md mb-2 border-border"
                             warnings={toInputWarnings(bicvalidation)}
                             onKeyDown={focusNextOnEnter}
                           />
@@ -516,7 +516,7 @@ export const LegalEntityBankSection = forwardRef(
                               onChange={createInputHandler(
                                 "ABAIntermediary",
                               )}
-                              className="h-10 w-full text-md mb-2"
+                              className="h-10 w-full text-md mb-2 border-border"
                               onKeyDown={focusNextOnEnter}
                             />
                             <TextInput
@@ -531,7 +531,7 @@ export const LegalEntityBankSection = forwardRef(
                               onChange={createInputHandler(
                                 "SWIFTIntermediary",
                               )}
-                              className="h-10 w-full text-md mb-2"
+                              className="h-10 w-full text-md mb-2 border-border"
                               onKeyDown={focusNextOnEnter}
                             />
                           </div>
@@ -551,7 +551,7 @@ export const LegalEntityBankSection = forwardRef(
                     onChange={createInputHandler(
                       "beneficiaryIntermediary",
                     )}
-                    className="h-10 w-full text-md mb-2"
+                    className="h-10 w-full text-md mb-2 border-border"
                     onKeyDown={focusNextOnEnter}
                   />
                 </div>
@@ -564,7 +564,7 @@ export const LegalEntityBankSection = forwardRef(
                     placeholder="Intermediary Bank Name"
                     onBlur={createBlurHandler("nameIntermediary")}
                     onChange={createInputHandler("nameIntermediary")}
-                    className="h-10 w-full text-md mb-2"
+                    className="h-10 w-full text-md mb-2 border-border"
                     onKeyDown={focusNextOnEnter}
                   />
                 </div>
@@ -580,7 +580,7 @@ export const LegalEntityBankSection = forwardRef(
                       onChange={createInputHandler(
                         "streetAddressIntermediary",
                       )}
-                      className="h-10 w-full text-md mb-2"
+                      className="h-10 w-full text-md mb-2 border-border"
                       onKeyDown={focusNextOnEnter}
                     />
                     <TextInput
@@ -591,7 +591,7 @@ export const LegalEntityBankSection = forwardRef(
                       onChange={createInputHandler(
                         "extendedAddressIntermediary",
                       )}
-                      className="h-10 w-full text-md mb-2"
+                      className="h-10 w-full text-md mb-2 border-border"
                       onKeyDown={focusNextOnEnter}
                     />
                     <div className="grid grid-cols-2 gap-2">
@@ -604,7 +604,7 @@ export const LegalEntityBankSection = forwardRef(
                         onChange={createInputHandler(
                           "cityIntermediary",
                         )}
-                        className="h-10 w-full text-md mb-2"
+                        className="h-10 w-full text-md mb-2 border-border"
                         onKeyDown={focusNextOnEnter}
                       />
                       <div className="space-y-2">
@@ -614,7 +614,7 @@ export const LegalEntityBankSection = forwardRef(
                               State/Province
                             </label>
                             <Select
-                              className="h-10 w-full text-md mb-2 text-foreground"
+                              className="h-10 w-full text-md mb-2 text-foreground border-border"
                               options={STATE_PROVINCE_OPTIONS}
                               value={localState.stateProvinceIntermediary ?? ""}
                               onChange={(value) => {
@@ -637,7 +637,7 @@ export const LegalEntityBankSection = forwardRef(
                             onChange={createInputHandler(
                               "stateProvince",
                             )}
-                            className="h-10 w-full text-md mb-2"
+                            className="h-10 w-full text-md mb-2 border-border"
                             onKeyDown={focusNextOnEnter}
                           />
                         )}
@@ -653,7 +653,7 @@ export const LegalEntityBankSection = forwardRef(
                         onChange={createInputHandler(
                           "postalCodeIntermediary",
                         )}
-                        className="h-10 w-full text-md mb-2"
+                        className="h-10 w-full text-md mb-2 border-border"
                         onKeyDown={focusNextOnEnter}
                       />
                       <CountryForm
@@ -663,7 +663,7 @@ export const LegalEntityBankSection = forwardRef(
                           "countryIntermediary",
                         )}
                         handleBlur={createBlurHandler("countryIntermediary")}
-                        className="h-10 w-full text-md mb-2"
+                        className="h-10 w-full text-md mb-2 border-border"
                       />
                     </div>
                   </div>
@@ -677,7 +677,7 @@ export const LegalEntityBankSection = forwardRef(
                     placeholder="Memo"
                     onBlur={createBlurHandler("memoIntermediary")}
                     onChange={createInputHandler("memoIntermediary")}
-                    className="h-10 w-full text-md mb-2"
+                    className="h-10 w-full text-md mb-2 border-border"
                     onKeyDown={focusNextOnEnter}
                   />
                 </div>
