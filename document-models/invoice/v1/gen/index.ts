@@ -3,6 +3,7 @@
  * This file is auto-generated and updated by codegen
  */
 export * from "./actions.js";
+export * from "./attachments/operations.js";
 export * from "./controller.js";
 export * from "./creators.js";
 export * from "./document-model.js";

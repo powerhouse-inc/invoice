@@ -77,6 +77,11 @@ export type AddLineItemInput = {
   unitPriceTaxIncl: Scalars["Float"]["input"];
 };
 
+export type AddLineItemReceiptInput = {
+  lineItemId: Scalars["OID"]["input"];
+  receipt: Scalars["AttachmentRef"]["input"];
+};
+
 export type AddPaymentInput = {
   confirmed: Scalars["Boolean"]["input"];
   id: Scalars["OID"]["input"];
@@ -301,6 +306,7 @@ export type InvoiceLineItem = {
   id: Scalars["OID"]["output"];
   lineItemTag: Maybe<Array<InvoiceTag>>;
   quantity: Scalars["Float"]["output"];
+  receipts: Maybe<Array<Scalars["AttachmentRef"]["output"]>>;
   taxPercent: Scalars["Float"]["output"];
   totalPriceTaxExcl: Scalars["Float"]["output"];
   totalPriceTaxIncl: Scalars["Float"]["output"];
@@ -309,6 +315,7 @@ export type InvoiceLineItem = {
 };
 
 export type InvoiceState = {
+  baseInvoice: Maybe<Scalars["AttachmentRef"]["output"]>;
   closureReason: Maybe<ClosureReason>;
   currency: Scalars["String"]["output"];
   dateDelivered: Maybe<Scalars["Date"]["output"]>;
@@ -325,6 +332,7 @@ export type InvoiceState = {
   payments: Array<Payment>;
   rejections: Array<Rejection>;
   status: Status;
+  timeTrackingReport: Maybe<Scalars["AttachmentRef"]["output"]>;
   totalPriceTaxExcl: Scalars["Float"]["output"];
   totalPriceTaxIncl: Scalars["Float"]["output"];
 };
@@ -402,6 +410,11 @@ export type Rejection = {
   reason: Scalars["String"]["output"];
 };
 
+export type RemoveLineItemReceiptInput = {
+  lineItemId: Scalars["OID"]["input"];
+  receipt: Scalars["AttachmentRef"]["input"];
+};
+
 export type ReportPaymentIssueInput = {
   id: Scalars["OID"]["input"];
   issue: Scalars["String"]["input"];
@@ -415,6 +428,10 @@ export type SchedulePaymentInput = {
   id: Scalars["OID"]["input"];
   paymentDate?: InputMaybe<Scalars["DateTime"]["input"]>;
   processorRef: Scalars["String"]["input"];
+};
+
+export type SetBaseInvoiceInput = {
+  baseInvoice?: InputMaybe<Scalars["AttachmentRef"]["input"]>;
 };
 
 export type SetExportedDataInput = {
@@ -433,6 +450,10 @@ export type SetLineItemTagInput = {
   label?: InputMaybe<Scalars["String"]["input"]>;
   lineItemId: Scalars["OID"]["input"];
   value: Scalars["String"]["input"];
+};
+
+export type SetTimeTrackingReportInput = {
+  timeTrackingReport?: InputMaybe<Scalars["AttachmentRef"]["input"]>;
 };
 
 export type Status =

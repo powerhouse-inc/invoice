@@ -2,6 +2,8 @@
  * WARNING: DO NOT EDIT
  * This file is auto-generated and updated by codegen
  */
+export * from "./attachments/creators.js";
+export * as invoiceAttachmentsActions from "./attachments/creators.js";
 export * from "./general/creators.js";
 export * as invoiceGeneralActions from "./general/creators.js";
 export * from "./items/creators.js";

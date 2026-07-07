@@ -10,6 +10,7 @@ export const invoiceItemsOperations: InvoiceItemsOperations = {
     const item: InvoiceLineItem = {
       ...action.input,
       lineItemTag: [],
+      receipts: [],
     };
 
     if (state.lineItems.find((x) => x.id === item.id))

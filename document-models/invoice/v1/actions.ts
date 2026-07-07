@@ -4,6 +4,7 @@
  */
 import { baseActions } from "document-model";
 import {
+  invoiceAttachmentsActions,
   invoiceGeneralActions,
   invoiceItemsActions,
   invoicePartiesActions,
@@ -18,4 +19,5 @@ export const actions = {
   ...invoicePartiesActions,
   ...invoiceItemsActions,
   ...invoiceTransitionsActions,
+  ...invoiceAttachmentsActions,
 };

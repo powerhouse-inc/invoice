@@ -19,6 +19,8 @@ scalar Amount_Crypto
 scalar Amount
 scalar Upload
 
+scalar AttachmentRef
+
 type InvoiceState {
   status: Status!
   invoiceNo: String!
@@ -38,6 +40,8 @@ type InvoiceState {
   invoiceTags: [InvoiceTag!]!
   exported: ExportedData!
   closureReason: ClosureReason
+  baseInvoice: AttachmentRef
+  timeTrackingReport: AttachmentRef
 }
 
 enum ClosureReason {
@@ -146,6 +150,7 @@ type InvoiceLineItem {
   totalPriceTaxExcl: Float!
   totalPriceTaxIncl: Float!
   lineItemTag: [InvoiceTag!]
+  receipts: [AttachmentRef!]
 }
 
 type InvoiceTag {
@@ -434,4 +439,24 @@ input SchedulePaymentInput {
   id: OID!
   processorRef: String!
   paymentDate: DateTime
+}
+
+# attachments
+
+input SetTimeTrackingReportInput {
+  timeTrackingReport: AttachmentRef
+}
+
+input SetBaseInvoiceInput {
+  baseInvoice: AttachmentRef
+}
+
+input AddLineItemReceiptInput {
+  lineItemId: OID!
+  receipt: AttachmentRef!
+}
+
+input RemoveLineItemReceiptInput {
+  lineItemId: OID!
+  receipt: AttachmentRef!
 }

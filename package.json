@@ -112,9 +112,16 @@
     "zod": "^4"
   },
   "dependencies": {
+    "@powerhousedao/reactor-attachments": "^6.2.0-dev.50",
     "@react-pdf/renderer": "^4.5.1",
+    "@safe-global/api-kit": "^5.0.1",
+    "@safe-global/protocol-kit": "^8.0.2",
+    "@safe-global/types-kit": "^4.0.1",
+    "dotenv": "^17.4.2",
+    "ethers": "^6.17.0",
     "lucide-react": "^1.23.0",
     "tailwind-merge": "^3.6.0",
+    "unpdf": "^1.6.2",
     "world-countries": "^5.1.0"
   },
   "readme": "ERROR: No README data found!",

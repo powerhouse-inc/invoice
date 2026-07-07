@@ -60,6 +60,8 @@ export const initialGlobalState: InvoiceGlobalState = {
     exportedLineItems: [],
   },
   closureReason: null,
+  baseInvoice: null,
+  timeTrackingReport: null,
 };
 export const initialLocalState: InvoiceLocalState = {};
 

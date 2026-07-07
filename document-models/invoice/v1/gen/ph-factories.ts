@@ -50,6 +50,8 @@ export function defaultGlobalState(): InvoiceGlobalState {
       exportedLineItems: [],
     },
     closureReason: null,
+    baseInvoice: null,
+    timeTrackingReport: null,
   };
 }
 

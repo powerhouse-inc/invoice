@@ -4,6 +4,7 @@ import * as z from "zod";
 import type {
   AcceptInput,
   AddLineItemInput,
+  AddLineItemReceiptInput,
   AddPaymentInput,
   Address,
   Bank,
@@ -42,12 +43,15 @@ import type {
   ReinstateInput,
   RejectInput,
   Rejection,
+  RemoveLineItemReceiptInput,
   ReportPaymentIssueInput,
   ResetInput,
   SchedulePaymentInput,
+  SetBaseInvoiceInput,
   SetExportedDataInput,
   SetInvoiceTagInput,
   SetLineItemTagInput,
+  SetTimeTrackingReportInput,
   Status,
   Token,
 } from "./types.js";
@@ -123,6 +127,17 @@ export function AddLineItemInputSchema(): z.ZodObject<
     totalPriceTaxIncl: z.number(),
     unitPriceTaxExcl: z.number(),
     unitPriceTaxIncl: z.number(),
+  });
+}
+
+export function AddLineItemReceiptInputSchema(): z.ZodObject<
+  Properties<AddLineItemReceiptInput>
+> {
+  return z.object({
+    lineItemId: z.string(),
+    receipt: z.custom<`attachment://v${number}:${string}`>((val) =>
+      /^attachment:\/\/v\d+:.+$/.test(val as string),
+    ),
   });
 }
 
@@ -417,6 +432,13 @@ export function InvoiceLineItemSchema(): z.ZodObject<
     id: z.string(),
     lineItemTag: z.array(z.lazy(() => InvoiceTagSchema())).nullish(),
     quantity: z.number(),
+    receipts: z
+      .array(
+        z.custom<`attachment://v${number}:${string}`>((val) =>
+          /^attachment:\/\/v\d+:.+$/.test(val as string),
+        ),
+      )
+      .nullish(),
     taxPercent: z.number(),
     totalPriceTaxExcl: z.number(),
     totalPriceTaxIncl: z.number(),
@@ -428,6 +450,11 @@ export function InvoiceLineItemSchema(): z.ZodObject<
 export function InvoiceStateSchema(): z.ZodObject<Properties<InvoiceState>> {
   return z.object({
     __typename: z.literal("InvoiceState").optional(),
+    baseInvoice: z
+      .custom<`attachment://v${number}:${string}`>((val) =>
+        /^attachment:\/\/v\d+:.+$/.test(val as string),
+      )
+      .nullish(),
     closureReason: ClosureReasonSchema.nullish(),
     currency: z.string(),
     dateDelivered: z.iso.datetime().nullish(),
@@ -444,6 +471,11 @@ export function InvoiceStateSchema(): z.ZodObject<Properties<InvoiceState>> {
     payments: z.array(z.lazy(() => PaymentSchema())),
     rejections: z.array(z.lazy(() => RejectionSchema())),
     status: StatusSchema,
+    timeTrackingReport: z
+      .custom<`attachment://v${number}:${string}`>((val) =>
+        /^attachment:\/\/v\d+:.+$/.test(val as string),
+      )
+      .nullish(),
     totalPriceTaxExcl: z.number(),
     totalPriceTaxIncl: z.number(),
   });
@@ -561,6 +593,17 @@ export function RejectionSchema(): z.ZodObject<Properties<Rejection>> {
   });
 }
 
+export function RemoveLineItemReceiptInputSchema(): z.ZodObject<
+  Properties<RemoveLineItemReceiptInput>
+> {
+  return z.object({
+    lineItemId: z.string(),
+    receipt: z.custom<`attachment://v${number}:${string}`>((val) =>
+      /^attachment:\/\/v\d+:.+$/.test(val as string),
+    ),
+  });
+}
+
 export function ReportPaymentIssueInputSchema(): z.ZodObject<
   Properties<ReportPaymentIssueInput>
 > {
@@ -583,6 +626,18 @@ export function SchedulePaymentInputSchema(): z.ZodObject<
     id: z.string(),
     paymentDate: z.iso.datetime().nullish(),
     processorRef: z.string(),
+  });
+}
+
+export function SetBaseInvoiceInputSchema(): z.ZodObject<
+  Properties<SetBaseInvoiceInput>
+> {
+  return z.object({
+    baseInvoice: z
+      .custom<`attachment://v${number}:${string}`>((val) =>
+        /^attachment:\/\/v\d+:.+$/.test(val as string),
+      )
+      .nullish(),
   });
 }
 
@@ -613,6 +668,18 @@ export function SetLineItemTagInputSchema(): z.ZodObject<
     label: z.string().nullish(),
     lineItemId: z.string(),
     value: z.string(),
+  });
+}
+
+export function SetTimeTrackingReportInputSchema(): z.ZodObject<
+  Properties<SetTimeTrackingReportInput>
+> {
+  return z.object({
+    timeTrackingReport: z
+      .custom<`attachment://v${number}:${string}`>((val) =>
+        /^attachment:\/\/v\d+:.+$/.test(val as string),
+      )
+      .nullish(),
   });
 }
 

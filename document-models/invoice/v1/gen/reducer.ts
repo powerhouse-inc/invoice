@@ -4,6 +4,7 @@ import type { Reducer, StateReducer } from "document-model";
 import { createReducer, isDocumentAction } from "document-model";
 import type { InvoicePHState } from "document-models/invoice/v1";
 
+import { invoiceAttachmentsOperations } from "../src/reducers/attachments.js";
 import { invoiceGeneralOperations } from "../src/reducers/general.js";
 import { invoiceItemsOperations } from "../src/reducers/items.js";
 import { invoicePartiesOperations } from "../src/reducers/parties.js";
@@ -12,6 +13,7 @@ import { invoiceTransitionsOperations } from "../src/reducers/transitions.js";
 import {
   AcceptInputSchema,
   AddLineItemInputSchema,
+  AddLineItemReceiptInputSchema,
   AddPaymentInputSchema,
   CancelInputSchema,
   ClosePaymentInputSchema,
@@ -32,12 +34,15 @@ import {
   RegisterPaymentTxInputSchema,
   ReinstateInputSchema,
   RejectInputSchema,
+  RemoveLineItemReceiptInputSchema,
   ReportPaymentIssueInputSchema,
   ResetInputSchema,
   SchedulePaymentInputSchema,
+  SetBaseInvoiceInputSchema,
   SetExportedDataInputSchema,
   SetInvoiceTagInputSchema,
   SetLineItemTagInputSchema,
+  SetTimeTrackingReportInputSchema,
 } from "./schema/zod.js";
 
 const stateReducer: StateReducer<InvoicePHState> = (
@@ -377,6 +382,54 @@ const stateReducer: StateReducer<InvoicePHState> = (
       SchedulePaymentInputSchema().parse(action.input);
 
       invoiceTransitionsOperations.schedulePaymentOperation(
+        (state as any)[action.scope],
+        action as any,
+        dispatch,
+      );
+
+      break;
+    }
+
+    case "SET_TIME_TRACKING_REPORT": {
+      SetTimeTrackingReportInputSchema().parse(action.input);
+
+      invoiceAttachmentsOperations.setTimeTrackingReportOperation(
+        (state as any)[action.scope],
+        action as any,
+        dispatch,
+      );
+
+      break;
+    }
+
+    case "SET_BASE_INVOICE": {
+      SetBaseInvoiceInputSchema().parse(action.input);
+
+      invoiceAttachmentsOperations.setBaseInvoiceOperation(
+        (state as any)[action.scope],
+        action as any,
+        dispatch,
+      );
+
+      break;
+    }
+
+    case "ADD_LINE_ITEM_RECEIPT": {
+      AddLineItemReceiptInputSchema().parse(action.input);
+
+      invoiceAttachmentsOperations.addLineItemReceiptOperation(
+        (state as any)[action.scope],
+        action as any,
+        dispatch,
+      );
+
+      break;
+    }
+
+    case "REMOVE_LINE_ITEM_RECEIPT": {
+      RemoveLineItemReceiptInputSchema().parse(action.input);
+
+      invoiceAttachmentsOperations.removeLineItemReceiptOperation(
         (state as any)[action.scope],
         action as any,
         dispatch,
