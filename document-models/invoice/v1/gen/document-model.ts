@@ -1,0 +1,424 @@
+import type { DocumentModelGlobalState } from "document-model";
+
+export const documentModel: DocumentModelGlobalState = {
+  id: "powerhouse/invoice",
+  name: "Invoice",
+  author: {
+    name: "Powerhouse",
+    website: "",
+  },
+  extension: "https://powerhouse.io",
+  description:
+    "The Invoice document model that allows a contributor to request compensation based on their contributions.",
+  specifications: [
+    {
+      state: {
+        local: {
+          schema: "",
+          examples: [],
+          initialValue: "",
+        },
+        global: {
+          schema:
+            'type InvoiceState {\n  status: Status!\n  invoiceNo: String!\n  dateIssued: Date\n  dateDue: Date\n  dateDelivered: Date\n  issuer: LegalEntity!\n  payer: LegalEntity!\n  currency: String!\n  lineItems: [InvoiceLineItem!]!\n  totalPriceTaxExcl: Float!\n  totalPriceTaxIncl: Float!\n  notes: String\n  rejections: [Rejection!]!\n  payments: [Payment!]!\n  payAfter: DateTime\n  invoiceTags: [InvoiceTag!]!   # e.g. {\'xero-payment-account\', \'090\', \'PowerhouseUSD\'}\n  exported: ExportedData!\n  closureReason: ClosureReason\n}\n\nenum ClosureReason {\n  UNDERPAID\n  OVERPAID\n  CANCELLED\n}\n\ntype Rejection {\n  id: OID!\n  reason: String!\n  final: Boolean!\n}\n\ntype ExportedData {\n  timestamp: DateTime   # ISO 8601 timestamp of the export\n  exportedLineItems: [[String!]!]!   # CSV Format\n}\n\ntype Payment {\n  id: OID!\n  processorRef: String\n  paymentDate: DateTime\n  txnRef: String\n  confirmed: Boolean!\n  issue: String\n  amount: Float\n}\n\ntype Token {\n  evmAddress: String\n  symbol: String\n  chainName: String\n  chainId: String\n  rpc: String\n}\n\ntype LegalEntity {\n  id: LegalEntityId\n  name: String\n  address: Address\n  contactInfo: ContactInfo\n  country: String\n  paymentRouting: PaymentRouting\n}\n\ntype Address {\n  streetAddress: String\n  extendedAddress: String\n  city: String\n  postalCode: String\n  country: String\n  stateProvince: String\n}\n\ntype ContactInfo {\n  tel: String\n  email: String\n}\n\ntype PaymentRouting {\n  bank: Bank\n  wallet: InvoiceWallet\n}\n\ntype Bank {\n  name: String!\n  address: Address!\n  ABA: String\n  BIC: String\n  SWIFT: String\n  accountNum: String!\n  accountType: InvoiceAccountType\n  beneficiary: String\n  intermediaryBank: IntermediaryBank\n  memo: String\n}\n\ntype IntermediaryBank {\n  name: String!\n  address: Address!\n  ABA: String\n  BIC: String\n  SWIFT: String\n  accountNum: String!\n  accountType: InvoiceAccountType\n  beneficiary: String\n  memo: String\n}\n\ntype InvoiceWallet {\n  rpc: String\n  chainName: String\n  chainId: String\n  address: String\n}\n\ntype InvoiceLineItem {\n  id: OID!\n  description: String!\n  taxPercent: Float!\n  quantity: Float!\n  currency: String!\n  unitPriceTaxExcl: Float!\n  unitPriceTaxIncl: Float!\n  totalPriceTaxExcl: Float!\n  totalPriceTaxIncl: Float!\n  lineItemTag: [InvoiceTag!]\n}\n\ntype InvoiceTag {\n  dimension: String!  # "xero-expense-account", "xero-payment-account", "accounting-period", ...\n  value: String!      # "627", ..., "090", ..., "2025/05", "2025/Q1", ...\n  label: String       # "Marketing", ..., "Business Bank", ..., "May 2025"\n}\n\ntype LegalEntityId {\n  taxId: String\n  corpRegId: String\n}\n\nenum Status {\n  DRAFT\n  ISSUED\n  CANCELLED\n  ACCEPTED\n  REJECTED\n  PAYMENTSCHEDULED\n  PAYMENTSENT\n  PAYMENTISSUE\n  PAYMENTRECEIVED\n  PAYMENTCLOSED\n}\n\nenum InvoiceAccountType {\n  CHECKING\n  SAVINGS\n  TRUST\n  WALLET\n}\n\nenum InvoiceAccountTypeInput {\n  CHECKING\n  SAVINGS\n  TRUST\n  WALLET\n}',
+          examples: [],
+          initialValue:
+            '{\n  "status": "DRAFT",\n  "invoiceNo": "",\n  "dateIssued": null,\n  "dateDue": null,\n  "dateDelivered": null,\n  "issuer": {\n    "id": null,\n    "name": null,\n    "address": null,\n    "contactInfo": null,\n    "country": null,\n    "paymentRouting": null\n  },\n  "payer": {\n    "id": null,\n    "name": null,\n    "address": null,\n    "contactInfo": null,\n    "country": null,\n    "paymentRouting": null\n  },\n  "currency": "",\n  "lineItems": [],\n  "totalPriceTaxExcl": 0,\n  "totalPriceTaxIncl": 0,\n  "notes": null,\n  "rejections": [],\n  "payments": [],\n  "payAfter": null,\n  "invoiceTags": [],\n  "exported": {\n    "timestamp": null,\n    "exportedLineItems": []\n  },\n  "closureReason": null\n}',
+        },
+      },
+      modules: [
+        {
+          id: "51cc29df-e062-4c96-84ed-c413fa95628c",
+          name: "general",
+          description: "",
+          operations: [
+            {
+              id: "ceb0582e-d6b3-44e6-acf7-b145b5ec5cae",
+              name: "EDIT_INVOICE",
+              description: "",
+              schema:
+                "input EditInvoiceInput {\n    invoiceNo: String\n    dateIssued: String\n    dateDelivered: String\n    dateDue: String\n    currency: String\n    notes: String\n}",
+              template: "",
+              reducer:
+                "const newState = { ...state };\n\nnewState.currency = action.input.currency ?? state.currency;\n// Convert date strings to datetime format to match Zod schema requirements\nnewState.dateDue =\n  action.input.dateDue !== undefined\n    ? ensureDatetimeFormat(action.input.dateDue)\n    : state.dateDue;\nnewState.dateIssued =\n  action.input.dateIssued !== undefined\n    ? ensureDatetimeFormat(action.input.dateIssued)\n    : state.dateIssued;\nnewState.dateDelivered =\n  action.input.dateDelivered !== undefined\n    ? ensureDatetimeFormat(action.input.dateDelivered)\n    : state.dateDelivered;\nnewState.invoiceNo = action.input.invoiceNo ?? state.invoiceNo;\nnewState.notes = action.input.notes ?? state.notes;\n\nObject.assign(state, newState);",
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "641d5433-7649-4c07-af15-f676caa6f1ce",
+              name: "ADD_PAYMENT",
+              description: "",
+              schema:
+                "input AddPaymentInput {\n  id: OID!\n  processorRef: String\n  paymentDate: DateTime\n  txnRef: String\n  confirmed: Boolean!\n  issue: String\n}",
+              template: "",
+              reducer:
+                'const payment = {\n  id: action.input.id,\n  processorRef: action.input.processorRef ?? "",\n  paymentDate: ensureDatetimeFormat(action.input.paymentDate) ?? null,\n  txnRef: action.input.txnRef ?? "",\n  confirmed: action.input.confirmed ?? false,\n  issue: action.input.issue ?? "",\n  amount: 0,\n};\nstate.payments.push(payment);',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "1bcd53d4-7df5-4380-8146-dc9018d8af98",
+              name: "EDIT_PAYMENT_DATA",
+              description: "",
+              schema:
+                "input EditPaymentDataInput {\n  id: OID!\n  processorRef: String\n  paymentDate: DateTime\n  txnRef: String\n  confirmed: Boolean!\n  issue: String\n}",
+              template: "",
+              reducer:
+                "const payment = state.payments.find(\n  (payment) => payment.id === action.input.id,\n);\nif (payment) {\n  payment.processorRef = action.input.processorRef ?? payment.processorRef;\n  payment.paymentDate = action.input.paymentDate ?? payment.paymentDate;\n  payment.txnRef = action.input.txnRef ?? payment.txnRef;\n  payment.confirmed = action.input.confirmed ?? payment.confirmed;\n  payment.issue = action.input.issue ?? payment.issue;\n}",
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "7f02c058-e931-475a-a5f9-a85940ee300e",
+              name: "EDIT_STATUS",
+              description: "",
+              schema: "input EditStatusInput {\n  status: Status!\n}",
+              template: "",
+              reducer:
+                'if (\n  state.status === "DRAFT" &&\n  action.input.status !== "DRAFT" &&\n  action.input.status !== "CANCELLED"\n) {\n  const wallet = state.issuer?.paymentRouting?.wallet;\n  if (!wallet?.address || (!wallet.chainName && !wallet.chainId)) {\n    throw new Error(\n      "Issuer wallet address and chain must be set before moving out of DRAFT",\n    );\n  }\n}\nstate.status = action.input.status;',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "44535683-4853-46f6-8888-127ca7bbfb16",
+              name: "SET_EXPORTED_DATA",
+              description: "",
+              schema:
+                "input SetExportedDataInput {\n  timestamp: DateTime!\n  exportedLineItems: [[String!]!]! \n}",
+              template: "",
+              reducer:
+                "const exportedData = {\n  timestamp: action.input.timestamp,\n  exportedLineItems: action.input.exportedLineItems,\n};\nstate.exported = exportedData;",
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+          ],
+        },
+        {
+          id: "33bbe5a1-ec73-4366-a137-888c3b3a1b11",
+          name: "parties",
+          description: "",
+          operations: [
+            {
+              id: "682b332a-4ea8-482f-9681-13a49805b360",
+              name: "EDIT_ISSUER_BANK",
+              description: "",
+              schema:
+                "input EditIssuerBankInput {\n    name: String\n    streetAddress: String\n    extendedAddress: String\n    city: String\n    postalCode: String\n    country: String\n    stateProvince: String\n    ABA: String\n    BIC: String\n    SWIFT: String\n    accountNum: String\n    accountType: InvoiceAccountTypeInput\n    beneficiary: String\n    memo: String\n    # intermediaryBank\n    nameIntermediary: String\n    streetAddressIntermediary: String\n    extendedAddressIntermediary: String\n    cityIntermediary: String\n    postalCodeIntermediary: String\n    countryIntermediary: String\n    stateProvinceIntermediary: String\n    ABAIntermediary: String\n    BICIntermediary: String\n    SWIFTIntermediary: String\n    accountNumIntermediary: String\n    accountTypeIntermediary: InvoiceAccountTypeInput\n    beneficiaryIntermediary: String\n    memoIntermediary: String\n}",
+              template: "",
+              reducer:
+                'if (!state.issuer.paymentRouting) {\n  state.issuer.paymentRouting = {\n    bank: null,\n    wallet: null,\n  };\n}\n\nstate.issuer.paymentRouting.bank = {\n  ABA: getStateValue(\n    action.input.ABA,\n    state.issuer.paymentRouting.bank?.ABA ?? null,\n  ),\n  BIC: getStateValue(\n    action.input.BIC,\n    state.issuer.paymentRouting.bank?.BIC ?? null,\n  ),\n  SWIFT: getStateValue(\n    action.input.SWIFT,\n    state.issuer.paymentRouting.bank?.SWIFT ?? null,\n  ),\n  accountNum:\n    action.input.accountNum ??\n    state.issuer.paymentRouting.bank?.accountNum ??\n    "",\n  accountType: getStateValue(\n    action.input.accountType,\n    state.issuer.paymentRouting.bank?.accountType ?? null,\n  ),\n  address: {\n    city: getStateValue(\n      action.input.city,\n      state.issuer.paymentRouting.bank?.address.city ?? null,\n    ),\n    country: getStateValue(\n      action.input.country,\n      state.issuer.paymentRouting.bank?.address.country ?? null,\n    ),\n    extendedAddress: getStateValue(\n      action.input.extendedAddress,\n      state.issuer.paymentRouting.bank?.address.extendedAddress ?? null,\n    ),\n    postalCode: getStateValue(\n      action.input.postalCode,\n      state.issuer.paymentRouting.bank?.address.postalCode ?? null,\n    ),\n    stateProvince: getStateValue(\n      action.input.stateProvince,\n      state.issuer.paymentRouting.bank?.address.stateProvince ?? null,\n    ),\n    streetAddress: getStateValue(\n      action.input.streetAddress,\n      state.issuer.paymentRouting.bank?.address.streetAddress ?? null,\n    ),\n  },\n  beneficiary: getStateValue(\n    action.input.beneficiary,\n    state.issuer.paymentRouting.bank?.beneficiary ?? null,\n  ),\n  name: action.input.name ?? state.issuer.paymentRouting.bank?.name ?? "",\n  memo: getStateValue(\n    action.input.memo,\n    state.issuer.paymentRouting.bank?.memo ?? null,\n  ),\n  intermediaryBank: {\n    ABA: getStateValue(\n      action.input.ABAIntermediary,\n      state.issuer.paymentRouting.bank?.intermediaryBank?.ABA ?? null,\n    ),\n    BIC: getStateValue(\n      action.input.BICIntermediary,\n      state.issuer.paymentRouting.bank?.intermediaryBank?.BIC ?? null,\n    ),\n    SWIFT: getStateValue(\n      action.input.SWIFTIntermediary,\n      state.issuer.paymentRouting.bank?.intermediaryBank?.SWIFT ?? null,\n    ),\n    accountNum:\n      action.input.accountNumIntermediary ??\n      state.issuer.paymentRouting.bank?.intermediaryBank?.accountNum ??\n      "",\n    accountType: getStateValue(\n      action.input.accountTypeIntermediary,\n      state.issuer.paymentRouting.bank?.intermediaryBank?.accountType ??\n        null,\n    ),\n    address: {\n      city: getStateValue(\n        action.input.cityIntermediary,\n        state.issuer.paymentRouting.bank?.intermediaryBank?.address.city ??\n          null,\n      ),\n      country: getStateValue(\n        action.input.countryIntermediary,\n        state.issuer.paymentRouting.bank?.intermediaryBank?.address\n          .country ?? null,\n      ),\n      extendedAddress: getStateValue(\n        action.input.extendedAddressIntermediary,\n        state.issuer.paymentRouting.bank?.intermediaryBank?.address\n          .extendedAddress ?? null,\n      ),\n      postalCode: getStateValue(\n        action.input.postalCodeIntermediary,\n        state.issuer.paymentRouting.bank?.intermediaryBank?.address\n          .postalCode ?? null,\n      ),\n      stateProvince: getStateValue(\n        action.input.stateProvinceIntermediary,\n        state.issuer.paymentRouting.bank?.intermediaryBank?.address\n          .stateProvince ?? null,\n      ),\n      streetAddress: getStateValue(\n        action.input.streetAddressIntermediary,\n        state.issuer.paymentRouting.bank?.intermediaryBank?.address\n          .streetAddress ?? null,\n      ),\n    },\n    beneficiary: getStateValue(\n      action.input.beneficiaryIntermediary,\n      state.issuer.paymentRouting.bank?.intermediaryBank?.beneficiary ??\n        null,\n    ),\n    name:\n      action.input.nameIntermediary ??\n      state.issuer.paymentRouting.bank?.intermediaryBank?.name ??\n      "",\n    memo: getStateValue(\n      action.input.memoIntermediary,\n      state.issuer.paymentRouting.bank?.intermediaryBank?.memo ?? null,\n    ),\n  },\n};',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "f9d8acdb-f07a-419d-ace7-b0c17798012b",
+              name: "EDIT_ISSUER",
+              description: "",
+              schema:
+                "input EditIssuerInput {\n    id: String\n    name: String\n    streetAddress: String\n    extendedAddress: String\n    city: String\n    postalCode: String\n    country: String\n    stateProvince: String\n    tel: String\n    email: String\n}",
+              template: "",
+              reducer:
+                'if (\n  "address" in state.issuer &&\n  ("city" in action.input ||\n    "country" in action.input ||\n    "extendedAddress" in action.input ||\n    "postalCode" in action.input ||\n    "stateProvince" in action.input ||\n    "streetAddress" in action.input)\n) {\n  state.issuer.address = {\n    ...state.issuer.address,\n    city:\n      action.input.city !== undefined\n        ? action.input.city\n        : (state.issuer.address?.city ?? null),\n    country:\n      action.input.country !== undefined\n        ? action.input.country\n        : (state.issuer.address?.country ?? null),\n    extendedAddress:\n      action.input.extendedAddress !== undefined\n        ? action.input.extendedAddress\n        : (state.issuer.address?.extendedAddress ?? null),\n    postalCode:\n      action.input.postalCode !== undefined\n        ? action.input.postalCode\n        : (state.issuer.address?.postalCode ?? null),\n    stateProvince:\n      action.input.stateProvince !== undefined\n        ? action.input.stateProvince\n        : (state.issuer.address?.stateProvince ?? null),\n    streetAddress:\n      action.input.streetAddress !== undefined\n        ? action.input.streetAddress\n        : (state.issuer.address?.streetAddress ?? null),\n  };\n}\n\nif (\n  "contactInfo" in state.issuer &&\n  ("tel" in action.input || "email" in action.input)\n) {\n  state.issuer.contactInfo = {\n    ...state.issuer.contactInfo,\n    tel:\n      action.input.tel !== undefined\n        ? action.input.tel\n        : (state.issuer.contactInfo?.tel ?? null),\n    email:\n      action.input.email !== undefined\n        ? action.input.email\n        : (state.issuer.contactInfo?.email ?? null),\n  };\n}\n\nif ("country" in action.input) {\n  state.issuer.country =\n    action.input.country !== undefined\n      ? action.input.country\n      : (state.issuer.country ?? null);\n}\nif ("id" in action.input) {\n  state.issuer.id = action.input.id\n    ? { corpRegId: action.input.id, taxId: null }\n    : null;\n}\nif ("name" in action.input) {\n  state.issuer.name =\n    action.input.name !== undefined\n      ? action.input.name\n      : (state.issuer.name ?? null);\n}',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "b120d322-b884-4294-9ef7-2fc79855e659",
+              name: "EDIT_ISSUER_WALLET",
+              description: "",
+              schema:
+                "input EditIssuerWalletInput {\n    rpc: String\n    chainName: String\n    chainId: String\n    address: String\n}",
+              template: "",
+              reducer:
+                "if (!state.issuer.paymentRouting) {\n  state.issuer.paymentRouting = {\n    bank: null,\n    wallet: null,\n  };\n}\n\nstate.issuer.paymentRouting.wallet = {\n  address:\n    action.input.address ??\n    state.issuer.paymentRouting.wallet?.address ??\n    null,\n  chainId:\n    action.input.chainId ??\n    state.issuer.paymentRouting.wallet?.chainId ??\n    null,\n  chainName:\n    action.input.chainName ??\n    state.issuer.paymentRouting.wallet?.chainName ??\n    null,\n  rpc: action.input.rpc ?? state.issuer.paymentRouting.wallet?.rpc ?? null,\n};",
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "ee375d6e-9fa0-473a-ac23-494b7c694713",
+              name: "EDIT_PAYER_BANK",
+              description: "",
+              schema:
+                "input EditPayerBankInput {\n    name: String\n    streetAddress: String\n    extendedAddress: String\n    city: String\n    postalCode: String\n    country: String\n    stateProvince: String\n    ABA: String\n    BIC: String\n    SWIFT: String\n    accountNum: String\n    accountType: InvoiceAccountTypeInput\n    beneficiary: String\n    memo: String\n    # intermediaryBank\n    nameIntermediary: String\n    streetAddressIntermediary: String\n    extendedAddressIntermediary: String\n    cityIntermediary: String\n    postalCodeIntermediary: String\n    countryIntermediary: String\n    stateProvinceIntermediary: String\n    ABAIntermediary: String\n    BICIntermediary: String\n    SWIFTIntermediary: String\n    accountNumIntermediary: String\n    accountTypeIntermediary: InvoiceAccountTypeInput\n    beneficiaryIntermediary: String\n    memoIntermediary: String\n}",
+              template: "",
+              reducer:
+                'if (!state.payer.paymentRouting) {\n  state.payer.paymentRouting = {\n    bank: null,\n    wallet: null,\n  };\n}\n\nstate.payer.paymentRouting.bank = {\n  ABA: getStateValue(\n    action.input.ABA,\n    state.payer.paymentRouting.bank?.ABA ?? null,\n  ),\n  BIC: getStateValue(\n    action.input.BIC,\n    state.payer.paymentRouting.bank?.BIC ?? null,\n  ),\n  SWIFT: getStateValue(\n    action.input.SWIFT,\n    state.payer.paymentRouting.bank?.SWIFT ?? null,\n  ),\n  accountNum:\n    action.input.accountNum ??\n    state.payer.paymentRouting.bank?.accountNum ??\n    "",\n  accountType: getStateValue(\n    action.input.accountType,\n    state.payer.paymentRouting.bank?.accountType ?? null,\n  ),\n  address: {\n    city: getStateValue(\n      action.input.city,\n      state.payer.paymentRouting.bank?.address.city ?? null,\n    ),\n    country: getStateValue(\n      action.input.country,\n      state.payer.paymentRouting.bank?.address.country ?? null,\n    ),\n    extendedAddress: getStateValue(\n      action.input.extendedAddress,\n      state.payer.paymentRouting.bank?.address.extendedAddress ?? null,\n    ),\n    postalCode: getStateValue(\n      action.input.postalCode,\n      state.payer.paymentRouting.bank?.address.postalCode ?? null,\n    ),\n    stateProvince: getStateValue(\n      action.input.stateProvince,\n      state.payer.paymentRouting.bank?.address.stateProvince ?? null,\n    ),\n    streetAddress: getStateValue(\n      action.input.streetAddress,\n      state.payer.paymentRouting.bank?.address.streetAddress ?? null,\n    ),\n  },\n  beneficiary: getStateValue(\n    action.input.beneficiary,\n    state.payer.paymentRouting.bank?.beneficiary ?? null,\n  ),\n  name: action.input.name ?? state.payer.paymentRouting.bank?.name ?? "",\n  memo: getStateValue(\n    action.input.memo,\n    state.payer.paymentRouting.bank?.memo ?? null,\n  ),\n  intermediaryBank: {\n    ABA: getStateValue(\n      action.input.ABAIntermediary,\n      state.payer.paymentRouting.bank?.intermediaryBank?.ABA ?? null,\n    ),\n    BIC: getStateValue(\n      action.input.BICIntermediary,\n      state.payer.paymentRouting.bank?.intermediaryBank?.BIC ?? null,\n    ),\n    SWIFT: getStateValue(\n      action.input.SWIFTIntermediary,\n      state.payer.paymentRouting.bank?.intermediaryBank?.SWIFT ?? null,\n    ),\n    accountNum:\n      action.input.accountNumIntermediary ??\n      state.payer.paymentRouting.bank?.intermediaryBank?.accountNum ??\n      "",\n    accountType: getStateValue(\n      action.input.accountTypeIntermediary,\n      state.payer.paymentRouting.bank?.intermediaryBank?.accountType ??\n        null,\n    ),\n    address: {\n      city: getStateValue(\n        action.input.cityIntermediary,\n        state.payer.paymentRouting.bank?.intermediaryBank?.address.city ??\n          null,\n      ),\n      country: getStateValue(\n        action.input.countryIntermediary,\n        state.payer.paymentRouting.bank?.intermediaryBank?.address\n          .country ?? null,\n      ),\n      extendedAddress: getStateValue(\n        action.input.extendedAddressIntermediary,\n        state.payer.paymentRouting.bank?.intermediaryBank?.address\n          .extendedAddress ?? null,\n      ),\n      postalCode: getStateValue(\n        action.input.postalCodeIntermediary,\n        state.payer.paymentRouting.bank?.intermediaryBank?.address\n          .postalCode ?? null,\n      ),\n      stateProvince: getStateValue(\n        action.input.stateProvinceIntermediary,\n        state.payer.paymentRouting.bank?.intermediaryBank?.address\n          .stateProvince ?? null,\n      ),\n      streetAddress: getStateValue(\n        action.input.streetAddressIntermediary,\n        state.payer.paymentRouting.bank?.intermediaryBank?.address\n          .streetAddress ?? null,\n      ),\n    },\n    beneficiary: getStateValue(\n      action.input.beneficiaryIntermediary,\n      state.payer.paymentRouting.bank?.intermediaryBank?.beneficiary ??\n        null,\n    ),\n    name:\n      action.input.nameIntermediary ??\n      state.payer.paymentRouting.bank?.intermediaryBank?.name ??\n      "",\n    memo: getStateValue(\n      action.input.memoIntermediary,\n      state.payer.paymentRouting.bank?.intermediaryBank?.memo ?? null,\n    ),\n  },\n};',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "2720e1ff-8fe5-4507-adc6-4106851c6818",
+              name: "EDIT_PAYER",
+              description: "",
+              schema:
+                "input EditPayerInput {\n    id: String\n    name: String\n    streetAddress: String\n    extendedAddress: String\n    city: String\n    postalCode: String\n    country: String\n    stateProvince: String\n    tel: String\n    email: String\n}",
+              template: "",
+              reducer:
+                'if (\n  "address" in state.payer &&\n  ("city" in action.input ||\n    "country" in action.input ||\n    "extendedAddress" in action.input ||\n    "postalCode" in action.input ||\n    "stateProvince" in action.input ||\n    "streetAddress" in action.input)\n) {\n  state.payer.address = {\n    ...state.payer.address,\n    city:\n      action.input.city !== undefined\n        ? action.input.city\n        : (state.payer.address?.city ?? null),\n    country:\n      action.input.country !== undefined\n        ? action.input.country\n        : (state.payer.address?.country ?? null),\n    extendedAddress:\n      action.input.extendedAddress !== undefined\n        ? action.input.extendedAddress\n        : (state.payer.address?.extendedAddress ?? null),\n    postalCode:\n      action.input.postalCode !== undefined\n        ? action.input.postalCode\n        : (state.payer.address?.postalCode ?? null),\n    stateProvince:\n      action.input.stateProvince !== undefined\n        ? action.input.stateProvince\n        : (state.payer.address?.stateProvince ?? null),\n    streetAddress:\n      action.input.streetAddress !== undefined\n        ? action.input.streetAddress\n        : (state.payer.address?.streetAddress ?? null),\n  };\n}\n\nif (\n  "contactInfo" in state.payer &&\n  ("tel" in action.input || "email" in action.input)\n) {\n  state.payer.contactInfo = {\n    ...state.payer.contactInfo,\n    tel:\n      action.input.tel !== undefined\n        ? action.input.tel\n        : (state.payer.contactInfo?.tel ?? null),\n    email:\n      action.input.email !== undefined\n        ? action.input.email\n        : (state.payer.contactInfo?.email ?? null),\n  };\n}\n\nif ("country" in action.input) {\n  state.payer.country =\n    action.input.country !== undefined\n      ? action.input.country\n      : (state.payer.country ?? null);\n}\nif ("id" in action.input) {\n  state.payer.id = action.input.id\n    ? { taxId: action.input.id, corpRegId: null }\n    : null;\n}\nif ("name" in action.input) {\n  state.payer.name =\n    action.input.name !== undefined\n      ? action.input.name\n      : (state.payer.name ?? null);\n}',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "11c265af-eb81-44c2-8267-a64a65751b09",
+              name: "EDIT_PAYER_WALLET",
+              description: "",
+              schema:
+                "input EditPayerWalletInput {\n    rpc: String\n    chainName: String\n    chainId: String\n    address: String\n}",
+              template: "",
+              reducer:
+                "if (!state.payer.paymentRouting) {\n  state.payer.paymentRouting = {\n    bank: null,\n    wallet: null,\n  };\n}\n\nstate.payer.paymentRouting.wallet = {\n  address:\n    action.input.address ??\n    state.payer.paymentRouting.wallet?.address ??\n    null,\n  chainId:\n    action.input.chainId ??\n    state.payer.paymentRouting.wallet?.chainId ??\n    null,\n  chainName:\n    action.input.chainName ??\n    state.payer.paymentRouting.wallet?.chainName ??\n    null,\n  rpc: action.input.rpc ?? state.payer.paymentRouting.wallet?.rpc ?? null,\n};",
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+          ],
+        },
+        {
+          id: "0fc576db-54df-43b5-bc98-e30bee8311fe",
+          name: "items",
+          description: "",
+          operations: [
+            {
+              id: "74c2f3b3-dfb5-4eab-868f-83b99adc5051",
+              name: "ADD_LINE_ITEM",
+              description: "",
+              schema:
+                "input AddLineItemInput {\n    id: OID!\n    description: String!\n    taxPercent: Float!\n    quantity: Float!\n    currency: String! # Default can be USD\n    unitPriceTaxExcl: Float!\n    unitPriceTaxIncl: Float!\n    totalPriceTaxExcl: Float!\n    totalPriceTaxIncl: Float!\n}",
+              template: "",
+              reducer:
+                'const item: InvoiceLineItem = {\n  ...action.input,\n  lineItemTag: [],\n};\n\nif (state.lineItems.find((x) => x.id === item.id))\n  throw new Error("Duplicate input.id");\n\nvalidatePrices(item);\nstate.lineItems.push(item);\nupdateTotals(state);',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "275bc86e-a73b-48ee-9fcf-74209ded7261",
+              name: "DELETE_LINE_ITEM",
+              description: "",
+              schema: "input DeleteLineItemInput {\n  id: OID!\n}",
+              template: "",
+              reducer:
+                "state.lineItems = state.lineItems.filter((x) => x.id !== action.input.id);\nupdateTotals(state);",
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "a28f0cb3-7161-4e42-9486-f3607566dc48",
+              name: "EDIT_LINE_ITEM",
+              description: "",
+              schema:
+                "input EditLineItemInput {\n    id: OID!\n    description: String\n    taxPercent: Float\n    quantity: Float\n    currency: String\n    unitPriceTaxExcl: Float\n    unitPriceTaxIncl: Float\n    totalPriceTaxExcl: Float\n    totalPriceTaxIncl: Float\n}",
+              template: "",
+              reducer:
+                'const stateItem = state.lineItems.find((x) => x.id === action.input.id);\nif (!stateItem) throw new Error("Item matching input.id not found");\n\nconst sanitizedInput = Object.fromEntries(\n  Object.entries(action.input).filter(([, value]) => value !== null),\n) as Partial<InvoiceLineItem>;\n\n// Ensure lineItemTag is always an array if provided\nif ("lineItemTag" in action.input) {\n  sanitizedInput.lineItemTag = ((action.input as Record<string, unknown>)\n    .lineItemTag ?? []) as InvoiceTag[];\n}\n\nconst nextItem: InvoiceLineItem = {\n  ...stateItem,\n  ...sanitizedInput,\n};\nvalidatePrices(nextItem);\napplyInvariants(state, nextItem);\nObject.assign(stateItem, nextItem);\nupdateTotals(state);',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "b9fdf77a-f77d-473e-8563-13bcf01da5bd",
+              name: "SET_INVOICE_TAG",
+              description: "",
+              schema:
+                "input SetInvoiceTagInput {\n  dimension: String!\n  value: String!\n  label: String\n}",
+              template: "",
+              reducer:
+                "// if tag already exists with the same dimension, update the value and label\nconst existingTag = state.invoiceTags?.find(\n  (tag) => tag.dimension === action.input.dimension,\n);\nif (existingTag) {\n  existingTag.value = action.input.value;\n  existingTag.label = action.input.label || null;\n} else {\n  // if tag does not exist, add it\n  const newTag: InvoiceTag = {\n    dimension: action.input.dimension,\n    value: action.input.value,\n    label: action.input.label || null,\n  };\n  if (!state.invoiceTags) {\n    state.invoiceTags = [];\n  }\n  // Add the new tag\n  state.invoiceTags.push(newTag);\n}",
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "fd40decf-d717-47dd-b063-560ea95f45d6",
+              name: "SET_LINE_ITEM_TAG",
+              description: "",
+              schema:
+                "input SetLineItemTagInput {\n  lineItemId: OID!\n  dimension: String!\n  value: String!\n  label: String\n}",
+              template: "",
+              reducer:
+                'const stateItem = state.lineItems.find(\n  (x) => x.id === action.input.lineItemId,\n);\nif (!stateItem) throw new Error("Item matching input.id not found");\n\n// if tag already exists with the same dimension, update the value and label\nconst existingTag = stateItem.lineItemTag?.find(\n  (tag) => tag.dimension === action.input.dimension,\n);\nif (existingTag) {\n  existingTag.value = action.input.value;\n  existingTag.label = action.input.label || null;\n} else {\n  // if tag does not exist, add it\n  const newTag: InvoiceTag = {\n    dimension: action.input.dimension,\n    value: action.input.value,\n    label: action.input.label || null,\n  };\n  if (!stateItem.lineItemTag) {\n    stateItem.lineItemTag = [];\n  }\n\n  // Add the new tag\n  stateItem.lineItemTag?.push(newTag);\n}',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+          ],
+        },
+        {
+          id: "8284afe0-9696-46d6-94b4-b2838c30e10e",
+          name: "transitions",
+          description: "",
+          operations: [
+            {
+              id: "04996aa3-c06c-438a-9f15-c074c8ca0035",
+              name: "ACCEPT",
+              description: "",
+              schema: "input AcceptInput {\n  payAfter: DateTime\n}",
+              template: "",
+              reducer:
+                'if (!action.input.payAfter) {\n  throw new Error("Pay after is required");\n}\nif (permittedTransitions[state.status].includes("ACCEPTED")) {\n  state.status = "ACCEPTED";\n  state.payAfter = action.input.payAfter;\n} else {\n  throw new Error(`Invalid transition from ${state.status} to ACCEPTED`);\n}',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "386b4b3b-2ee8-4871-b194-f990d79d3556",
+              name: "CANCEL",
+              description: "",
+              schema:
+                'input CancelInput {\n  "Add your inputs here"\n  _placeholder: String\n}',
+              template: "",
+              reducer:
+                'if (permittedTransitions[state.status].includes("CANCELLED")) {\n  state.status = "CANCELLED";\n} else {\n  throw new Error(`Invalid transition from ${state.status} to CANCELLED`);\n}',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "5ddc737f-a643-4010-bd75-832d1ba291fe",
+              name: "CLOSE_PAYMENT",
+              description: "",
+              schema:
+                "input ClosePaymentInput {\n  closureReason: ClosureReasonInput\n}\n\nenum ClosureReasonInput {\n  UNDERPAID\n  OVERPAID\n  CANCELLED\n}",
+              template: "",
+              reducer:
+                'if (!action.input.closureReason) {\n  throw new Error("Closure reason is required");\n}\nif (permittedTransitions[state.status].includes("PAYMENTCLOSED")) {\n  state.status = "PAYMENTCLOSED";\n  state.closureReason = action.input.closureReason;\n} else {\n  throw new Error(\n    `Invalid transition from ${state.status} to PAYMENTCLOSED`,\n  );\n}',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "780d7d96-8cc4-42f3-937d-34f4ecf765ee",
+              name: "CONFIRM_PAYMENT",
+              description: "",
+              schema:
+                "input ConfirmPaymentInput {\n  id: OID!       # Payment ID\n  amount: Float!\n}",
+              template: "",
+              reducer:
+                'if (!action.input.id || !action.input.amount) {\n  throw new Error("ID and amount are required");\n}\nif (permittedTransitions[state.status].includes("PAYMENTRECEIVED")) {\n  state.status = "PAYMENTRECEIVED";\n  const payment = state.payments.find(\n    (payment) => payment.id === action.input.id,\n  );\n  if (!payment) throw new Error("Payment not found");\n  payment.confirmed = true;\n  payment.amount = action.input.amount;\n} else {\n  throw new Error(\n    `Invalid transition from ${state.status} to PAYMENTRECEIVED`,\n  );\n}',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "bdf2ae13-dc2c-43c0-829b-7400c45c0dad",
+              name: "ISSUE",
+              description: "",
+              schema:
+                "input IssueInput {\n  invoiceNo: String!\n  dateIssued: String!\n}",
+              template: "",
+              reducer:
+                'if (!action.input.invoiceNo || !action.input.dateIssued) {\n  throw new Error("Invoice number and date issued are required");\n}\nconst wallet = state.issuer?.paymentRouting?.wallet;\nconst stablecoins = ["USDS", "DAI", "USDC"];\nconst isStablecoin = stablecoins.includes(state.currency.toUpperCase());\nif (\n  isStablecoin &&\n  (!wallet?.address || (!wallet.chainName && !wallet.chainId))\n) {\n  throw new Error(\n    "Issuer wallet address and chain must be set before issuing an invoice",\n  );\n}\nif (permittedTransitions[state.status].includes("ISSUED")) {\n  state.status = "ISSUED";\n  state.invoiceNo = action.input.invoiceNo;\n  // Convert date string to datetime format to match Zod schema requirements\n  state.dateIssued =\n    ensureDatetimeFormat(action.input.dateIssued) ||\n    action.input.dateIssued;\n} else {\n  throw new Error(`Invalid transition from ${state.status} to ISSUED`);\n}',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "255d6cf0-8abc-45cc-b4dc-885ac9e3ae39",
+              name: "REAPPROVE_PAYMENT",
+              description: "",
+              schema:
+                'input ReapprovePaymentInput {\n  "Add your inputs here"\n  _placeholder: String\n}',
+              template: "",
+              reducer:
+                'if (permittedTransitions[state.status].includes("ACCEPTED")) {\n  state.status = "ACCEPTED";\n} else {\n  throw new Error(`Invalid transition from ${state.status} to ACCEPTED`);\n}',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "0e9b0cc6-a1f5-4521-8255-de37c3316efe",
+              name: "REGISTER_PAYMENT_TX",
+              description: "",
+              schema:
+                "input RegisterPaymentTxInput {\n  id: OID!       # Payment ID\n  timestamp: DateTime!\n  txRef: String!\n}",
+              template: "",
+              reducer:
+                'if (permittedTransitions[state.status].includes("PAYMENTSENT")) {\n  state.status = "PAYMENTSENT";\n  const payment = state.payments.find(\n    (payment) => payment.id === action.input.id,\n  );\n  if (!payment) throw new Error("Payment not found");\n  payment.txnRef = action.input.txRef;\n  payment.paymentDate = action.input.timestamp;\n} else {\n  throw new Error(`Invalid transition from ${state.status} to PAYMENTSENT`);\n}',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "f8590d02-192d-4454-a26b-346fbb039e15",
+              name: "REINSTATE",
+              description: "",
+              schema:
+                'input ReinstateInput {\n  "Add your inputs here"\n  _placeholder: String\n}',
+              template: "",
+              reducer:
+                'const finalRejection = state.rejections.find(\n  (rejection) => rejection.final === true,\n);\nif (finalRejection) {\n  throw new Error("Cannot reinstate an invoice that has been rejected");\n}\nif (permittedTransitions[state.status].includes("ISSUED")) {\n  state.status = "ISSUED";\n} else {\n  throw new Error(`Invalid transition from ${state.status} to ISSUED`);\n}',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "96edda79-7cc0-4d4f-bd89-352aab35635e",
+              name: "REJECT",
+              description: "",
+              schema:
+                "input RejectInput {\n  id: OID! # New Rejection ID\n  reason: String!\n  final: Boolean!\n}",
+              template: "",
+              reducer:
+                'if (!action.input.id || !action.input.reason) {\n  throw new Error("Reason, ID and final are required");\n}\nif (permittedTransitions[state.status].includes("REJECTED")) {\n  state.status = "REJECTED";\n  const rejection = {\n    id: action.input.id,\n    reason: action.input.reason,\n    final: action.input.final,\n  };\n  state.rejections.push(rejection);\n} else {\n  throw new Error(`Invalid transition from ${state.status} to REJECTED`);\n}',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "cbe8ef80-b82d-40b8-bbb5-34c30a314b14",
+              name: "REPORT_PAYMENT_ISSUE",
+              description: "",
+              schema:
+                "input ReportPaymentIssueInput {\n  id: OID!       # Payment ID\n  issue: String!\n}",
+              template: "",
+              reducer:
+                'if (!action.input.id || !action.input.issue) {\n  throw new Error("ID and issue are required");\n}\nif (permittedTransitions[state.status].includes("PAYMENTISSUE")) {\n  state.status = "PAYMENTISSUE";\n  const payment = state.payments.find(\n    (payment) => payment.id === action.input.id,\n  );\n  if (!payment) throw new Error("Payment not found");\n  payment.issue = action.input.issue;\n} else {\n  throw new Error(\n    `Invalid transition from ${state.status} to PAYMENTISSUE`,\n  );\n}',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "d7de04a0-ba51-4584-8457-91f3e331233d",
+              name: "RESET",
+              description: "",
+              schema:
+                'input ResetInput {\n  "Add your inputs here"\n  _placeholder: String\n}',
+              template: "",
+              reducer:
+                'if (permittedTransitions[state.status].includes("DRAFT")) {\n  state.status = "DRAFT";\n} else {\n  throw new Error(`Invalid transition from ${state.status} to DRAFT`);\n}',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+            {
+              id: "4ec26ce1-8860-4e8e-b38d-6e5539259f7c",
+              name: "SCHEDULE_PAYMENT",
+              description: "",
+              schema:
+                "input SchedulePaymentInput {\n  id: OID!\n  processorRef: String!\n  paymentDate: DateTime\n}",
+              template: "",
+              reducer:
+                'if (!action.input.id || !action.input.processorRef) {\n  throw new Error("ID and processorRef are required");\n}\nif (permittedTransitions[state.status].includes("PAYMENTSCHEDULED")) {\n  state.status = "PAYMENTSCHEDULED";\n  state.payments.push({\n    id: action.input.id,\n    processorRef: action.input.processorRef,\n    paymentDate: action.input.paymentDate,\n    txnRef: "",\n    confirmed: false,\n    issue: "",\n    amount: 0,\n  });\n} else {\n  throw new Error(\n    `Invalid transition from ${state.status} to PAYMENTSCHEDULED`,\n  );\n}',
+              errors: [],
+              examples: [],
+              scope: "global",
+            },
+          ],
+        },
+      ],
+      version: 1,
+      changeLog: [],
+    },
+  ],
+};

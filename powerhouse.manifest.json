@@ -1,31 +1,20 @@
 {
-    "name": "Contributor Billing",
-    "description": "The invoice package offers contributors of decentralized and open organisations a way to get paid via their legal entity or governmental identity. ",
-    "category": "Workforce",
-    "publisher": {
-        "name": "Powerhouse",
-        "url": "https://www.powerhouse.inc/"
-    },
-    "documentModels": [
-        {
-            "id": "powerhouse/invoice",
-            "name": "Invoice"
-        }
-    ],
-    "editors": [
-        {
-            "id": "powerhouse/invoice-editor",
-            "name": "Invoice",
-            "documentTypes": ["powerhouse/invoice"]
-        }
-    ],
-    "apps": [
-        {
-            "id": "contributor-billing",
-            "name": "Contributor Billing",
-            "driveEditor": "contributor-billing"
-        }
-    ],
-    "subgraphs": [],
-    "importScripts": []
+  "name": "Invoice",
+  "description": "The invoice package offers contributors of decentralized and open organisations a way to get paid via their legal entity or governmental identity.",
+  "category": "Finance",
+  "publisher": {
+    "name": "Powerhouse",
+    "url": "https://www.powerhouse.io/"
+  },
+  "documentModels": [
+    {
+      "id": "powerhouse/invoice",
+      "name": "Invoice"
+    }
+  ],
+  "apps": [],
+  "editors": [],
+  "processors": [],
+  "subgraphs": [],
+  "config": []
 }

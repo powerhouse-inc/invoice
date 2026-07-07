@@ -1,117 +1,122 @@
 {
-  "name": "@liberuum-org/invoice",
-  "description": "",
-  "version": "0.0.22-dev",
+  "name": "new-invoice",
+  "version": "1.0.0",
   "license": "AGPL-3.0-only",
-  "type": "module",
   "files": [
-    "/dist",
-    "/editors/invoice/assets"
+    "/dist"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
+  "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "./dist/types/index.d.ts",
+      "browser": "./dist/browser/index.js",
+      "node": "./dist/node/index.mjs"
+    },
+    "./reactor": {
+      "types": "./dist/types/reactor/index.d.ts",
+      "browser": "./dist/browser/reactor/index.js"
     },
     "./document-models": {
-      "types": "./dist/document-models/index.d.ts",
-      "default": "./dist/document-models/index.js"
+      "types": "./dist/types/document-models/index.d.ts",
+      "browser": "./dist/browser/document-models/index.js",
+      "node": "./dist/node/document-models/index.mjs"
+    },
+    "./document-models/*": {
+      "types": "./dist/types/document-models/*/index.d.ts",
+      "browser": "./dist/browser/document-models/*/index.js",
+      "node": "./dist/node/document-models/*/index.mjs"
     },
     "./editors": {
-      "types": "./dist/editors/index.d.ts",
-      "default": "./dist/editors/index.js"
+      "types": "./dist/types/editors/index.d.ts",
+      "browser": "./dist/browser/editors/index.js",
+      "node": "./dist/node/editors/index.mjs"
+    },
+    "./editors/*": {
+      "types": "./dist/types/editors/*/editor.d.ts",
+      "browser": "./dist/browser/editors/*/editor.js",
+      "node": "./dist/node/editors/*/editor.mjs"
     },
     "./subgraphs": {
-      "types": "./dist/subgraphs/index.d.ts",
-      "default": "./dist/subgraphs/index.js"
+      "types": "./dist/types/subgraphs/index.d.ts",
+      "browser": "./dist/browser/subgraphs/index.js",
+      "node": "./dist/node/subgraphs/index.mjs"
     },
     "./processors": {
-      "types": "./dist/processors/index.d.ts",
-      "default": "./dist/processors/index.js"
+      "types": "./dist/types/processors/index.d.ts",
+      "browser": "./dist/browser/processors/index.js",
+      "node": "./dist/node/processors/index.mjs"
     },
-    "./manifest": {
-      "types": "./dist/manifest.d.ts",
-      "default": "./dist/manifest.js"
-    },
+    "./manifest": "./dist/powerhouse.manifest.json",
     "./style.css": "./dist/style.css"
   },
   "scripts": {
-    "lint": "eslint .",
-    "build:tsc": "tsc",
-    "build:tsc:watch": "tsc --watch",
-    "build:css": "npx @tailwindcss/cli -i ./style.css -o ./dist/style.css",
-    "build:css:watch": "npx @tailwindcss/cli -i ./style.css -o ./dist/style.css --watch",
-    "build": "npm run build:tsc && npm run build:css && cp -r editors/invoice/assets dist/editors/invoice/",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "npm run build",
+    "test:coverage": "vitest run --coverage",
+    "lint": "oxlint --type-aware --type-check",
+    "lint:fix": "oxlint --type-aware --type-check --fix",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "tsc": "tsc",
+    "tsc:watch": "tsc --watch",
+    "check-circular-imports": "npx dpdm -T ./index.ts",
     "generate": "ph-cli generate",
     "connect": "ph-cli connect",
+    "build": "ph-cli build",
     "reactor": "ph-cli reactor",
     "service": "ph-cli service",
+    "vetra": "ph-cli vetra",
     "service-startup": "bash ./node_modules/@powerhousedao/ph-cli/dist/scripts/service-startup.sh",
     "service-unstartup": "bash ./node_modules/@powerhousedao/ph-cli/dist/scripts/service-unstartup.sh"
   },
-  "dependencies": {
-    "@google-cloud/documentai": "^8.12.0",
-    "@powerhousedao/builder-tools": "^0.10.2",
-    "@powerhousedao/common": "^1.11.2",
-    "@powerhousedao/design-system": "^1.40.2",
-    "@powerhousedao/document-engineering": "^1.2.2",
-    "@react-pdf/renderer": "^4.3.0",
-    "@safe-global/api-kit": "^3.0.1",
-    "@safe-global/protocol-kit": "^6.0.3",
-    "@safe-global/sdk-starter-kit": "^2.0.2",
-    "@safe-global/types-kit": "^2.0.1",
-    "@types/cors": "^2.8.17",
-    "axios": "^1.9.0",
-    "cors": "^2.8.5",
-    "document-model": "^3.0.2",
-    "dotenv": "^16.5.0",
-    "error": "^10.4.0",
-    "ethers": "^6.14.0",
-    "google-auth-library": "^9.15.1",
-    "graphql": "^16.10.0",
-    "graphql-tag": "^2.12.6",
-    "lucide-react": "^0.511.0",
-    "world-countries": "^5.1.0",
-    "zod": "^3.24.2"
-  },
   "devDependencies": {
-    "@eslint/js": "^9.25.0",
-    "@powerhousedao/analytics-engine-core": "^0.4.0",
-    "@powerhousedao/codegen": "^0.50.2",
-    "@powerhousedao/ph-cli": "^0.41.3",
-    "@powerhousedao/reactor-api": "^1.31.2",
-    "@powerhousedao/reactor-browser": "^1.23.2",
-    "@powerhousedao/reactor-local": "^1.28.3",
-    "@powerhousedao/scalars": "^2.0.1",
-    "@tailwindcss/cli": "^4.1.4",
-    "@types/node": "^22.15.17",
-    "@types/react": "^19.1.4",
-    "@vitejs/plugin-react": "^4.4.1",
-    "bun-types": "^1.2.11",
-    "document-drive": "^1.30.2",
-    "eslint": "^9.25.0",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "globals": "^16.0.0",
-    "package-manager-detector": "^0.2.8",
-    "pm2": "^5.4.3",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "tailwindcss": "^4.1.4",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.30.1",
-    "vite": "^6.2.3",
-    "vitest": "^3.0.9"
+    "@electric-sql/pglite": "0.3.15",
+    "@electric-sql/pglite-tools": "0.2.20",
+    "@powerhousedao/connect": "6.2.0-dev.50",
+    "@powerhousedao/design-system": "6.2.0-dev.50",
+    "@powerhousedao/document-engineering": "^1.40.5",
+    "@powerhousedao/ph-cli": "6.2.0-dev.50",
+    "@powerhousedao/reactor": "6.2.0-dev.50",
+    "@powerhousedao/reactor-browser": "6.2.0-dev.50",
+    "@powerhousedao/shared": "6.2.0-dev.50",
+    "@tailwindcss/cli": "^4.1.18",
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/node": "^24.9.2",
+    "@types/react": "^19.2.3",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/coverage-v8": "4.1.1",
+    "document-model": "6.2.0-dev.50",
+    "graphql": "16.12.0",
+    "graphql-tag": "2.12.6",
+    "oxfmt": "0.55.0",
+    "oxlint": "1.70.0",
+    "oxlint-tsgolint": "0.23.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "tailwindcss": "^4.1.16",
+    "typescript": "^5.9.3",
+    "vite": "^8.0.10",
+    "vite-tsconfig-paths": "6.1.1",
+    "vitest": "4.1.1",
+    "zod": "4.3.6"
   },
   "peerDependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  }
+    "@powerhousedao/reactor-browser": "6.2.0-dev.50",
+    "document-model": "6.2.0-dev.50",
+    "graphql": "^16",
+    "graphql-tag": "^2",
+    "react": "^19",
+    "react-dom": "^19",
+    "zod": "^4"
+  },
+  "dependencies": {
+    "@react-pdf/renderer": "^4.5.1",
+    "lucide-react": "^1.23.0",
+    "tailwind-merge": "^3.6.0",
+    "world-countries": "^5.1.0"
+  },
+  "readme": "ERROR: No README data found!",
+  "_id": "new-invoice@1.0.0"
 }

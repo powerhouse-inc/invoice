@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /home/p/Powerhouse/demos/achra/packages/op-hub)",
+      "Bash(cat editors/invoice/components/datePicker.tsx)",
+      "Bash(cat editors/invoice/components/datePicker.ts)",
+      "Bash(grep -oE 'className: [^,]*\\(grid|flex|gap|w-\\\\[|cols\\)[^,]*' __TRACKED_VAR__/year-view/year-grid.js)",
+      "Bash(node -e \"const p=require\\('./node_modules/@powerhousedao/document-engineering/package.json'\\); console.log\\(JSON.stringify\\(p.exports,null,1\\)\\)\")",
+      "Edit(/.claude/skills/migrate-op-hub-design-system/**)",
+      "Bash(echo \"grep-exit=$?\")",
+      "Bash(grep -oE 'select__list-item[^'\\\\'']*'\\\\''|border[a-z0-9:-]*|rounded[a-z0-9:-]*|my-[0-9]|mt-[0-9]|mb-[0-9]|space-y-[0-9]|gap-[0-9]|bg-[a-z0-9:-]+' __TRACKED_VAR__/command-list-item.js)",
+      "Bash(grep -oE 'CommandList[^\\)]{0,160}|CommandGroup[^\\)]{0,120}|select__list'\\\\''[^\\)]{0,120}|className: \"[^\"]*\"' __TRACKED_VAR__/content.js)",
+      "Bash(grep -rhoE \"progress-bar[^{]{0,10}\\\\{[^}]{0,300}\" node_modules/@powerhousedao/connect/dist/style.css)",
+      "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('./node_modules/@powerhousedao/document-engineering/package.json'\\).exports['./ui/*']\\)\\)\")"
+    ]
+  }
+}
