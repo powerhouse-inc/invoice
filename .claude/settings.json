@@ -11,7 +11,15 @@
       "Bash(grep -oE 'select__list-item[^'\\\\'']*'\\\\''|border[a-z0-9:-]*|rounded[a-z0-9:-]*|my-[0-9]|mt-[0-9]|mb-[0-9]|space-y-[0-9]|gap-[0-9]|bg-[a-z0-9:-]+' __TRACKED_VAR__/command-list-item.js)",
       "Bash(grep -oE 'CommandList[^\\)]{0,160}|CommandGroup[^\\)]{0,120}|select__list'\\\\''[^\\)]{0,120}|className: \"[^\"]*\"' __TRACKED_VAR__/content.js)",
       "Bash(grep -rhoE \"progress-bar[^{]{0,10}\\\\{[^}]{0,300}\" node_modules/@powerhousedao/connect/dist/style.css)",
-      "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('./node_modules/@powerhousedao/document-engineering/package.json'\\).exports['./ui/*']\\)\\)\")"
+      "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('./node_modules/@powerhousedao/document-engineering/package.json'\\).exports['./ui/*']\\)\\)\")",
+      "Bash(claude mcp *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X POST http://localhost:4001/mcp -H \"Content-Type: application/json\" -H \"Accept: application/json, text/event-stream\" -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"c\",\"version\":\"1\"}}}')",
+      "mcp__reactor-mcp__getDrives",
+      "Bash(file backup-documents/*.phd)",
+      "mcp__reactor-mcp__getDocumentModelSchema",
+      "mcp__reactor-mcp__createDocument",
+      "mcp__reactor-mcp__addActions",
+      "mcp__reactor-mcp__getDocument"
     ]
   }
 }

@@ -169,7 +169,7 @@ export function BankSchema(): z.ZodObject<Properties<Bank>> {
 
 export function CancelInputSchema(): z.ZodObject<Properties<CancelInput>> {
   return z.object({
-    _placeholder: z.string().nullish(),
+    _empty: z.boolean().nullish(),
   });
 }
 
@@ -522,7 +522,7 @@ export function ReapprovePaymentInputSchema(): z.ZodObject<
   Properties<ReapprovePaymentInput>
 > {
   return z.object({
-    _placeholder: z.string().nullish(),
+    _empty: z.boolean().nullish(),
   });
 }
 
@@ -540,7 +540,7 @@ export function ReinstateInputSchema(): z.ZodObject<
   Properties<ReinstateInput>
 > {
   return z.object({
-    _placeholder: z.string().nullish(),
+    _empty: z.boolean().nullish(),
   });
 }
 
@@ -572,7 +572,7 @@ export function ReportPaymentIssueInputSchema(): z.ZodObject<
 
 export function ResetInputSchema(): z.ZodObject<Properties<ResetInput>> {
   return z.object({
-    _placeholder: z.string().nullish(),
+    _empty: z.boolean().nullish(),
   });
 }
 

@@ -35,7 +35,7 @@ type InvoiceState {
   rejections: [Rejection!]!
   payments: [Payment!]!
   payAfter: DateTime
-  invoiceTags: [InvoiceTag!]!   # e.g. {'xero-payment-account', '090', 'PowerhouseUSD'}
+  invoiceTags: [InvoiceTag!]!
   exported: ExportedData!
   closureReason: ClosureReason
 }
@@ -53,8 +53,8 @@ type Rejection {
 }
 
 type ExportedData {
-  timestamp: DateTime   # ISO 8601 timestamp of the export
-  exportedLineItems: [[String!]!]!   # CSV Format
+  timestamp: DateTime
+  exportedLineItems: [[String!]!]!
 }
 
 type Payment {
@@ -149,9 +149,9 @@ type InvoiceLineItem {
 }
 
 type InvoiceTag {
-  dimension: String!  # "xero-expense-account", "xero-payment-account", "accounting-period", ...
-  value: String!      # "627", ..., "090", ..., "2025/05", "2025/Q1", ...
-  label: String       # "Marketing", ..., "Business Bank", ..., "May 2025"
+  dimension: String!
+  value: String!
+  label: String
 }
 
 type LegalEntityId {
@@ -221,7 +221,7 @@ input EditStatusInput {
 
 input SetExportedDataInput {
   timestamp: DateTime!
-  exportedLineItems: [[String!]!]! 
+  exportedLineItems: [[String!]!]!
 }
 
 # parties
@@ -241,7 +241,6 @@ input EditIssuerBankInput {
     accountType: InvoiceAccountTypeInput
     beneficiary: String
     memo: String
-    # intermediaryBank
     nameIntermediary: String
     streetAddressIntermediary: String
     extendedAddressIntermediary: String
@@ -293,7 +292,6 @@ input EditPayerBankInput {
     accountType: InvoiceAccountTypeInput
     beneficiary: String
     memo: String
-    # intermediaryBank
     nameIntermediary: String
     streetAddressIntermediary: String
     extendedAddressIntermediary: String
@@ -337,7 +335,7 @@ input AddLineItemInput {
     description: String!
     taxPercent: Float!
     quantity: Float!
-    currency: String! # Default can be USD
+    currency: String!
     unitPriceTaxExcl: Float!
     unitPriceTaxIncl: Float!
     totalPriceTaxExcl: Float!
@@ -380,8 +378,7 @@ input AcceptInput {
 }
 
 input CancelInput {
-  "Add your inputs here"
-  _placeholder: String
+  _empty: Boolean
 }
 
 input ClosePaymentInput {
@@ -395,7 +392,7 @@ enum ClosureReasonInput {
 }
 
 input ConfirmPaymentInput {
-  id: OID!       # Payment ID
+  id: OID!
   amount: Float!
 }
 
@@ -405,35 +402,32 @@ input IssueInput {
 }
 
 input ReapprovePaymentInput {
-  "Add your inputs here"
-  _placeholder: String
+  _empty: Boolean
 }
 
 input RegisterPaymentTxInput {
-  id: OID!       # Payment ID
+  id: OID!
   timestamp: DateTime!
   txRef: String!
 }
 
 input ReinstateInput {
-  "Add your inputs here"
-  _placeholder: String
+  _empty: Boolean
 }
 
 input RejectInput {
-  id: OID! # New Rejection ID
+  id: OID!
   reason: String!
   final: Boolean!
 }
 
 input ReportPaymentIssueInput {
-  id: OID!       # Payment ID
+  id: OID!
   issue: String!
 }
 
 input ResetInput {
-  "Add your inputs here"
-  _placeholder: String
+  _empty: Boolean
 }
 
 input SchedulePaymentInput {

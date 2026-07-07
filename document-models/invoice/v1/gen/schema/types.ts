@@ -109,8 +109,7 @@ export type Bank = {
 };
 
 export type CancelInput = {
-  /** Add your inputs here */
-  _placeholder?: InputMaybe<Scalars["String"]["input"]>;
+  _empty?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 export type ClosePaymentInput = {
@@ -378,8 +377,7 @@ export type PaymentRouting = {
 };
 
 export type ReapprovePaymentInput = {
-  /** Add your inputs here */
-  _placeholder?: InputMaybe<Scalars["String"]["input"]>;
+  _empty?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 export type RegisterPaymentTxInput = {
@@ -389,8 +387,7 @@ export type RegisterPaymentTxInput = {
 };
 
 export type ReinstateInput = {
-  /** Add your inputs here */
-  _placeholder?: InputMaybe<Scalars["String"]["input"]>;
+  _empty?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 export type RejectInput = {
@@ -411,8 +408,7 @@ export type ReportPaymentIssueInput = {
 };
 
 export type ResetInput = {
-  /** Add your inputs here */
-  _placeholder?: InputMaybe<Scalars["String"]["input"]>;
+  _empty?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 export type SchedulePaymentInput = {

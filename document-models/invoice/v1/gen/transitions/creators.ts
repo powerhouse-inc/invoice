@@ -55,7 +55,7 @@ export const accept = (input: AcceptInput) =>
     "global",
   );
 
-export const cancel = (input: CancelInput) =>
+export const cancel = (input: CancelInput = {}) =>
   createAction<CancelAction>(
     "CANCEL",
     { ...input },
@@ -91,7 +91,7 @@ export const issue = (input: IssueInput) =>
     "global",
   );
 
-export const reapprovePayment = (input: ReapprovePaymentInput) =>
+export const reapprovePayment = (input: ReapprovePaymentInput = {}) =>
   createAction<ReapprovePaymentAction>(
     "REAPPROVE_PAYMENT",
     { ...input },
@@ -109,7 +109,7 @@ export const registerPaymentTx = (input: RegisterPaymentTxInput) =>
     "global",
   );
 
-export const reinstate = (input: ReinstateInput) =>
+export const reinstate = (input: ReinstateInput = {}) =>
   createAction<ReinstateAction>(
     "REINSTATE",
     { ...input },
@@ -136,7 +136,7 @@ export const reportPaymentIssue = (input: ReportPaymentIssueInput) =>
     "global",
   );
 
-export const reset = (input: ResetInput) =>
+export const reset = (input: ResetInput = {}) =>
   createAction<ResetAction>(
     "RESET",
     { ...input },
