@@ -27,6 +27,18 @@ interface PDFReviewModalProps {
   onAccept: (edited: Record<string, any>) => void;
   onReject: () => void;
   isApplying?: boolean;
+  /**
+   * View-only mode: render just the PDF pane (full width, no extracted-fields
+   * panel, no warnings banner, no accept/reject footer) with a single close
+   * action. Used by the "View Uploaded Invoice" button to preview the stored
+   * base invoice. In this mode `reviewData` may be `null`.
+   */
+  viewOnly?: boolean;
+  /**
+   * Direct URL for the PDF iframe (e.g. an object URL from
+   * `useAttachmentViewer`). Takes precedence over `base64Pdf` when provided.
+   */
+  pdfUrl?: string | null;
 }
 
 /**
@@ -35,6 +47,9 @@ interface PDFReviewModalProps {
  * The user can edit any field before accepting. Dispatches are deferred to
  * the parent's `onAccept` callback so nothing lands in document state until
  * the user confirms.
+ *
+ * In `viewOnly` mode it degrades to a plain full-width PDF preview (used for
+ * "View Uploaded Invoice").
  */
 export default function PDFReviewModal({
   open,
@@ -44,6 +59,8 @@ export default function PDFReviewModal({
   onAccept,
   onReject,
   isApplying = false,
+  viewOnly = false,
+  pdfUrl = null,
 }: PDFReviewModalProps) {
   // Snapshot the extracted data into editable state when the modal opens
   // for a new result. `useMemo` gives us a stable initial value tied to the
@@ -60,17 +77,63 @@ export default function PDFReviewModal({
     setEdited(initialEdited);
   }, [initialEdited]);
 
-  if (!open || !reviewData) return null;
+  if (!open) return null;
+  // Review mode needs extracted data; view-only mode just needs a PDF.
+  if (!viewOnly && !reviewData) return null;
 
-  const pdfSrc = base64Pdf
-    ? `data:application/pdf;base64,${base64Pdf}#toolbar=0&navpanes=0`
-    : null;
+  const pdfSrc = pdfUrl
+    ? pdfUrl
+    : base64Pdf
+      ? `data:application/pdf;base64,${base64Pdf}#toolbar=0&navpanes=0`
+      : null;
 
   const updateField = (path: string, value: unknown) => {
     setEdited((prev) => setPath(deepClone(prev), path, value));
   };
 
   const handleAccept = () => onAccept(edited);
+
+  // View-only mode: full-width PDF preview with a single close action. Used by
+  // "View Uploaded Invoice" to show the stored base invoice without the
+  // extracted-fields panel, warnings, or accept/reject footer.
+  if (viewOnly) {
+    return createPortal(
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-foreground/40 backdrop-blur-sm p-4">
+        <div className="bg-card rounded-2xl shadow-lg w-full max-w-7xl h-full max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden">
+          <header className="flex items-center justify-between border-b border-border px-6 py-4">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">
+                {fileName}
+              </h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Attached to this invoice.
+              </p>
+            </div>
+            <button
+              onClick={onReject}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </header>
+          <div className="flex-1 min-h-0 bg-background">
+            {pdfSrc ? (
+              <iframe src={pdfSrc} title={fileName} className="w-full h-full" />
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                No preview available
+              </div>
+            )}
+          </div>
+        </div>
+      </div>,
+      document.body,
+    );
+  }
+
+  // Review mode from here on — extracted data is guaranteed present.
+  if (!reviewData) return null;
 
   // Render via portal to document.body so we escape any transformed/contained
   // ancestor (Connect's editor frame creates a containing block for `fixed`

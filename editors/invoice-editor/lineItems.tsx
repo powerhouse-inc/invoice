@@ -4,22 +4,16 @@ import {
   type EditInvoiceInput,
   type InvoiceTag,
 } from "document-models/invoice";
-import {
-  forwardRef,
-  useState,
-  useRef,
-  type Dispatch,
-} from "react";
+import { forwardRef, useState, useRef, type Dispatch } from "react";
 import { Tag } from "lucide-react";
 import { NumberForm } from "./components/numberForm.js";
 import { TextInput } from "@powerhousedao/document-engineering/ui";
 import { focusNextOnEnter } from "./utils/inputHelpers.js";
 import { LineItemTagsTable } from "./lineItemTags/lineItemTags.js";
 import { LineItemsEmptyState } from "./components/lineItemsEmptyState.js";
-import {
-  formatNumber,
-  type EditingItemOverlay,
-} from "./utils/utils.js";
+import { TimeTrackingReportButton } from "./components/timeTrackingReportButton.js";
+import { LineItemReceiptButton } from "./components/lineItemReceiptButton.js";
+import { formatNumber, type EditingItemOverlay } from "./utils/utils.js";
 import { useEditableLineItem } from "./hooks/useEditableLineItem.js";
 
 type LineItem = {
@@ -272,6 +266,7 @@ export function LineItemsTable({
         <div className="mb-4 flex items-center justify-between">
           <h4 className="text-xl font-semibold text-foreground">Line Items</h4>
           <div className="flex items-center gap-3">
+            <TimeTrackingReportButton />
             <button
               onClick={() => setShowTagTable(true)}
               className="flex items-center gap-2 px-4 py-2 border border-input rounded-md hover:bg-accent transition-colors text-sm font-medium text-foreground"
@@ -443,15 +438,16 @@ export function LineItemsTable({
                         {formatNumber(item.totalPriceTaxIncl)}
                       </td>
                       <td className="border-b border-border p-3 table-cell">
-                        <div className="flex justify-center space-x-2">
+                        <div className="flex items-center justify-center space-x-2">
+                          <LineItemReceiptButton lineItemId={item.id} />
                           <button
-                            className="rounded bg-primary px-3 py-1 text-primary-foreground hover:bg-primary/90"
+                            className="rounded bg-primary px-2 py-0.5 text-xs text-primary-foreground hover:bg-primary/90"
                             onClick={() => setEditingId(item.id)}
                           >
                             Edit
                           </button>
                           <button
-                            className="rounded bg-destructive px-3 py-1 text-destructive-foreground hover:bg-destructive/90"
+                            className="rounded bg-destructive px-2 py-0.5 text-xs text-destructive-foreground hover:bg-destructive/90"
                             onClick={() => onDeleteItem({ id: item.id })}
                           >
                             Delete

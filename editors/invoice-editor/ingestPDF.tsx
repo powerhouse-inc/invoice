@@ -5,6 +5,7 @@ import { getCountryCodeFromName, mapChainNameToConfig } from "./utils/utils.js";
 import { LoaderCircle } from "lucide-react";
 import { getSubgraphUrl } from "../shared/graphql.js";
 import { type PDFReviewData } from "./components/PDFReviewModal.js";
+import { validatePdfUpload } from "./utils/pdfUpload.js";
 
 const GRAPHQL_URL = getSubgraphUrl("invoice-addon");
 
@@ -37,6 +38,12 @@ interface PDFUploaderProps {
     data: PDFReviewData,
     base64Pdf: string,
     fileName: string,
+    /**
+     * The parsed source PDF. The editor uploads it to the attachment service
+     * (hash-first: dispatch the ref, then stream the bytes) and stores it as the
+     * base invoice.
+     */
+    file: File,
   ) => void;
 }
 
@@ -208,6 +215,14 @@ export default function PDFUploader({
       return;
     }
 
+    // Reject non-PDF / oversized files before the expensive parse + upload.
+    const validationError = validatePdfUpload(file);
+    if (validationError) {
+      setError(validationError);
+      event.target.value = ""; // allow re-selecting a valid file
+      return;
+    }
+
     setError(null);
     setIsLoading(true);
 
@@ -244,10 +259,11 @@ export default function PDFUploader({
               retried: Boolean(data.retried),
               truncated: Boolean(data.truncated),
             };
-            // Hand the result up to the editor BEFORE closing the dropdown.
-            // The dropdown unmounts this component on close, so the parent
-            // must already own the review state by then.
-            onUploadComplete(review, base64Data, file.name);
+            // Hand the parsed result AND the source File up to the editor
+            // before closing the dropdown (the dropdown unmounts this component
+            // on close). The editor owns dispatch, so it runs the hash-first
+            // attachment flow: dispatch the ref, then upload the bytes.
+            onUploadComplete(review, base64Data, file.name, file);
             changeDropdownOpen(false);
           } else {
             const errorMsg = extractErrorMessage(

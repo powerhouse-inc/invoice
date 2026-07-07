@@ -112,7 +112,6 @@
     "zod": "^4"
   },
   "dependencies": {
-    "@powerhousedao/reactor-attachments": "^6.2.0-dev.50",
     "@react-pdf/renderer": "^4.5.1",
     "@safe-global/api-kit": "^5.0.1",
     "@safe-global/protocol-kit": "^8.0.2",
@@ -123,6 +122,9 @@
     "tailwind-merge": "^3.6.0",
     "unpdf": "^1.6.2",
     "world-countries": "^5.1.0"
+  },
+  "overrides": {
+    "@powerhousedao/reactor-attachments": "6.2.0-dev.50"
   },
   "readme": "ERROR: No README data found!",
   "_id": "new-invoice@1.0.0"

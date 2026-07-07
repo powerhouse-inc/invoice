@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import {
   type InvoiceAction,
   type InvoiceDocument,
@@ -52,6 +52,7 @@ import { useDropdown } from "./hooks/useDropdown.js";
 import { usePdfReview } from "./hooks/usePdfReview.js";
 import { useSyncedField } from "./hooks/useSyncedField.js";
 import { useInvoiceActions } from "./hooks/useInvoiceActions.js";
+import { useAttachmentViewer } from "./hooks/useAttachmentViewer.js";
 
 // All shared utils (formatNumber, isFiatCurrency, dateToDatetime, datetimeToDate, etc.)
 // are now imported from ./utils/utils.js (Phase 1 consolidation)
@@ -67,6 +68,10 @@ export default function Editor() {
   // Derived early (must be before hooks that use it, per rules)
   const fiatMode = isFiatCurrency(state?.currency ?? '');
 
+  // The stored base-invoice attachment ref (null when none attached). Drives the
+  // "Upload File" ↔ "View Uploaded Invoice" button and persists across reloads.
+  const baseInvoiceRef = state?.baseInvoice ?? null;
+
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
 
   // Initialize hooks with safe defaults that don't depend on state being available
@@ -76,6 +81,14 @@ export default function Editor() {
   // PDF review + export logic extracted to hook (following vercel-react-best-practices:
   // extract complex side-effecty logic, isolate transient review state)
   const pdf = usePdfReview(fiatMode, state, toast, dispatch);
+
+  // Reusable attachment reader for previewing the stored base invoice PDF.
+  const viewer = useAttachmentViewer();
+  useEffect(() => {
+    if (viewer.error) {
+      toast?.("Couldn't load the uploaded invoice PDF.", { type: "error" });
+    }
+  }, [viewer.error, toast]);
 
   // Synced input fields isolated (reduces effects in main component, follows skill guidance on effects)
   const invoiceNoField = useSyncedField(state?.invoiceNo, (v) =>
@@ -365,7 +378,36 @@ export default function Editor() {
                 />
               </div>
 
-              {/* Upload Dropdown Button */}
+              {/* Upload File  ↔  View Uploaded Invoice (once a base invoice is attached) */}
+              {baseInvoiceRef ? (
+                <button
+                  onClick={() => void viewer.view(baseInvoiceRef)}
+                  disabled={viewer.isLoading}
+                  className="inline-flex items-center h-10 px-4 rounded bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-colors whitespace-nowrap cursor-pointer disabled:opacity-60"
+                >
+                  {viewer.isLoading ? "Loading…" : "View Uploaded Invoice"}
+                  <svg
+                    className="w-4 h-4 ml-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    ></path>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    ></path>
+                  </svg>
+                </button>
+              ) : (
               <div className="relative" ref={uploadDropdown.ref}>
                 <button
                   onClick={uploadDropdown.toggle}
@@ -419,6 +461,7 @@ export default function Editor() {
                   </div>
                 )}
               </div>
+              )}
 
               {/* Export Dropdown Button */}
               <div className="relative" ref={exportDropdown.ref}>
@@ -728,6 +771,18 @@ export default function Editor() {
         onAccept={pdf.handlePdfAccept}
         onReject={pdf.handlePdfReject}
         isApplying={pdf.isApplyingPdf}
+      />
+
+      {/* Read-only preview of the stored base invoice PDF ("View Uploaded Invoice") */}
+      <PDFReviewModal
+        open={viewer.url !== null}
+        viewOnly
+        pdfUrl={viewer.url}
+        base64Pdf={null}
+        fileName="Uploaded invoice"
+        reviewData={null}
+        onAccept={() => {}}
+        onReject={viewer.close}
       />
     </div>
   );

@@ -51,7 +51,20 @@
       "Bash(python3 -c ' *)",
       "Bash(node -e 'const p=require\\(\"/home/p/Powerhouse/demos/invoice/node_modules/@powerhousedao/reactor-attachments/package.json\"\\); console.log\\(\"main:\",p.main,\"module:\",p.module\\); console.log\\(\"exports keys:\",Object.keys\\(p.exports||{}\\)\\)')",
       "Bash(node /tmp/claude-1000/-home-p-Powerhouse-demos-invoice/48f47483-c06b-4d71-874a-02e6745b60fb/scratchpad/verify-compose.mjs)",
-      "Bash(node ./_verify-compose.mjs)"
+      "Bash(node ./_verify-compose.mjs)",
+      "Bash(node -e 'const p=require\\(\"@powerhousedao/reactor-attachments/package.json\"\\); console.log\\(JSON.stringify\\(p.exports,null,1\\)\\)')",
+      "Bash(grep -rnoE \"attachments?[^\\\\\"']{0,3}\\(/:?[a-zA-Z]+\\)?|/attachments[^\\\\\"' ]*\" node_modules/@powerhousedao/reactor-api/dist/index.mjs)",
+      "Bash(curl -s -o /tmp/claude-1000/-home-p-Powerhouse-demos-invoice/48f47483-c06b-4d71-874a-02e6745b60fb/scratchpad/_res.json -w 'status=%{http_code}\\\\n' http://localhost:4001/attachments/reservations -H 'content-type: application/json' -d '{\"mimeType\":\"application/pdf\",\"fileName\":\"probe.pdf\",\"extension\":\"pdf\",\"clientHash\":\"__TRACKED_VAR__\",\"sizeBytes\":123456}')",
+      "Bash(curl -s -i -X OPTIONS http://localhost:4001/attachments/reservations -H 'Origin: http://localhost:3001' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: content-type')",
+      "Bash(curl -s -i -X OPTIONS http://localhost:4001/graphql -H 'Origin: http://localhost:3001' -H 'Access-Control-Request-Method: POST')",
+      "Bash(curl -s http://localhost:4001/graphql -H 'content-type: application/json' -d '{\"query\":\"{ Invoice { documents { id state { invoiceNo baseInvoice } } } }\"}')",
+      "Bash(curl -s http://localhost:4001/graphql -H 'content-type: application/json' -d '{\"query\":\"query\\($d:String!\\){ Invoice { documents\\(driveId:$d\\){ id state { invoiceNo baseInvoice } } } }\",\"variables\":{\"d\":\"preview-10f0a0c0\"}}')",
+      "Bash(read p *)",
+      "Bash(node -e 'console.log\\(require\\('\\\\''./__TRACKED_VAR__'\\\\''\\).version\\)')",
+      "Bash(grep -rhoiE \"[0-9]+ ?\\\\* ?1024 ?\\\\* ?1024|[0-9]{6,}|ATTACHMENT[A-Z_]*|MAX_UPLOAD[A-Z_]*\" node_modules/@powerhousedao/reactor-api/dist/index.mjs)",
+      "Bash(grep -rhoE \".{60}maxUploadBytes.{60}|maxBytes\\\\s*[=:].{0,40}|DEFAULT.{0,30}\\(UPLOAD|BYTES|SIZE\\).{0,30}\" node_modules/@powerhousedao/reactor-attachments/dist/index.js)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' -X DELETE http://localhost:4001/attachments/reservations/4f6bee62-75c8-46f3-a552-fbf12c81890e)",
+      "Bash(echo \"cleanup probe reservation -> $\\(curl -s -o /dev/null -w '%{http_code}' -X DELETE http://localhost:4001/attachments/reservations/4f6bee62-75c8-46f3-a552-fbf12c81890e\\)\")"
     ]
   }
 }

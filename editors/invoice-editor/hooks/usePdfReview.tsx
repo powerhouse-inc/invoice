@@ -4,7 +4,8 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import { InvoicePDF } from "../InvoicePDF.js";
 import { applyExtractedInvoice } from "../ingestPDF.js";
 import type { PDFReviewData } from "../components/PDFReviewModal.js";
-import type { InvoiceState } from "document-models/invoice";
+import { actions, type InvoiceState } from "document-models/invoice";
+import { useFileUpload } from "./useFileUpload.js";
 
 /**
  * Custom hook for PDF review, upload handling, and export logic.
@@ -27,14 +28,30 @@ export function usePdfReview(
   const [pdfFileName, setPdfFileName] = useState<string>("");
   const [isApplyingPdf, setIsApplyingPdf] = useState(false);
   const [isPdfLoading, setIsPdfLoading] = useState(false);
+  const { uploadFile } = useFileUpload();
 
   const handlePdfUploadComplete = useCallback(
-    (data: PDFReviewData, base64: string, fileName: string) => {
+    (data: PDFReviewData, base64: string, fileName: string, file: File) => {
+      // Open the review modal immediately.
       setPdfBase64(base64);
       setPdfFileName(fileName);
       setPdfReviewData(data);
+      // Hash-first attachment upload (per the attachment-service docs): record
+      // the ref on the document right away (durable/indexed immediately), then
+      // stream the bytes in the background. On failure, roll the ref back so
+      // the upload button returns to its "Upload File" state.
+      void uploadFile(file, (ref) => {
+        dispatch(actions.setBaseInvoice({ baseInvoice: ref }));
+      }).catch((err: unknown) => {
+        console.error("Attachment upload failed:", err);
+        dispatch(actions.setBaseInvoice({ baseInvoice: null }));
+        toast?.(
+          "Couldn't attach the invoice PDF — the extracted data is still shown.",
+          { type: "warning" }
+        );
+      });
     },
-    []
+    [dispatch, toast, uploadFile]
   );
 
   const handlePdfAccept = useCallback(
@@ -63,7 +80,10 @@ export function usePdfReview(
     setPdfReviewData(null);
     setPdfBase64(null);
     setPdfFileName("");
-  }, []);
+    // Rejecting the extraction discards the just-attached base invoice, so the
+    // upload button returns to its initial "Upload File" state.
+    dispatch(actions.setBaseInvoice({ baseInvoice: null }));
+  }, [dispatch]);
 
   // Isolated PDF generation hack (from original code)
   const generatePDFBlob = useCallback((): Promise<Blob> => {
