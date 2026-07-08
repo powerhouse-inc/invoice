@@ -1,6 +1,6 @@
 import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Minus, Plus, X } from "lucide-react";
+import { Minus, Plus, Trash2, X } from "lucide-react";
 
 interface AttachmentViewerModalProps {
   open: boolean;
@@ -11,6 +11,11 @@ interface AttachmentViewerModalProps {
   fileName: string;
   /** Optional secondary line under the title (e.g. the line item total). */
   subtitle?: string;
+  /**
+   * When provided, a destructive "Remove" button is shown in the header. The
+   * caller deletes the attachment and closes the viewer.
+   */
+  onRemove?: () => void;
   onClose: () => void;
 }
 
@@ -54,6 +59,7 @@ export function AttachmentViewerModal({
   mimeType,
   fileName,
   subtitle,
+  onRemove,
   onClose,
 }: AttachmentViewerModalProps) {
   const [zoom, setZoom] = useState(1);
@@ -205,6 +211,16 @@ export function AttachmentViewerModal({
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
+            )}
+            {onRemove && (
+              <button
+                onClick={onRemove}
+                className="text-destructive hover:text-destructive/80 transition-colors"
+                aria-label="Remove receipt"
+                title="Remove receipt"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
             )}
             <button
               onClick={onClose}

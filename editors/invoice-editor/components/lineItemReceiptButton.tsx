@@ -15,11 +15,25 @@ import { AttachmentViewerModal } from "./attachmentViewerModal.js";
  *   it on the line item via `addLineItemReceipt`.
  * - Receipt attached → an eye icon that opens a read-only preview (image or PDF).
  *
+ * `allowAttach` (default true) also distinguishes the two placements:
+ * - Display row (`allowAttach` true): paperclip to attach, eye to view. No
+ *   "Remove" in the viewer — it's read-only here.
+ * - Edit row (`allowAttach={false}`): only room for one icon, so it shows the
+ *   eye when a receipt exists and nothing otherwise. The viewer opened from here
+ *   exposes a "Remove" button (`removeLineItemReceipt`). Re-attaching afterwards
+ *   happens from the display row.
+ *
  * Self-contained: reads its own receipts from the selected invoice by
- * `lineItemId`, so it needs no props beyond the id. Hash-first upload (dispatch
- * the ref, stream bytes in the background, roll back on failure).
+ * `lineItemId`. Hash-first upload (dispatch the ref, stream bytes in the
+ * background, roll back on failure).
  */
-export function LineItemReceiptButton({ lineItemId }: { lineItemId: string }) {
+export function LineItemReceiptButton({
+  lineItemId,
+  allowAttach = true,
+}: {
+  lineItemId: string;
+  allowAttach?: boolean;
+}) {
   const [document, dispatch] = useSelectedInvoiceDocument();
   const lineItem = document.state.global.lineItems.find(
     (li) => li.id === lineItemId,
@@ -75,6 +89,12 @@ export function LineItemReceiptButton({ lineItemId }: { lineItemId: string }) {
     });
   }
 
+  function handleRemove() {
+    if (!receipt) return;
+    dispatch(actions.removeLineItemReceipt({ lineItemId, receipt }));
+    viewer.close();
+  }
+
   const buttonClass =
     "text-foreground hover:text-primary transition-colors disabled:opacity-40";
 
@@ -90,7 +110,7 @@ export function LineItemReceiptButton({ lineItemId }: { lineItemId: string }) {
         >
           <Eye className="w-5 h-5" />
         </button>
-      ) : (
+      ) : allowAttach ? (
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
@@ -100,15 +120,17 @@ export function LineItemReceiptButton({ lineItemId }: { lineItemId: string }) {
         >
           <Paperclip className="w-5 h-5" />
         </button>
-      )}
+      ) : null}
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="application/pdf,image/jpeg,image/png,image/gif,image/avif"
-        className="hidden"
-        onChange={handleFile}
-      />
+      {allowAttach && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/pdf,image/jpeg,image/png,image/gif,image/avif"
+          className="hidden"
+          onChange={handleFile}
+        />
+      )}
 
       <AttachmentViewerModal
         open={viewer.url !== null}
@@ -116,6 +138,7 @@ export function LineItemReceiptButton({ lineItemId }: { lineItemId: string }) {
         mimeType={viewer.mimeType}
         fileName={receiptTitle}
         subtitle={receiptSubtitle}
+        onRemove={receipt && !allowAttach ? handleRemove : undefined}
         onClose={viewer.close}
       />
     </>

@@ -130,15 +130,18 @@ const EditableLineItem = forwardRef(function EditableLineItem(
         />
       </td>
       <td className="border border-border p-3 table-cell">
-        <div className="flex space-x-2">
+        <div className="flex items-center justify-center space-x-2">
+          {item.id ? (
+            <LineItemReceiptButton lineItemId={item.id} allowAttach={false} />
+          ) : null}
           <button
-            className="rounded bg-primary px-3 py-1 text-primary-foreground hover:bg-primary/90"
+            className="rounded bg-primary px-2 py-0.5 text-xs text-primary-foreground hover:bg-primary/90"
             onClick={handleSave}
           >
             Save
           </button>
           <button
-            className="rounded bg-muted px-3 py-1 text-foreground hover:bg-accent"
+            className="rounded bg-muted px-2 py-0.5 text-xs text-foreground hover:bg-accent"
             onClick={onCancel}
           >
             Cancel
