@@ -26,5 +26,54 @@
       "name": "Invoice Addon"
     }
   ],
-  "config": []
+	"config": [
+		{
+			"name": "REQUEST_FINANCE_API_KEY",
+			"type": "secret",
+			"description": "API key for the Request Finance SaaS. Read by the invoice subgraph's `requestDirectPayment` resolver (via scripts/invoice/requestFinance.ts) to create invoices on the external platform. Obtain from your Request Finance account settings.",
+			"required": true
+		},
+		{
+			"name": "REQUEST_FINANCE_EMAIL",
+			"type": "var",
+			"description": "Email address associated with the Request Finance account. Sent as the requestor identity when the invoice subgraph creates invoices.",
+			"required": true
+		},
+		{
+			"name": "ALCHEMY_API_KEY",
+			"type": "secret",
+			"description": "Alchemy RPC API key. Used by scripts/alchemy/* (Alchemy environment + helpers) to query on-chain data and by account-transactions / accounts editors. Obtain from the Alchemy dashboard.",
+			"required": false
+		},
+		{
+			"name": "CLAUDE_API_KEY",
+			"type": "secret",
+			"description": "Anthropic Claude API key. Used by scripts/invoice/pdfToClaudeAI.ts to extract invoice data from PDF uploads. Obtain from console.anthropic.com.",
+			"required": false
+		},
+		{
+			"name": "SIGNER_PRIVATE_KEY",
+			"type": "secret",
+			"description": "Ethereum private key used to sign Gnosis Safe transactions in scripts/invoice/gnosisTransactionBuilder.ts. Store only in OpenBao — never commit or log.",
+			"required": false
+		},
+		{
+			"name": "SAFE_API_KEY",
+			"type": "secret",
+			"description": "Safe Transaction Service API key used by scripts/invoice/gnosisTransactionBuilder.ts when proposing transactions to a Safe.",
+			"required": false
+		},
+		{
+			"name": "PRODUCTION_SAFE_ADDRESS",
+			"type": "var",
+			"description": "Gnosis Safe address (0x-prefixed) used by scripts/invoice/gnosisTransactionBuilder.ts when NODE_ENV=production.",
+			"required": true
+		},
+		{
+			"name": "DEV_STAGING_SAFE_ADDRESS",
+			"type": "var",
+			"description": "Gnosis Safe address (0x-prefixed) used by scripts/invoice/gnosisTransactionBuilder.ts when NODE_ENV is not `production` (dev / staging).",
+			"required": true
+		}
+	]
 }

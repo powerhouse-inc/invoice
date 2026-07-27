@@ -3,23 +3,10 @@
  * All editors should import from this module instead of maintaining their own copies.
  */
 
-// ── URL resolution ──
-
-function getGraphQLUrl(): string {
-  if (typeof window === "undefined") {
-    return "http://localhost:4001/graphql";
-  }
-
-  const baseURI = window.document.baseURI;
-
-  if (baseURI.includes("localhost")) {
-    return "http://localhost:4001/graphql";
-  }
-
-  const url = new URL(baseURI);
-  url.host = url.host.replace(/^connect([.-])/, "switchboard$1");
-  return `${url.origin}/graphql`;
-}
+// URL resolution lives in `editors/shared/graphql.ts` — the single source of
+// truth for the Connect -> Switchboard host mapping. A duplicate of that logic
+// used to live here and silently went stale when the Vetra host shape changed.
+import { getGraphQLUrl } from "../../shared/graphql.js";
 
 // ── Generic request helper ──
 
