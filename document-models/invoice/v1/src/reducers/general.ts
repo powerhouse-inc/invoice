@@ -60,7 +60,8 @@ export const invoiceGeneralOperations: InvoiceGeneralOperations = {
       payment.processorRef = action.input.processorRef ?? payment.processorRef;
       payment.paymentDate = action.input.paymentDate ?? payment.paymentDate;
       payment.txnRef = action.input.txnRef ?? payment.txnRef;
-      payment.confirmed = action.input.confirmed ?? payment.confirmed;
+      // `confirmed` is `Boolean!` in EditPaymentDataInput — always supplied.
+      payment.confirmed = action.input.confirmed;
       payment.issue = action.input.issue ?? payment.issue;
     }
   },
@@ -70,7 +71,8 @@ export const invoiceGeneralOperations: InvoiceGeneralOperations = {
       processorRef: action.input.processorRef ?? "",
       paymentDate: ensureDatetimeFormat(action.input.paymentDate) ?? null,
       txnRef: action.input.txnRef ?? "",
-      confirmed: action.input.confirmed ?? false,
+      // `confirmed` is `Boolean!` in AddPaymentInput — always supplied.
+      confirmed: action.input.confirmed,
       issue: action.input.issue ?? "",
       amount: 0,
     };

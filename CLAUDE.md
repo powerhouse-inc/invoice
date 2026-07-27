@@ -344,6 +344,53 @@ editors/<name>/
 
 **NEVER edit files in `gen/` folders** - they are auto-generated and will be overwritten.
 
+### ⚠️ NEVER hand-edit `invoice.json` or `schema.graphql`
+
+`document-models/<name>/<name>.json` and `document-models/<name>/v<n>/schema.graphql` are **derived
+artifacts**, exactly like `gen/`. The document model **document** in the reactor is the source of
+truth; Vetra's codegen writes these files from it. Editing them by hand appears to work until the
+next regeneration silently overwrites the edit.
+
+**ALL schema changes — state schema, operation input schemas, reducers, model metadata — MUST be
+dispatched via MCP against the document model document.**
+
+#### Getting the document model into the reactor
+
+The source documents are committed under `backup-documents/`:
+
+- `backup-documents/Invoice.phd` — the **document model** (schema, operations, reducers)
+- `backup-documents/invoice-editor.phd` — the document editor definition
+- `backup-documents/vetra-package.phd` — the package manifest document
+
+If `getDocuments({ parentId: "vetra-{hash}" })` returns an empty list, the model is not loaded.
+**Ask the user to import `backup-documents/Invoice.phd` into the `vetra-{hash}` drive** (drag & drop
+in Connect) and to provide its document id. Do **not** work around an empty drive by editing
+`invoice.json` directly.
+
+#### Dispatching the change
+
+1. `getDocumentModelSchema({ type: "powerhouse/document-model" })` — confirm the input shape of each
+   operation before dispatching (`SET_STATE_SCHEMA` takes `{ scope, schema }`,
+   `SET_OPERATION_SCHEMA` / `SET_OPERATION_REDUCER` take `{ id, ... }` keyed by **operation id**,
+   which you read from the document's `specifications[0].modules[].operations[].id`).
+2. `getDocument({ id })` and build the new schema string **from the document's current value**, so
+   you only change the intended lines.
+3. Batch all actions into a single `addActions` call, all with `scope: "global"`.
+4. Vetra's codegen then rewrites `invoice.json`, `schema.graphql`, and `gen/` automatically.
+
+#### ⚠️ ALWAYS diff after regenerating
+
+A document imported from an older `.phd` can be **behind** the working tree. Regenerating from it
+overwrites the derived files and can silently revert unrelated parts of the model. After any
+regeneration, run `git diff document-models/` and confirm **only** the intended lines changed, then
+`npm run tsc` and `npm run test`.
+
+Real example: regenerating from a stale `Invoice.phd` reverted
+`SetBaseInvoiceInput.baseInvoice` and `SetTimeTrackingReportInput.timeTrackingReport` from
+`AttachmentRef` to `AttachmentRef!`. Those inputs **must stay nullable** — the editor clears an
+attachment by dispatching `null` (PDF-review reject, upload-failure rollback). The reversion showed
+up as TypeScript errors and failing tests; it was fixed with two `SET_OPERATION_SCHEMA` actions.
+
 ### Document Model Modification Process
 
 For ANY document model changes, follow this **mandatory** two-step process:
@@ -355,6 +402,9 @@ Use `mcp__reactor-mcp__addActions` with operations like:
 - `SET_OPERATION_SCHEMA` - update input/output schemas
 - `SET_OPERATION_REDUCER` - update reducer code
 - `SET_STATE_SCHEMA` - update state definitions
+
+This is the **only** sanctioned way to change the model — see "NEVER hand-edit `invoice.json` or
+`schema.graphql`" above for how to load the model from `backup-documents/` and verify the result.
 
 #### Step 2: Update Existing Source Files
 

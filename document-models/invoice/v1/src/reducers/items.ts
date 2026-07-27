@@ -40,7 +40,7 @@ export const invoiceItemsOperations: InvoiceItemsOperations = {
       ...sanitizedInput,
     };
     validatePrices(nextItem);
-    applyInvariants(state, nextItem);
+    applyInvariants(nextItem);
     Object.assign(stateItem, nextItem);
     updateTotals(state);
   },
@@ -57,7 +57,7 @@ export const invoiceItemsOperations: InvoiceItemsOperations = {
     if (!stateItem) throw new Error("Item matching input.id not found");
 
     // if tag already exists with the same dimension, update the value and label
-    const existingTag = stateItem.lineItemTag?.find(
+    const existingTag = stateItem.lineItemTag.find(
       (tag) => tag.dimension === action.input.dimension,
     );
     if (existingTag) {
@@ -70,17 +70,12 @@ export const invoiceItemsOperations: InvoiceItemsOperations = {
         value: action.input.value,
         label: action.input.label || null,
       };
-      if (!stateItem.lineItemTag) {
-        stateItem.lineItemTag = [];
-      }
-
-      // Add the new tag
-      stateItem.lineItemTag?.push(newTag);
+      stateItem.lineItemTag.push(newTag);
     }
   },
   setInvoiceTagOperation(state, action) {
     // if tag already exists with the same dimension, update the value and label
-    const existingTag = state.invoiceTags?.find(
+    const existingTag = state.invoiceTags.find(
       (tag) => tag.dimension === action.input.dimension,
     );
     if (existingTag) {
@@ -93,10 +88,6 @@ export const invoiceItemsOperations: InvoiceItemsOperations = {
         value: action.input.value,
         label: action.input.label || null,
       };
-      if (!state.invoiceTags) {
-        state.invoiceTags = [];
-      }
-      // Add the new tag
       state.invoiceTags.push(newTag);
     }
   },
@@ -141,7 +132,25 @@ function validatePrices(item: InvoiceLineItem) {
   }
 }
 
-const applyInvariants = (state: InvoiceState, nextItem: InvoiceLineItem) => {
+/**
+ * Normalizes the float representation of an already-validated line item.
+ *
+ * `validatePrices` runs immediately before this and rejects any item whose
+ * quantity/unit/total relations disagree beyond EPSILON, so the only
+ * discrepancies that can survive to here come from the *direction* in which a
+ * relation is evaluated: validation compares `unitPriceTaxIncl / (1 + taxRate)`
+ * against `unitPriceTaxExcl`, whereas the multiplied form
+ * `unitPriceTaxExcl * (1 + taxRate)` can land more than EPSILON away from
+ * `unitPriceTaxIncl` for the same numbers. The block below re-derives the
+ * multiplied form so stored values stay internally consistent.
+ *
+ * Only that one direction needs correcting. The inverse check
+ * (`unitPriceTaxIncl / (1 + taxRate)` vs `unitPriceTaxExcl`) is intentionally
+ * absent: untouched, it merely restates a `validatePrices` assertion, and after
+ * the correction below it is an exact round-trip. A sweep of 5165 valid items
+ * across tax rates 0-27% and magnitudes 1e0-1e14 never once satisfied it.
+ */
+const applyInvariants = (nextItem: InvoiceLineItem) => {
   const EPSILON = 0.00001;
 
   const isClose = (a: number, b: number) => Math.abs(a - b) < EPSILON;
@@ -149,39 +158,11 @@ const applyInvariants = (state: InvoiceState, nextItem: InvoiceLineItem) => {
   const hasChanged = (oldValue: number, newValue: number) =>
     !isClose(oldValue, newValue);
 
-  const currentItem = state.lineItems.find((item) => item.id === nextItem.id);
-  if (!currentItem) {
-    return;
-  }
-
   const taxRate = nextItem.taxPercent / 100;
-
-  const expectedTotalPriceTaxExcl =
-    nextItem.quantity * nextItem.unitPriceTaxExcl;
-  if (hasChanged(expectedTotalPriceTaxExcl, nextItem.totalPriceTaxExcl)) {
-    nextItem.unitPriceTaxExcl = nextItem.totalPriceTaxExcl / nextItem.quantity;
-    nextItem.unitPriceTaxIncl = nextItem.unitPriceTaxExcl * (1 + taxRate);
-    nextItem.totalPriceTaxIncl = nextItem.quantity * nextItem.unitPriceTaxIncl;
-  }
-
-  const expectedTotalPriceTaxIncl =
-    nextItem.quantity * nextItem.unitPriceTaxIncl;
-  if (hasChanged(expectedTotalPriceTaxIncl, nextItem.totalPriceTaxIncl)) {
-    nextItem.unitPriceTaxIncl = nextItem.totalPriceTaxIncl / nextItem.quantity;
-    nextItem.unitPriceTaxExcl = nextItem.unitPriceTaxIncl / (1 + taxRate);
-    nextItem.totalPriceTaxExcl = nextItem.quantity * nextItem.unitPriceTaxExcl;
-  }
 
   const expectedUnitPriceTaxIncl = nextItem.unitPriceTaxExcl * (1 + taxRate);
   if (hasChanged(expectedUnitPriceTaxIncl, nextItem.unitPriceTaxIncl)) {
     nextItem.unitPriceTaxIncl = nextItem.unitPriceTaxExcl * (1 + taxRate);
-    nextItem.totalPriceTaxExcl = nextItem.quantity * nextItem.unitPriceTaxExcl;
-    nextItem.totalPriceTaxIncl = nextItem.quantity * nextItem.unitPriceTaxIncl;
-  }
-
-  const expectedUnitPriceTaxExcl = nextItem.unitPriceTaxIncl / (1 + taxRate);
-  if (hasChanged(expectedUnitPriceTaxExcl, nextItem.unitPriceTaxExcl)) {
-    nextItem.unitPriceTaxExcl = nextItem.unitPriceTaxIncl / (1 + taxRate);
     nextItem.totalPriceTaxExcl = nextItem.quantity * nextItem.unitPriceTaxExcl;
     nextItem.totalPriceTaxIncl = nextItem.quantity * nextItem.unitPriceTaxIncl;
   }

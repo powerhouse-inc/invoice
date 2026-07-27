@@ -430,15 +430,13 @@ export function InvoiceLineItemSchema(): z.ZodObject<
     currency: z.string(),
     description: z.string(),
     id: z.string(),
-    lineItemTag: z.array(z.lazy(() => InvoiceTagSchema())).nullish(),
+    lineItemTag: z.array(z.lazy(() => InvoiceTagSchema())),
     quantity: z.number(),
-    receipts: z
-      .array(
-        z.custom<`attachment://v${number}:${string}`>((val) =>
-          /^attachment:\/\/v\d+:.+$/.test(val as string),
-        ),
-      )
-      .nullish(),
+    receipts: z.array(
+      z.custom<`attachment://v${number}:${string}`>((val) =>
+        /^attachment:\/\/v\d+:.+$/.test(val as string),
+      ),
+    ),
     taxPercent: z.number(),
     totalPriceTaxExcl: z.number(),
     totalPriceTaxIncl: z.number(),

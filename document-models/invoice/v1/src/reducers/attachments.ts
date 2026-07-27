@@ -12,9 +12,6 @@ export const invoiceAttachmentsOperations: InvoiceAttachmentsOperations = {
     if (!item) {
       throw new Error("Line item matching input.lineItemId not found");
     }
-    if (!item.receipts) {
-      item.receipts = [];
-    }
     if (!item.receipts.includes(action.input.receipt)) {
       item.receipts.push(action.input.receipt);
     }
@@ -24,8 +21,6 @@ export const invoiceAttachmentsOperations: InvoiceAttachmentsOperations = {
     if (!item) {
       throw new Error("Line item matching input.lineItemId not found");
     }
-    item.receipts = (item.receipts ?? []).filter(
-      (r) => r !== action.input.receipt,
-    );
+    item.receipts = item.receipts.filter((r) => r !== action.input.receipt);
   },
 };

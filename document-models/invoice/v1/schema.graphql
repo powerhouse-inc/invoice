@@ -149,8 +149,8 @@ type InvoiceLineItem {
   unitPriceTaxIncl: Float!
   totalPriceTaxExcl: Float!
   totalPriceTaxIncl: Float!
-  lineItemTag: [InvoiceTag!]
-  receipts: [AttachmentRef!]
+  lineItemTag: [InvoiceTag!]!
+  receipts: [AttachmentRef!]!
 }
 
 type InvoiceTag {

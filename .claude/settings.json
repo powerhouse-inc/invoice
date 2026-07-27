@@ -91,7 +91,14 @@
       "Bash(chmod +x /tmp/claude-1000/-home-p-Powerhouse-demos-invoice/48f47483-c06b-4d71-874a-02e6745b60fb/scratchpad/mcp.sh)",
       "Bash(/tmp/claude-1000/-home-p-Powerhouse-demos-invoice/48f47483-c06b-4d71-874a-02e6745b60fb/scratchpad/mcp.sh getDrives '{}')",
       "Bash(python3 -c \"import sys,json;print\\(json.load\\(sys.stdin\\)['result']['content'][0]['text']\\)\")",
-      "Bash(/tmp/claude-1000/-home-p-Powerhouse-demos-invoice/48f47483-c06b-4d71-874a-02e6745b60fb/scratchpad/mcp.sh getDocuments '{\"parentId\":\"vetra-10f0a0c0\"}')"
+      "Bash(/tmp/claude-1000/-home-p-Powerhouse-demos-invoice/48f47483-c06b-4d71-874a-02e6745b60fb/scratchpad/mcp.sh getDocuments '{\"parentId\":\"vetra-10f0a0c0\"}')",
+      "Bash(python3 -)",
+      "Bash(node /tmp/claude-1000/-home-p-Powerhouse-demos-invoice/48f47483-c06b-4d71-874a-02e6745b60fb/scratchpad/probe.mjs)",
+      "Bash(/tmp/claude-1000/-home-p-Powerhouse-demos-invoice/48f47483-c06b-4d71-874a-02e6745b60fb/scratchpad/mcp.sh getDocument '{\"id\":\"dd9db0f6-b0ea-46ef-8892-1fd192b69f4c\"}')",
+      "Bash(/tmp/claude-1000/-home-p-Powerhouse-demos-invoice/48f47483-c06b-4d71-874a-02e6745b60fb/scratchpad/mcp.sh getDocumentModelSchema '{\"type\":\"powerhouse/document-model\"}')",
+      "Bash(git check-ignore *)",
+      "Bash(bunx oxfmt *)",
+      "Bash(npx --yes prettier --check CLAUDE.md)"
     ],
     "additionalDirectories": [
       "/home/p/Powerhouse/powerhouse/packages/reactor/test/integration",

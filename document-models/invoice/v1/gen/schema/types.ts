@@ -304,9 +304,9 @@ export type InvoiceLineItem = {
   currency: Scalars["String"]["output"];
   description: Scalars["String"]["output"];
   id: Scalars["OID"]["output"];
-  lineItemTag: Maybe<Array<InvoiceTag>>;
+  lineItemTag: Array<InvoiceTag>;
   quantity: Scalars["Float"]["output"];
-  receipts: Maybe<Array<Scalars["AttachmentRef"]["output"]>>;
+  receipts: Array<Scalars["AttachmentRef"]["output"]>;
   taxPercent: Scalars["Float"]["output"];
   totalPriceTaxExcl: Scalars["Float"]["output"];
   totalPriceTaxIncl: Scalars["Float"]["output"];
