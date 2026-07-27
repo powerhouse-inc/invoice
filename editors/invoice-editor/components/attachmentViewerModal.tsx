@@ -25,16 +25,21 @@ const ZOOM_STEP = 0.25;
 // Fit target: a bit smaller than the viewport so the modal never fills the screen.
 const FIT_W = 0.86;
 const FIT_H = 0.8;
+// Vertical space the modal's own chrome occupies inside that budget: the header
+// (title + subtitle + zoom controls, ~5.25rem) plus the image container's
+// padding (2rem). The image must leave room for both — otherwise the card,
+// which is `overflow-hidden`, clips its bottom padding and rounded corners.
+const CHROME_H = 116;
+// Never collapse the frame below this, however short the viewport.
+const MIN_FIT_H = 160;
 
 type Size = { w: number; h: number };
 
 /** On-screen size of the image at zoom 1: fit to viewport, never upscaled. */
 function computeFit(natural: Size): Size {
-  const s = Math.min(
-    (window.innerWidth * FIT_W) / natural.w,
-    (window.innerHeight * FIT_H) / natural.h,
-    1,
-  );
+  const maxW = window.innerWidth * FIT_W;
+  const maxH = Math.max(MIN_FIT_H, window.innerHeight * FIT_H - CHROME_H);
+  const s = Math.min(maxW / natural.w, maxH / natural.h, 1);
   return { w: natural.w * s, h: natural.h * s };
 }
 
@@ -45,10 +50,11 @@ function clampZoom(z: number): number {
 /**
  * Read-only preview for a stored attachment that may be an image OR a PDF.
  *
- * - **Images**: the modal shrink-wraps the picture (capped to ~86vw × 80vh,
- *   never upscaled past fit). The frame stays a fixed size; the image scales
- *   *inside* it via CSS transform. Zoom with the +/- buttons, the mouse wheel,
- *   or a trackpad pinch (cursor over the image), then grab-and-drag to pan.
+ * - **Images**: the modal shrink-wraps the picture (capped so the picture plus
+ *   the header and padding stay inside ~86vw × 80vh, never upscaled past fit).
+ *   The frame stays a fixed size; the image scales *inside* it via CSS
+ *   transform. Zoom with the +/- buttons, the mouse wheel, or a trackpad pinch
+ *   (cursor over the image), then grab-and-drag to pan.
  * - **PDFs**: a large frame with the browser's native PDF viewer inside.
  *
  * Rendered via a portal so it escapes any transformed/containing ancestor.
@@ -272,7 +278,7 @@ export function AttachmentViewerModal({
                     h: e.currentTarget.naturalHeight,
                   })
                 }
-                className="object-contain max-w-[86vw] max-h-[80vh]"
+                className="object-contain max-w-[86vw] max-h-[calc(80vh-7.25rem)]"
               />
             )}
           </div>
