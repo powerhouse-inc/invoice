@@ -123,9 +123,6 @@
     "unpdf": "^1.6.2",
     "world-countries": "^5.1.0"
   },
-  "overrides": {
-    "@powerhousedao/reactor-attachments": "6.2.0"
-  },
   "readme": "ERROR: No README data found!",
   "_id": "new-invoice@1.0.0"
 }
