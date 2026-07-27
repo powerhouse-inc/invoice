@@ -8,7 +8,7 @@ import { actions } from "document-models/invoice";
 import type { InvoiceDocument } from "document-models/invoice";
 import { uploadPdfAndGetJsonClaude } from "../../scripts/invoice/pdfToClaudeAI.js";
 import type { IReactorClient } from "@powerhousedao/reactor";
-import * as crypto from "crypto";
+import * as crypto from "node:crypto";
 
 // --- Type definitions for resolver args and external interfaces ---
 
