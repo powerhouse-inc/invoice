@@ -13,8 +13,18 @@
     }
   ],
   "apps": [],
-  "editors": [],
+  "editors": [ 
+    {
+      "id": "powerhouse-invoice-editor",
+      "name": "Invoice Editor"
+    }
+  ],
   "processors": [],
-  "subgraphs": [],
+  "subgraphs": [
+    {
+      "id": "invoice-addon",
+      "name": "Invoice Addon"
+    }
+  ],
   "config": []
 }
