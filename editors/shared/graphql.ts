@@ -36,22 +36,35 @@ export function toSwitchboardHostname(hostname: string): string {
   return [swapped, ...domain].join(".");
 }
 
-export function getGraphQLUrl(): string {
+/**
+ * Origin of the Switchboard paired with the Connect app currently serving this
+ * page — e.g. `https://mild-dove-63-switchboard.vetra.io`.
+ *
+ * This is the base for every Switchboard HTTP API, not just GraphQL: the
+ * attachment store lives at `<origin>/attachments/*` and is drive-independent,
+ * so an editor can upload attachments while its document sits in a local
+ * browser-only drive.
+ */
+export function getSwitchboardOrigin(): string {
   if (typeof window === "undefined") {
-    return "http://localhost:4001/graphql";
+    return "http://localhost:4001";
   }
 
   const baseURI = window.document.baseURI;
 
   if (baseURI.includes("localhost")) {
-    return "http://localhost:4001/graphql";
+    return "http://localhost:4001";
   }
 
   const url = new URL(baseURI);
   // Assign `hostname`, not `host`: it leaves `url.port` alone, so a non-default
   // port is preserved by `url.origin` below.
   url.hostname = toSwitchboardHostname(url.hostname);
-  return `${url.origin}/graphql`;
+  return url.origin;
+}
+
+export function getGraphQLUrl(): string {
+  return `${getSwitchboardOrigin()}/graphql`;
 }
 
 /**

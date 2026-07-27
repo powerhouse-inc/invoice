@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAttachmentService } from "@powerhousedao/reactor-browser";
+import { ensureAttachmentService } from "../../shared/attachments.js";
 import type { AttachmentRef } from "./useFileUpload.js";
 
 export interface UseAttachmentViewerResult {
@@ -42,6 +43,15 @@ export interface UseAttachmentViewerResult {
  * ```
  */
 export function useAttachmentViewer(): UseAttachmentViewerResult {
+  // Reading an attachment needs the same service that uploading does, and
+  // Connect supplies none for a local-only drive. Every current caller also
+  // mounts `useFileUpload` (which registers it), but relying on that would make
+  // any future view-only component fail; the call is idempotent, so register
+  // here too rather than depend on a sibling hook.
+  useEffect(() => {
+    ensureAttachmentService();
+  }, []);
+
   const service = useAttachmentService();
   const [url, setUrl] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string | null>(null);

@@ -1,6 +1,6 @@
 {
   "name": "@powerhousedao/invoice",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "AGPL-3.0-only",
   "files": [
     "/dist"
@@ -81,6 +81,7 @@
     "@powerhousedao/document-engineering": "^1.40.5",
     "@powerhousedao/ph-cli": "6.2.1",
     "@powerhousedao/reactor": "6.2.1",
+    "@powerhousedao/reactor-attachments": "6.2.1",
     "@powerhousedao/reactor-browser": "6.2.1",
     "@powerhousedao/shared": "6.2.1",
     "@tailwindcss/cli": "^4.1.18",
@@ -106,6 +107,7 @@
     "zod": "4.3.6"
   },
   "peerDependencies": {
+    "@powerhousedao/reactor-attachments": "6.2.1",
     "@powerhousedao/reactor-browser": "6.2.1",
     "document-model": "6.2.1",
     "graphql": "^16",

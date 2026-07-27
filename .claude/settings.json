@@ -98,7 +98,18 @@
       "Bash(/tmp/claude-1000/-home-p-Powerhouse-demos-invoice/48f47483-c06b-4d71-874a-02e6745b60fb/scratchpad/mcp.sh getDocumentModelSchema '{\"type\":\"powerhouse/document-model\"}')",
       "Bash(git check-ignore *)",
       "Bash(bunx oxfmt *)",
-      "Bash(npx --yes prettier --check CLAUDE.md)"
+      "Bash(npx --yes prettier --check CLAUDE.md)",
+      "Bash(awk '/PHConnectDefaultDrive/,/^}/' packages/shared/clis/types.ts)",
+      "Bash(awk '/export async function createZip/,/^}/' packages/shared/document-model/files.ts)",
+      "Bash(awk '/export function makeDownloadHandler/,/^}/' apps/switchboard/src/attachments/routes.ts)",
+      "Bash(awk '/export type SwitchboardClientConfig/,/^};/' packages/reactor-attachments/src/switchboard/remote-reservation-store.ts)",
+      "Bash(awk '/export type JwtHandler/,/;/' packages/reactor-attachments/src/types.ts)",
+      "Bash(grep -o 'class [A-Za-z0-9_$]* extends [A-Za-z0-9_$]*' invoice-4edZsUYK.js)",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(awk '/function expandIncludeSubpaths/,/^}/' packages/builder-tools/connect-utils/externalize-vendor.ts)",
+      "Bash(python3 -c 'import json;j=json.load\\(open\\('\\\\''__TRACKED_VAR__'\\\\''\\)\\);print\\('\\\\''__TRACKED_VAR__'\\\\'',j.get\\('\\\\''version'\\\\''\\)\\)')",
+      "Bash(node -e \"const p=require\\('./packages/reactor-browser/package.json'\\); console.log\\(JSON.stringify\\(p.exports,null,1\\)\\)\")",
+      "Bash(sort -k2)"
     ],
     "additionalDirectories": [
       "/home/p/Powerhouse/powerhouse/packages/reactor/test/integration",

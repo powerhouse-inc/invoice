@@ -1,5 +1,6 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { UploadStatus, useAttachmentUpload } from "@powerhousedao/reactor-browser";
+import { ensureAttachmentService } from "../../shared/attachments.js";
 
 /**
  * An opaque attachment reference, e.g. `attachment://v1:<sha256>`.
@@ -67,6 +68,21 @@ export interface UseFileUploadResult {
  * once) call the hook per slot, or upload sequentially.
  */
 export function useFileUpload(): UseFileUploadResult {
+  // Register an attachment service on mount when Connect hasn't (it only does
+  // so for drives loaded from a remote Switchboard, so a local-only drive gets
+  // none — see `ensureAttachmentService`).
+  //
+  // This has to run at mount rather than inside `uploadFile`: the `preprocess`
+  // / `upload` callbacks below close over the client that `useAttachmentUpload`
+  // resolved during *this* render, so a service registered mid-upload would be
+  // invisible to them and the call would still throw "AttachmentClient not
+  // available". Registering here instead re-renders the hook (the setter
+  // dispatches a window event that `useAttachmentService` subscribes to) so the
+  // client is in place well before any user interaction.
+  useEffect(() => {
+    ensureAttachmentService();
+  }, []);
+
   const { preprocess, upload, status, progress, error } = useAttachmentUpload();
 
   const uploadFile = useCallback(
