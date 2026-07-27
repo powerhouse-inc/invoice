@@ -66,7 +66,7 @@ export const initialGlobalState: InvoiceGlobalState = {
 export const initialLocalState: InvoiceLocalState = {};
 
 export const utils: DocumentModelUtils<InvoicePHState> = {
-  fileExtension: "https://powerhouse.io",
+  fileExtension: "",
   createState(state) {
     return {
       ...createBaseState(state?.auth, { version: 1, ...state?.document }),

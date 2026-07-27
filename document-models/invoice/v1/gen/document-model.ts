@@ -5,9 +5,9 @@ export const documentModel: DocumentModelGlobalState = {
   name: "Invoice",
   author: {
     name: "Powerhouse",
-    website: "",
+    website: "https://powerhouse.io",
   },
-  extension: "https://powerhouse.io",
+  extension: "",
   description:
     "The Invoice document model that allows a contributor to request compensation based on their contributions.",
   specifications: [
