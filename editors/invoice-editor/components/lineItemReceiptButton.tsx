@@ -5,7 +5,7 @@ import { actions, useSelectedInvoiceDocument } from "document-models/invoice";
 import { useFileUpload, type AttachmentRef } from "../hooks/useFileUpload.js";
 import { useAttachmentViewer } from "../hooks/useAttachmentViewer.js";
 import { validateReceiptUpload } from "../utils/pdfUpload.js";
-import { canEditAttachments } from "../utils/attachmentPermissions.js";
+import { canEditInvoice } from "../utils/invoicePermissions.js";
 import { formatNumber } from "../utils/utils.js";
 import { AttachmentViewerModal } from "./attachmentViewerModal.js";
 
@@ -17,7 +17,7 @@ import { AttachmentViewerModal } from "./attachmentViewerModal.js";
  * - Receipt attached → an eye icon that opens a read-only preview (image or PDF).
  *
  * Both attaching and removing additionally require an invoice status that still
- * permits attachment edits (`DRAFT` / `REJECTED` — see `canEditAttachments`).
+ * permits attachment edits (`DRAFT` / `REJECTED` — see `canEditInvoice`).
  * In every other status this renders the eye icon alone, or nothing when the
  * line item has no receipt.
  *
@@ -49,7 +49,7 @@ export function LineItemReceiptButton({
 
   // Attaching and removing are frozen once the invoice leaves DRAFT/REJECTED;
   // viewing an already-attached receipt stays available in every status.
-  const canEdit = canEditAttachments(document.state.global.status);
+  const canEdit = canEditInvoice(document.state.global.status);
 
   // Shown in the viewer header so the receipt can be checked against the doc.
   const receiptTitle = lineItem

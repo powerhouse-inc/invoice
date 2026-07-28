@@ -34,7 +34,15 @@
               "schema": "input EditInvoiceInput {\n    invoiceNo: String\n    dateIssued: String\n    dateDelivered: String\n    dateDue: String\n    currency: String\n    notes: String\n}",
               "template": "",
               "reducer": "",
-              "errors": [],
+              "errors": [
+                {
+                  "id": "e10c0000-0000-4000-8000-000000000001",
+                  "name": "InvoiceNotEditableError",
+                  "code": "INVOICE_NOT_EDITABLE",
+                  "description": "Rejected because the invoice status does not permit content edits. Only DRAFT and REJECTED invoices may be edited.",
+                  "template": ""
+                }
+              ],
               "examples": [],
               "scope": "global"
             },
@@ -96,7 +104,15 @@
               "schema": "input EditIssuerBankInput {\n    name: String\n    streetAddress: String\n    extendedAddress: String\n    city: String\n    postalCode: String\n    country: String\n    stateProvince: String\n    ABA: String\n    BIC: String\n    SWIFT: String\n    accountNum: String\n    accountType: InvoiceAccountTypeInput\n    beneficiary: String\n    memo: String\n    nameIntermediary: String\n    streetAddressIntermediary: String\n    extendedAddressIntermediary: String\n    cityIntermediary: String\n    postalCodeIntermediary: String\n    countryIntermediary: String\n    stateProvinceIntermediary: String\n    ABAIntermediary: String\n    BICIntermediary: String\n    SWIFTIntermediary: String\n    accountNumIntermediary: String\n    accountTypeIntermediary: InvoiceAccountTypeInput\n    beneficiaryIntermediary: String\n    memoIntermediary: String\n}",
               "template": "",
               "reducer": "",
-              "errors": [],
+              "errors": [
+                {
+                  "id": "e10c0000-0000-4000-8000-000000000003",
+                  "name": "IssuerBankNotEditableError",
+                  "code": "ISSUER_BANK_NOT_EDITABLE",
+                  "description": "Rejected because the invoice status does not permit content edits. Only DRAFT and REJECTED invoices may be edited.",
+                  "template": ""
+                }
+              ],
               "examples": [],
               "scope": "global"
             },
@@ -107,7 +123,15 @@
               "schema": "input EditIssuerInput {\n    id: String\n    name: String\n    streetAddress: String\n    extendedAddress: String\n    city: String\n    postalCode: String\n    country: String\n    stateProvince: String\n    tel: String\n    email: String\n}",
               "template": "",
               "reducer": "",
-              "errors": [],
+              "errors": [
+                {
+                  "id": "e10c0000-0000-4000-8000-000000000002",
+                  "name": "IssuerNotEditableError",
+                  "code": "ISSUER_NOT_EDITABLE",
+                  "description": "Rejected because the invoice status does not permit content edits. Only DRAFT and REJECTED invoices may be edited.",
+                  "template": ""
+                }
+              ],
               "examples": [],
               "scope": "global"
             },
@@ -118,7 +142,15 @@
               "schema": "input EditIssuerWalletInput {\n    rpc: String\n    chainName: String\n    chainId: String\n    address: String\n}",
               "template": "",
               "reducer": "",
-              "errors": [],
+              "errors": [
+                {
+                  "id": "e10c0000-0000-4000-8000-000000000004",
+                  "name": "IssuerWalletNotEditableError",
+                  "code": "ISSUER_WALLET_NOT_EDITABLE",
+                  "description": "Rejected because the invoice status does not permit content edits. Only DRAFT and REJECTED invoices may be edited.",
+                  "template": ""
+                }
+              ],
               "examples": [],
               "scope": "global"
             },
@@ -129,7 +161,15 @@
               "schema": "input EditPayerBankInput {\n    name: String\n    streetAddress: String\n    extendedAddress: String\n    city: String\n    postalCode: String\n    country: String\n    stateProvince: String\n    ABA: String\n    BIC: String\n    SWIFT: String\n    accountNum: String\n    accountType: InvoiceAccountTypeInput\n    beneficiary: String\n    memo: String\n    nameIntermediary: String\n    streetAddressIntermediary: String\n    extendedAddressIntermediary: String\n    cityIntermediary: String\n    postalCodeIntermediary: String\n    countryIntermediary: String\n    stateProvinceIntermediary: String\n    ABAIntermediary: String\n    BICIntermediary: String\n    SWIFTIntermediary: String\n    accountNumIntermediary: String\n    accountTypeIntermediary: InvoiceAccountTypeInput\n    beneficiaryIntermediary: String\n    memoIntermediary: String\n}",
               "template": "",
               "reducer": "",
-              "errors": [],
+              "errors": [
+                {
+                  "id": "e10c0000-0000-4000-8000-000000000006",
+                  "name": "PayerBankNotEditableError",
+                  "code": "PAYER_BANK_NOT_EDITABLE",
+                  "description": "Rejected because the invoice status does not permit content edits. Only DRAFT and REJECTED invoices may be edited.",
+                  "template": ""
+                }
+              ],
               "examples": [],
               "scope": "global"
             },
@@ -140,7 +180,15 @@
               "schema": "input EditPayerInput {\n    id: String\n    name: String\n    streetAddress: String\n    extendedAddress: String\n    city: String\n    postalCode: String\n    country: String\n    stateProvince: String\n    tel: String\n    email: String\n}",
               "template": "",
               "reducer": "",
-              "errors": [],
+              "errors": [
+                {
+                  "id": "e10c0000-0000-4000-8000-000000000005",
+                  "name": "PayerNotEditableError",
+                  "code": "PAYER_NOT_EDITABLE",
+                  "description": "Rejected because the invoice status does not permit content edits. Only DRAFT and REJECTED invoices may be edited.",
+                  "template": ""
+                }
+              ],
               "examples": [],
               "scope": "global"
             },
@@ -151,7 +199,15 @@
               "schema": "input EditPayerWalletInput {\n    rpc: String\n    chainName: String\n    chainId: String\n    address: String\n}",
               "template": "",
               "reducer": "",
-              "errors": [],
+              "errors": [
+                {
+                  "id": "e10c0000-0000-4000-8000-000000000007",
+                  "name": "PayerWalletNotEditableError",
+                  "code": "PAYER_WALLET_NOT_EDITABLE",
+                  "description": "Rejected because the invoice status does not permit content edits. Only DRAFT and REJECTED invoices may be edited.",
+                  "template": ""
+                }
+              ],
               "examples": [],
               "scope": "global"
             }
@@ -169,7 +225,15 @@
               "schema": "input AddLineItemInput {\n    id: OID!\n    description: String!\n    taxPercent: Float!\n    quantity: Float!\n    currency: String!\n    unitPriceTaxExcl: Float!\n    unitPriceTaxIncl: Float!\n    totalPriceTaxExcl: Float!\n    totalPriceTaxIncl: Float!\n}",
               "template": "",
               "reducer": "",
-              "errors": [],
+              "errors": [
+                {
+                  "id": "e10c0000-0000-4000-8000-000000000008",
+                  "name": "LineItemNotAddableError",
+                  "code": "LINE_ITEM_NOT_ADDABLE",
+                  "description": "Rejected because the invoice status does not permit content edits. Only DRAFT and REJECTED invoices may be edited.",
+                  "template": ""
+                }
+              ],
               "examples": [],
               "scope": "global"
             },
@@ -180,7 +244,15 @@
               "schema": "input DeleteLineItemInput {\n  id: OID!\n}",
               "template": "",
               "reducer": "",
-              "errors": [],
+              "errors": [
+                {
+                  "id": "e10c0000-0000-4000-8000-000000000010",
+                  "name": "LineItemNotDeletableError",
+                  "code": "LINE_ITEM_NOT_DELETABLE",
+                  "description": "Rejected because the invoice status does not permit content edits. Only DRAFT and REJECTED invoices may be edited.",
+                  "template": ""
+                }
+              ],
               "examples": [],
               "scope": "global"
             },
@@ -191,7 +263,15 @@
               "schema": "input EditLineItemInput {\n    id: OID!\n    description: String\n    taxPercent: Float\n    quantity: Float\n    currency: String\n    unitPriceTaxExcl: Float\n    unitPriceTaxIncl: Float\n    totalPriceTaxExcl: Float\n    totalPriceTaxIncl: Float\n}",
               "template": "",
               "reducer": "",
-              "errors": [],
+              "errors": [
+                {
+                  "id": "e10c0000-0000-4000-8000-000000000009",
+                  "name": "LineItemNotEditableError",
+                  "code": "LINE_ITEM_NOT_EDITABLE",
+                  "description": "Rejected because the invoice status does not permit content edits. Only DRAFT and REJECTED invoices may be edited.",
+                  "template": ""
+                }
+              ],
               "examples": [],
               "scope": "global"
             },
@@ -369,8 +449,16 @@
               "description": "",
               "schema": "input SetTimeTrackingReportInput {\n  timeTrackingReport: AttachmentRef\n}",
               "template": "",
-              "reducer": "state.timeTrackingReport = action.input.timeTrackingReport ?? null;",
-              "errors": [],
+              "reducer": "if (![\"DRAFT\", \"REJECTED\"].includes(state.status)) {\n  throw new TimeTrackingReportNotEditableError(\n    `Cannot change the time tracking report while the invoice is ${state.status}; only DRAFT and REJECTED invoices may be edited`,\n  );\n}\nstate.timeTrackingReport = action.input.timeTrackingReport ?? null;",
+              "errors": [
+                {
+                  "id": "e10c0000-0000-4000-8000-000000000012",
+                  "name": "TimeTrackingReportNotEditableError",
+                  "code": "TIME_TRACKING_REPORT_NOT_EDITABLE",
+                  "description": "Rejected because the invoice status does not permit content edits. Only DRAFT and REJECTED invoices may be edited.",
+                  "template": ""
+                }
+              ],
               "examples": [],
               "scope": "global"
             },
@@ -380,8 +468,16 @@
               "description": "",
               "schema": "input SetBaseInvoiceInput {\n  baseInvoice: AttachmentRef\n}",
               "template": "",
-              "reducer": "state.baseInvoice = action.input.baseInvoice ?? null;",
-              "errors": [],
+              "reducer": "if (![\"DRAFT\", \"REJECTED\"].includes(state.status)) {\n  throw new BaseInvoiceNotEditableError(\n    `Cannot change the base invoice while the invoice is ${state.status}; only DRAFT and REJECTED invoices may be edited`,\n  );\n}\nstate.baseInvoice = action.input.baseInvoice ?? null;",
+              "errors": [
+                {
+                  "id": "e10c0000-0000-4000-8000-000000000011",
+                  "name": "BaseInvoiceNotEditableError",
+                  "code": "BASE_INVOICE_NOT_EDITABLE",
+                  "description": "Rejected because the invoice status does not permit content edits. Only DRAFT and REJECTED invoices may be edited.",
+                  "template": ""
+                }
+              ],
               "examples": [],
               "scope": "global"
             },
@@ -391,8 +487,16 @@
               "description": "",
               "schema": "input AddLineItemReceiptInput {\n  lineItemId: OID!\n  receipt: AttachmentRef!\n}",
               "template": "",
-              "reducer": "const item = state.lineItems.find((x) => x.id === action.input.lineItemId);\nif (!item) {\n  throw new Error(\"Line item matching input.lineItemId not found\");\n}\nif (!item.receipts.includes(action.input.receipt)) {\n  item.receipts.push(action.input.receipt);\n}",
-              "errors": [],
+              "reducer": "if (![\"DRAFT\", \"REJECTED\"].includes(state.status)) {\n  throw new ReceiptNotAddableError(\n    `Cannot attach a receipt while the invoice is ${state.status}; only DRAFT and REJECTED invoices may be edited`,\n  );\n}\nconst item = state.lineItems.find((x) => x.id === action.input.lineItemId);\nif (!item) {\n  throw new Error(\"Line item matching input.lineItemId not found\");\n}\nif (!item.receipts.includes(action.input.receipt)) {\n  item.receipts.push(action.input.receipt);\n}",
+              "errors": [
+                {
+                  "id": "e10c0000-0000-4000-8000-000000000013",
+                  "name": "ReceiptNotAddableError",
+                  "code": "RECEIPT_NOT_ADDABLE",
+                  "description": "Rejected because the invoice status does not permit content edits. Only DRAFT and REJECTED invoices may be edited.",
+                  "template": ""
+                }
+              ],
               "examples": [],
               "scope": "global"
             },
@@ -402,8 +506,16 @@
               "description": "",
               "schema": "input RemoveLineItemReceiptInput {\n  lineItemId: OID!\n  receipt: AttachmentRef!\n}",
               "template": "",
-              "reducer": "const item = state.lineItems.find((x) => x.id === action.input.lineItemId);\nif (!item) {\n  throw new Error(\"Line item matching input.lineItemId not found\");\n}\nitem.receipts = (item.receipts ?? []).filter((r) => r !== action.input.receipt);",
-              "errors": [],
+              "reducer": "if (![\"DRAFT\", \"REJECTED\"].includes(state.status)) {\n  throw new ReceiptNotRemovableError(\n    `Cannot remove a receipt while the invoice is ${state.status}; only DRAFT and REJECTED invoices may be edited`,\n  );\n}\nconst item = state.lineItems.find((x) => x.id === action.input.lineItemId);\nif (!item) {\n  throw new Error(\"Line item matching input.lineItemId not found\");\n}\nitem.receipts = (item.receipts ?? []).filter((r) => r !== action.input.receipt);",
+              "errors": [
+                {
+                  "id": "e10c0000-0000-4000-8000-000000000014",
+                  "name": "ReceiptNotRemovableError",
+                  "code": "RECEIPT_NOT_REMOVABLE",
+                  "description": "Rejected because the invoice status does not permit content edits. Only DRAFT and REJECTED invoices may be edited.",
+                  "template": ""
+                }
+              ],
               "examples": [],
               "scope": "global"
             }

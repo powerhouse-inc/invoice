@@ -1,4 +1,7 @@
 import type { InvoiceGeneralOperations } from "document-models/invoice/v1";
+import {
+  InvoiceNotEditableError,
+} from "../../gen/general/error.js";
 
 /**
  * Converts a date string to ISO datetime format if it's not already in that format
@@ -14,8 +17,20 @@ function ensureDatetimeFormat(
   return `${dateStr}T00:00:00.000Z`;
 }
 
+/**
+ * Statuses in which invoice *content* may still be edited. Workflow operations
+ * (status transitions, payments, accounting tags) are deliberately not gated —
+ * they are how an issued invoice progresses.
+ */
+const EDITABLE_STATUSES: string[] = ["DRAFT", "REJECTED"];
+
 export const invoiceGeneralOperations: InvoiceGeneralOperations = {
   editInvoiceOperation(state, action) {
+    if (!EDITABLE_STATUSES.includes(state.status)) {
+      throw new InvoiceNotEditableError(
+        `Cannot edit invoice details while the invoice is ${state.status}; only DRAFT and REJECTED invoices may be edited`,
+      );
+    }
     const newState = { ...state };
 
     newState.currency = action.input.currency ?? state.currency;

@@ -21,7 +21,8 @@ import {
   Select,
 } from "@powerhousedao/document-engineering/ui";
 import { focusNextOnEnter, toInputWarnings } from "./utils/inputHelpers.js";
-import { canEditAttachments } from "./utils/attachmentPermissions.js";
+import { canEditInvoice } from "./utils/invoicePermissions.js";
+import { ReadOnlyRegion } from "./components/readOnlyRegion.js";
 import ConfirmationModal from "./components/confirmationModal.js";
 import {
   ClosePaymentModalContent,
@@ -72,9 +73,11 @@ export default function Editor() {
   // The stored base-invoice attachment ref (null when none attached). Drives the
   // "Upload File" ↔ "View Uploaded Invoice" button and persists across reloads.
   const baseInvoiceRef = state?.baseInvoice ?? null;
-  // Attaching/replacing the base invoice is only offered while the invoice is
-  // still editable (DRAFT / REJECTED); an attached one stays viewable always.
-  const canAttach = state ? canEditAttachments(state.status) : false;
+  // Invoice content (fields, parties, line items, attachments) may only be
+  // changed while DRAFT/REJECTED. Workflow controls — status, payments,
+  // accounting tags, export — stay live in every status. Enforced for real by
+  // the reducers; this only avoids offering edits that would be rejected.
+  const canEdit = state ? canEditInvoice(state.status) : false;
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
 
@@ -357,7 +360,7 @@ export default function Editor() {
               <h1 className="text-3xl font-bold whitespace-nowrap text-foreground">
                 Invoice
               </h1>
-              <div className="min-w-[200px]">
+              <ReadOnlyRegion editable={canEdit} className="min-w-[200px]">
                 <TextInput
                   className="border-border"
                   placeholder={"Add invoice number"}
@@ -380,7 +383,7 @@ export default function Editor() {
                   warnings={toInputWarnings(validations.invoice)}
                   onKeyDown={focusNextOnEnter}
                 />
-              </div>
+              </ReadOnlyRegion>
 
               {/* Upload File  ↔  View Uploaded Invoice (once a base invoice is attached) */}
               {baseInvoiceRef ? (
@@ -411,7 +414,7 @@ export default function Editor() {
                     ></path>
                   </svg>
                 </button>
-              ) : canAttach ? (
+              ) : canEdit ? (
               <div className="relative" ref={uploadDropdown.ref}>
                 <button
                   onClick={uploadDropdown.toggle}
@@ -523,25 +526,28 @@ export default function Editor() {
 
             {/* Currency selector and Status */}
             <div className="flex flex-row items-center gap-4">
-              <Select
-                options={currencyList.map((c) => ({
-                  label: c.ticker,
-                  value: c.ticker,
-                }))}
-                value={state.currency}
-                placeholder="Currency"
-                searchable={false}
-                onChange={(value) =>
-                  handleCurrencyChange(
-                    (Array.isArray(value) ? value[0] : value) || "",
-                  )
-                }
-                warnings={toInputWarnings(validations.currency)}
-                className="w-32 text-foreground border-border"
-                contentClassName="bg-popover border border-border"
-              />
+              <ReadOnlyRegion editable={canEdit}>
+                <Select
+                  options={currencyList.map((c) => ({
+                    label: c.ticker,
+                    value: c.ticker,
+                  }))}
+                  value={state.currency}
+                  placeholder="Currency"
+                  searchable={false}
+                  onChange={(value) =>
+                    handleCurrencyChange(
+                      (Array.isArray(value) ? value[0] : value) || "",
+                    )
+                  }
+                  warnings={toInputWarnings(validations.currency)}
+                  className="w-32 text-foreground border-border"
+                  contentClassName="bg-popover border border-border"
+                />
+              </ReadOnlyRegion>
 
-              {/* Status on the right */}
+              {/* Status stays editable in every status — it is the workflow
+                  control that unlocks or locks everything else. */}
               <SelectField
                 options={STATUS_OPTIONS}
                 value={state.status}
@@ -564,6 +570,7 @@ export default function Editor() {
             <h3 className="text-lg font-semibold mb-4 text-foreground">
               Issuer
             </h3>
+            <ReadOnlyRegion editable={canEdit}>
             <div className="grid grid-cols-2 gap-4">
               <div className="mb-2 relative isolate">
                 <label className="block mb-1 text-sm text-foreground">
@@ -634,6 +641,7 @@ export default function Editor() {
               routingNumbervalidation={validations.routingNumber}
               accountNumbervalidation={validations.accountNumber}
             />
+            </ReadOnlyRegion>
           </div>
 
           {/* Payer Section */}
@@ -641,6 +649,7 @@ export default function Editor() {
             <h3 className="text-lg font-semibold mb-4 text-foreground">
               Payer
             </h3>
+            <ReadOnlyRegion editable={canEdit}>
             <div className="mb-2 w-64 relative isolate">
               <label className="block mb-1 text-sm text-foreground">
                 Due Date:
@@ -670,6 +679,7 @@ export default function Editor() {
               status={state.status}
               payeremailvalidation={validations.payerEmail}
             />
+            </ReadOnlyRegion>
           </div>
         </div>
 
@@ -706,18 +716,20 @@ export default function Editor() {
               <label className="mb-1 block text-sm font-medium text-foreground">
                 Notes
               </label>
-              <Textarea
-                placeholder="Add notes"
-                autoExpand={true}
-                rows={4}
-                multiline={true}
-                value={notesField.value}
-                onBlur={() => notesField.commit()}
-                onChange={(e) => {
-                  notesField.setValue(e.target.value);
-                }}
-                className="p-2 mb-4 text-foreground placeholder:text-muted-foreground border-border"
-              />
+              <ReadOnlyRegion editable={canEdit}>
+                <Textarea
+                  placeholder="Add notes"
+                  autoExpand={true}
+                  rows={4}
+                  multiline={true}
+                  value={notesField.value}
+                  onBlur={() => notesField.commit()}
+                  onChange={(e) => {
+                    notesField.setValue(e.target.value);
+                  }}
+                  className="p-2 mb-4 text-foreground placeholder:text-muted-foreground border-border"
+                />
+              </ReadOnlyRegion>
             </div>
           </div>
           <div>

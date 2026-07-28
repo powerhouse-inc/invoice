@@ -128,7 +128,10 @@
       "Bash(python3 - /tmp/claude-1000/-home-p-Powerhouse-demos-invoice/48f47483-c06b-4d71-874a-02e6745b60fb/tasks/wolwv20xc.output)",
       "Bash(python3 - /home/p/.claude/projects/-home-p-Powerhouse-demos-invoice/48f47483-c06b-4d71-874a-02e6745b60fb/subagents/workflows/wf_d39a7066-00c/journal.jsonl)",
       "Bash(curl -s -m 20 \"https://registry.dev.vetra.io/@powerhousedao%2finvoice\")",
-      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\(' versions:',list\\(d.get\\('versions',{}\\)\\)\\); print\\(' latest:',d.get\\('dist-tags',{}\\).get\\('latest'\\)\\)\")"
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\(' versions:',list\\(d.get\\('versions',{}\\)\\)\\); print\\(' latest:',d.get\\('dist-tags',{}\\).get\\('latest'\\)\\)\")",
+      "Bash(git mv *)",
+      "Bash(inert)",
+      "Bash(echo \"=== does React 19 typing accept bare `inert`? ===\")"
     ],
     "additionalDirectories": [
       "/home/p/Powerhouse/powerhouse/packages/reactor/test/integration",

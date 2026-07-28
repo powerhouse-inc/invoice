@@ -5,7 +5,7 @@ import { actions, useSelectedInvoiceDocument } from "document-models/invoice";
 import { useFileUpload } from "../hooks/useFileUpload.js";
 import { useAttachmentViewer } from "../hooks/useAttachmentViewer.js";
 import { validatePdfUpload } from "../utils/pdfUpload.js";
-import { canEditAttachments } from "../utils/attachmentPermissions.js";
+import { canEditInvoice } from "../utils/invoicePermissions.js";
 import PDFReviewModal from "./PDFReviewModal.js";
 
 /**
@@ -23,7 +23,7 @@ export function TimeTrackingReportButton() {
 
   // Adding a report is frozen outside DRAFT/REJECTED; an already-attached
   // report stays viewable in every status.
-  const canEdit = canEditAttachments(document.state.global.status);
+  const canEdit = canEditInvoice(document.state.global.status);
 
   const toast = usePHToast();
   const { uploadFile, isUploading } = useFileUpload();

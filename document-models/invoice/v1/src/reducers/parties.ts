@@ -1,4 +1,12 @@
 import type { InvoicePartiesOperations } from "document-models/invoice/v1";
+import {
+  IssuerBankNotEditableError,
+  IssuerNotEditableError,
+  IssuerWalletNotEditableError,
+  PayerBankNotEditableError,
+  PayerNotEditableError,
+  PayerWalletNotEditableError,
+} from "../../gen/parties/error.js";
 
 function getStateValue<T>(
   input: T | undefined,
@@ -7,8 +15,20 @@ function getStateValue<T>(
   return input === undefined ? currentValue : input;
 }
 
+/**
+ * Statuses in which invoice *content* may still be edited. Workflow operations
+ * (status transitions, payments, accounting tags) are deliberately not gated —
+ * they are how an issued invoice progresses.
+ */
+const EDITABLE_STATUSES: string[] = ["DRAFT", "REJECTED"];
+
 export const invoicePartiesOperations: InvoicePartiesOperations = {
   editIssuerOperation(state, action) {
+    if (!EDITABLE_STATUSES.includes(state.status)) {
+      throw new IssuerNotEditableError(
+        `Cannot edit the issuer while the invoice is ${state.status}; only DRAFT and REJECTED invoices may be edited`,
+      );
+    }
     if (
       "address" in state.issuer &&
       ("city" in action.input ||
@@ -83,6 +103,11 @@ export const invoicePartiesOperations: InvoicePartiesOperations = {
     }
   },
   editIssuerBankOperation(state, action) {
+    if (!EDITABLE_STATUSES.includes(state.status)) {
+      throw new IssuerBankNotEditableError(
+        `Cannot edit the issuer bank details while the invoice is ${state.status}; only DRAFT and REJECTED invoices may be edited`,
+      );
+    }
     if (!state.issuer.paymentRouting) {
       state.issuer.paymentRouting = {
         bank: null,
@@ -217,6 +242,11 @@ export const invoicePartiesOperations: InvoicePartiesOperations = {
     };
   },
   editIssuerWalletOperation(state, action) {
+    if (!EDITABLE_STATUSES.includes(state.status)) {
+      throw new IssuerWalletNotEditableError(
+        `Cannot edit the issuer wallet while the invoice is ${state.status}; only DRAFT and REJECTED invoices may be edited`,
+      );
+    }
     if (!state.issuer.paymentRouting) {
       state.issuer.paymentRouting = {
         bank: null,
@@ -241,6 +271,11 @@ export const invoicePartiesOperations: InvoicePartiesOperations = {
     };
   },
   editPayerOperation(state, action) {
+    if (!EDITABLE_STATUSES.includes(state.status)) {
+      throw new PayerNotEditableError(
+        `Cannot edit the payer while the invoice is ${state.status}; only DRAFT and REJECTED invoices may be edited`,
+      );
+    }
     if (
       "address" in state.payer &&
       ("city" in action.input ||
@@ -315,6 +350,11 @@ export const invoicePartiesOperations: InvoicePartiesOperations = {
     }
   },
   editPayerBankOperation(state, action) {
+    if (!EDITABLE_STATUSES.includes(state.status)) {
+      throw new PayerBankNotEditableError(
+        `Cannot edit the payer bank details while the invoice is ${state.status}; only DRAFT and REJECTED invoices may be edited`,
+      );
+    }
     if (!state.payer.paymentRouting) {
       state.payer.paymentRouting = {
         bank: null,
@@ -449,6 +489,11 @@ export const invoicePartiesOperations: InvoicePartiesOperations = {
     };
   },
   editPayerWalletOperation(state, action) {
+    if (!EDITABLE_STATUSES.includes(state.status)) {
+      throw new PayerWalletNotEditableError(
+        `Cannot edit the payer wallet while the invoice is ${state.status}; only DRAFT and REJECTED invoices may be edited`,
+      );
+    }
     if (!state.payer.paymentRouting) {
       state.payer.paymentRouting = {
         bank: null,

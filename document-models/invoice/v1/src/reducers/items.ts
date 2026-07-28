@@ -4,9 +4,26 @@ import type {
   InvoiceState,
   InvoiceTag,
 } from "../../gen/schema/types.js";
+import {
+  LineItemNotAddableError,
+  LineItemNotDeletableError,
+  LineItemNotEditableError,
+} from "../../gen/items/error.js";
+
+/**
+ * Statuses in which invoice *content* may still be edited. Workflow operations
+ * (status transitions, payments, accounting tags) are deliberately not gated —
+ * they are how an issued invoice progresses.
+ */
+const EDITABLE_STATUSES: string[] = ["DRAFT", "REJECTED"];
 
 export const invoiceItemsOperations: InvoiceItemsOperations = {
   addLineItemOperation(state, action) {
+    if (!EDITABLE_STATUSES.includes(state.status)) {
+      throw new LineItemNotAddableError(
+        `Cannot add a line item while the invoice is ${state.status}; only DRAFT and REJECTED invoices may be edited`,
+      );
+    }
     const item: InvoiceLineItem = {
       ...action.input,
       lineItemTag: [],
@@ -22,6 +39,11 @@ export const invoiceItemsOperations: InvoiceItemsOperations = {
   },
 
   editLineItemOperation(state, action) {
+    if (!EDITABLE_STATUSES.includes(state.status)) {
+      throw new LineItemNotEditableError(
+        `Cannot edit a line item while the invoice is ${state.status}; only DRAFT and REJECTED invoices may be edited`,
+      );
+    }
     const stateItem = state.lineItems.find((x) => x.id === action.input.id);
     if (!stateItem) throw new Error("Item matching input.id not found");
 
@@ -46,6 +68,11 @@ export const invoiceItemsOperations: InvoiceItemsOperations = {
   },
 
   deleteLineItemOperation(state, action) {
+    if (!EDITABLE_STATUSES.includes(state.status)) {
+      throw new LineItemNotDeletableError(
+        `Cannot delete a line item while the invoice is ${state.status}; only DRAFT and REJECTED invoices may be edited`,
+      );
+    }
     state.lineItems = state.lineItems.filter((x) => x.id !== action.input.id);
     updateTotals(state);
   },

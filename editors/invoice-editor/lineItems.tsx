@@ -3,6 +3,7 @@ import {
   type DeleteLineItemInput,
   type EditInvoiceInput,
   type InvoiceTag,
+  useSelectedInvoiceDocument,
 } from "document-models/invoice";
 import { forwardRef, useState, useRef, type Dispatch } from "react";
 import { Tag } from "lucide-react";
@@ -13,6 +14,7 @@ import { LineItemTagsTable } from "./lineItemTags/lineItemTags.js";
 import { LineItemsEmptyState } from "./components/lineItemsEmptyState.js";
 import { TimeTrackingReportButton } from "./components/timeTrackingReportButton.js";
 import { LineItemReceiptButton } from "./components/lineItemReceiptButton.js";
+import { canEditInvoice } from "./utils/invoicePermissions.js";
 import { formatNumber, type EditingItemOverlay } from "./utils/utils.js";
 import { useEditableLineItem } from "./hooks/useEditableLineItem.js";
 
@@ -175,6 +177,10 @@ export function LineItemsTable({
   paymentAccounts,
 }: LineItemsTableProps) {
   const toast = usePHToast();
+  // Line items are invoice content: add/edit/delete freeze outside
+  // DRAFT/REJECTED. "Manage Tags" and the receipt viewer stay available.
+  const [invoiceDocument] = useSelectedInvoiceDocument();
+  const canEdit = canEditInvoice(invoiceDocument.state.global.status);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [showTagTable, setShowTagTable] = useState(false);
@@ -278,14 +284,16 @@ export function LineItemsTable({
               <Tag className="w-4 h-4" />
               <span>Manage Tags</span>
             </button>
-            <button
-              type="button"
-              disabled={isAddingNew}
-              onClick={handleAddClick}
-              className="inline-flex items-center h-10 px-4 rounded bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Add Line Item
-            </button>
+            {canEdit && (
+              <button
+                type="button"
+                disabled={isAddingNew}
+                onClick={handleAddClick}
+                className="inline-flex items-center h-10 px-4 rounded bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Add Line Item
+              </button>
+            )}
           </div>
         </div>
 
@@ -443,18 +451,25 @@ export function LineItemsTable({
                       <td className="border-b border-border p-3 table-cell">
                         <div className="flex items-center justify-center space-x-2">
                           <LineItemReceiptButton lineItemId={item.id} />
-                          <button
-                            className="rounded bg-primary px-2 py-0.5 text-xs text-primary-foreground hover:bg-primary/90"
-                            onClick={() => setEditingId(item.id)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="rounded bg-destructive px-2 py-0.5 text-xs text-destructive-foreground hover:bg-destructive/90"
-                            onClick={() => onDeleteItem({ id: item.id })}
-                          >
-                            Delete
-                          </button>
+                          {/* Hidden outright rather than shown disabled:
+                              there is no path to editing a line item in a
+                              locked status, so an inert button is just noise. */}
+                          {canEdit && (
+                            <>
+                              <button
+                                className="rounded bg-primary px-2 py-0.5 text-xs text-primary-foreground hover:bg-primary/90"
+                                onClick={() => setEditingId(item.id)}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                className="rounded bg-destructive px-2 py-0.5 text-xs text-destructive-foreground hover:bg-destructive/90"
+                                onClick={() => onDeleteItem({ id: item.id })}
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
