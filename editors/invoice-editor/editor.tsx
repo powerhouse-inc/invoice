@@ -21,6 +21,7 @@ import {
   Select,
 } from "@powerhousedao/document-engineering/ui";
 import { focusNextOnEnter, toInputWarnings } from "./utils/inputHelpers.js";
+import { canEditAttachments } from "./utils/attachmentPermissions.js";
 import ConfirmationModal from "./components/confirmationModal.js";
 import {
   ClosePaymentModalContent,
@@ -71,6 +72,9 @@ export default function Editor() {
   // The stored base-invoice attachment ref (null when none attached). Drives the
   // "Upload File" ↔ "View Uploaded Invoice" button and persists across reloads.
   const baseInvoiceRef = state?.baseInvoice ?? null;
+  // Attaching/replacing the base invoice is only offered while the invoice is
+  // still editable (DRAFT / REJECTED); an attached one stays viewable always.
+  const canAttach = state ? canEditAttachments(state.status) : false;
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
 
@@ -407,7 +411,7 @@ export default function Editor() {
                     ></path>
                   </svg>
                 </button>
-              ) : (
+              ) : canAttach ? (
               <div className="relative" ref={uploadDropdown.ref}>
                 <button
                   onClick={uploadDropdown.toggle}
@@ -461,7 +465,7 @@ export default function Editor() {
                   </div>
                 )}
               </div>
-              )}
+              ) : null}
 
               {/* Export Dropdown Button */}
               <div className="relative" ref={exportDropdown.ref}>

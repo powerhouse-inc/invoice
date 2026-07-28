@@ -5,6 +5,7 @@ import { actions, useSelectedInvoiceDocument } from "document-models/invoice";
 import { useFileUpload } from "../hooks/useFileUpload.js";
 import { useAttachmentViewer } from "../hooks/useAttachmentViewer.js";
 import { validatePdfUpload } from "../utils/pdfUpload.js";
+import { canEditAttachments } from "../utils/attachmentPermissions.js";
 import PDFReviewModal from "./PDFReviewModal.js";
 
 /**
@@ -19,6 +20,10 @@ import PDFReviewModal from "./PDFReviewModal.js";
 export function TimeTrackingReportButton() {
   const [document, dispatch] = useSelectedInvoiceDocument();
   const timeTrackingReport = document.state.global.timeTrackingReport;
+
+  // Adding a report is frozen outside DRAFT/REJECTED; an already-attached
+  // report stays viewable in every status.
+  const canEdit = canEditAttachments(document.state.global.status);
 
   const toast = usePHToast();
   const { uploadFile, isUploading } = useFileUpload();
@@ -73,7 +78,7 @@ export function TimeTrackingReportButton() {
             {viewer.isLoading ? "Loading…" : "View Time Tracking Report"}
           </span>
         </button>
-      ) : (
+      ) : canEdit ? (
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
@@ -83,15 +88,17 @@ export function TimeTrackingReportButton() {
           <FileClock className="w-4 h-4" />
           <span>{isUploading ? "Uploading…" : "Add Time Tracking Report"}</span>
         </button>
-      )}
+      ) : null}
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="application/pdf"
-        className="hidden"
-        onChange={handleFile}
-      />
+      {canEdit && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/pdf"
+          className="hidden"
+          onChange={handleFile}
+        />
+      )}
 
       {/* Read-only preview of the stored time tracking report */}
       <PDFReviewModal

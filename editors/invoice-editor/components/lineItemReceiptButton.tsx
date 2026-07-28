@@ -5,6 +5,7 @@ import { actions, useSelectedInvoiceDocument } from "document-models/invoice";
 import { useFileUpload, type AttachmentRef } from "../hooks/useFileUpload.js";
 import { useAttachmentViewer } from "../hooks/useAttachmentViewer.js";
 import { validateReceiptUpload } from "../utils/pdfUpload.js";
+import { canEditAttachments } from "../utils/attachmentPermissions.js";
 import { formatNumber } from "../utils/utils.js";
 import { AttachmentViewerModal } from "./attachmentViewerModal.js";
 
@@ -14,6 +15,11 @@ import { AttachmentViewerModal } from "./attachmentViewerModal.js";
  * - No receipt yet → a paperclip icon that uploads a PDF/JPEG/PNG/GIF and stores
  *   it on the line item via `addLineItemReceipt`.
  * - Receipt attached → an eye icon that opens a read-only preview (image or PDF).
+ *
+ * Both attaching and removing additionally require an invoice status that still
+ * permits attachment edits (`DRAFT` / `REJECTED` — see `canEditAttachments`).
+ * In every other status this renders the eye icon alone, or nothing when the
+ * line item has no receipt.
  *
  * `allowAttach` (default true) also distinguishes the two placements:
  * - Display row (`allowAttach` true): paperclip to attach, eye to view. No
@@ -40,6 +46,10 @@ export function LineItemReceiptButton({
   );
   const receipts = lineItem?.receipts ?? [];
   const receipt = receipts[0] ?? null;
+
+  // Attaching and removing are frozen once the invoice leaves DRAFT/REJECTED;
+  // viewing an already-attached receipt stays available in every status.
+  const canEdit = canEditAttachments(document.state.global.status);
 
   // Shown in the viewer header so the receipt can be checked against the doc.
   const receiptTitle = lineItem
@@ -110,7 +120,7 @@ export function LineItemReceiptButton({
         >
           <Eye className="w-5 h-5" />
         </button>
-      ) : allowAttach ? (
+      ) : allowAttach && canEdit ? (
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
@@ -122,7 +132,7 @@ export function LineItemReceiptButton({
         </button>
       ) : null}
 
-      {allowAttach && (
+      {allowAttach && canEdit && (
         <input
           ref={fileInputRef}
           type="file"
@@ -138,7 +148,9 @@ export function LineItemReceiptButton({
         mimeType={viewer.mimeType}
         fileName={receiptTitle}
         subtitle={receiptSubtitle}
-        onRemove={receipt && !allowAttach ? handleRemove : undefined}
+        onRemove={
+          receipt && !allowAttach && canEdit ? handleRemove : undefined
+        }
         onClose={viewer.close}
       />
     </>
