@@ -76,14 +76,14 @@
   "devDependencies": {
     "@electric-sql/pglite": "0.3.15",
     "@electric-sql/pglite-tools": "0.2.20",
-    "@powerhousedao/connect": "6.2.1",
-    "@powerhousedao/design-system": "6.2.1",
+    "@powerhousedao/connect": "6.2.2-dev.29",
+    "@powerhousedao/design-system": "6.2.2-dev.29",
     "@powerhousedao/document-engineering": "^1.40.5",
-    "@powerhousedao/ph-cli": "6.2.1",
-    "@powerhousedao/reactor": "6.2.1",
-    "@powerhousedao/reactor-attachments": "6.2.1",
-    "@powerhousedao/reactor-browser": "6.2.1",
-    "@powerhousedao/shared": "6.2.1",
+    "@powerhousedao/ph-cli": "6.2.2-dev.29",
+    "@powerhousedao/reactor": "6.2.2-dev.29",
+    "@powerhousedao/reactor-attachments": "6.2.2-dev.29",
+    "@powerhousedao/reactor-browser": "6.2.2-dev.29",
+    "@powerhousedao/shared": "6.2.2-dev.29",
     "@tailwindcss/cli": "^4.1.18",
     "@tailwindcss/vite": "^4.1.18",
     "@types/node": "^24.9.2",
@@ -91,7 +91,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "4.1.1",
-    "document-model": "6.2.1",
+    "document-model": "6.2.2-dev.29",
     "graphql": "16.12.0",
     "graphql-tag": "2.12.6",
     "oxfmt": "0.55.0",
@@ -107,9 +107,9 @@
     "zod": "4.3.6"
   },
   "peerDependencies": {
-    "@powerhousedao/reactor-attachments": "6.2.1",
-    "@powerhousedao/reactor-browser": "6.2.1",
-    "document-model": "6.2.1",
+    "@powerhousedao/reactor-attachments": "6.2.2-dev.29",
+    "@powerhousedao/reactor-browser": "6.2.2-dev.29",
+    "document-model": "6.2.2-dev.29",
     "graphql": "^16",
     "graphql-tag": "^2",
     "react": "^19",
@@ -127,5 +127,7 @@
     "tailwind-merge": "^3.6.0",
     "unpdf": "^1.6.2",
     "world-countries": "^5.1.0"
-  }
+  },
+  "readme": "ERROR: No README data found!",
+  "_id": "@powerhousedao/invoice@1.0.4-dev"
 }

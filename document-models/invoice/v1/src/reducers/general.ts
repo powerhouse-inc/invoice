@@ -1,7 +1,5 @@
 import type { InvoiceGeneralOperations } from "document-models/invoice/v1";
-import {
-  InvoiceNotEditableError,
-} from "../../gen/general/error.js";
+import { InvoiceNotEditableError } from "../../gen/general/error.js";
 
 /**
  * Converts a date string to ISO datetime format if it's not already in that format
