@@ -1,1 +1,1 @@
-export { module as Invoice } from "./invoice/index.js";
+export { Invoice as InvoiceV1 } from "./invoice/v1/module.js";

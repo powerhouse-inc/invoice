@@ -1,10 +1,10 @@
+
 dist
 coverage
 node_modules
-
 .env.local
-
+*.tsbuildinfo
+.env
 .ph
 projects-import.js
-.env
-keyFile.json
+.superpowers
